@@ -1,0 +1,8 @@
+# 本地部署工具（含个人令牌调用逻辑，不进仓库）
+deploy.js
+
+# WorkBuddy 项目数据 / 本地环境
+.workbuddy/
+node_modules/
+*.log
+.DS_Store
