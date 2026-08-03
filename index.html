@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>中医芳香理疗知识库</title>
+<style>
+  :root{
+    --bg:#f4f7f5; --panel:#ffffff; --ink:#2b3a34; --muted:#6b7d74;
+    --line:#e2eae5; --accent:#2f8f6f; --accent-soft:#e6f3ee; --warn:#b5651d;
+    --chip:#eef4f1; --shadow:0 2px 10px rgba(40,70,60,.08);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.6;}
+  header{background:linear-gradient(135deg,#2f8f6f,#3fa97f);color:#fff;padding:18px 22px;}
+  header h1{margin:0;font-size:20px;font-weight:700;letter-spacing:.5px;}
+  header p{margin:4px 0 0;font-size:12.5px;opacity:.92;}
+  .wrap{max-width:1080px;margin:0 auto;padding:16px;}
+  .tabs{display:flex;gap:8px;margin:14px 0;border-bottom:2px solid var(--line);flex-wrap:wrap;}
+  .tab{padding:9px 16px;cursor:pointer;border-radius:8px 8px 0 0;font-size:14px;color:var(--muted);font-weight:600;}
+  .tab.active{color:var(--accent);background:var(--accent-soft);}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px;}
+  input[type=text],select,textarea{font-family:inherit;font-size:14px;color:var(--ink);
+    border:1px solid var(--line);border-radius:8px;padding:9px 11px;background:#fff;outline:none;}
+  input[type=text]:focus,select:focus,textarea:focus{border-color:var(--accent);}
+  .search{flex:1;min-width:240px;}
+  .syschips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 14px;}
+  .schip{padding:5px 11px;border-radius:20px;background:var(--chip);font-size:12.5px;cursor:pointer;color:var(--muted);border:1px solid transparent;}
+  .schip.active{background:var(--accent);color:#fff;}
+  .cloud{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;}
+  .tag{padding:4px 10px;background:#fff;border:1px solid var(--line);border-radius:16px;font-size:12px;color:var(--muted);cursor:pointer;}
+  .tag:hover{border-color:var(--accent);color:var(--accent);}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px;box-shadow:var(--shadow);}
+  .card h3{margin:0 0 4px;font-size:16px;color:var(--ink);}
+  .meta{font-size:12px;color:var(--muted);margin-bottom:6px;}
+  .badge{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:6px;padding:2px 8px;font-size:11.5px;margin-right:6px;}
+  .sym{display:inline-block;background:#f0f4f2;border-radius:6px;padding:2px 8px;font-size:11.5px;margin:3px 4px 0 0;color:#48615a;}
+  .match{color:var(--accent);font-weight:700;}
+  .oils-line{font-size:13px;color:#3c514a;margin-top:4px;}
+  .btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13.5px;cursor:pointer;font-weight:600;}
+  .btn.ghost{background:#fff;color:var(--accent);border:1px solid var(--accent);}
+  .btn.sm{padding:5px 10px;font-size:12.5px;}
+  .btn.warn{background:var(--warn);}
+  .detail{font-size:13.5px;}
+  .detail dl{margin:8px 0;display:grid;grid-template-columns:84px 1fr;gap:4px 10px;}
+  .detail dt{color:var(--muted);font-weight:600;}
+  .detail dd{margin:0;}
+  .blend{background:var(--accent-soft);border-radius:8px;padding:8px 10px;font-size:13px;margin:4px 0;}
+  .caution{border-left:3px solid var(--warn);background:#fff7ef;padding:8px 10px;border-radius:0 8px 8px 0;font-size:12.5px;color:#7a4a16;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;}
+  .oil{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;}
+  .oil h4{margin:0 0 4px;font-size:14.5px;}
+  .xingwei{font-size:12px;color:var(--accent);font-weight:600;}
+  .oil p{margin:5px 0;font-size:12.5px;color:#44544d;}
+  .oil .zy{color:var(--warn);font-size:11.5px;}
+  .modal{position:fixed;inset:0;background:rgba(20,40,32,.45);display:none;align-items:flex-start;justify-content:center;padding:30px 12px;overflow:auto;z-index:50;}
+  .modal.show{display:flex;}
+  .sheet{background:#fff;border-radius:14px;max-width:640px;width:100%;padding:20px;box-shadow:0 12px 40px rgba(0,0,0,.2);}
+  .sheet h2{margin:0 0 12px;font-size:18px;}
+  .formrow{margin-bottom:11px;}
+  .formrow label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:3px;font-weight:600;}
+  .formrow input,.formrow select,.formrow textarea{width:100%;}
+  textarea{resize:vertical;min-height:46px;}
+  .form2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;}
+  .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px;flex-wrap:wrap;}
+  .disclaimer{background:#fff7ef;border:1px solid #f3d9bf;color:#7a4a16;font-size:12.5px;padding:10px 12px;border-radius:10px;margin-bottom:12px;}
+  .empty{text-align:center;color:var(--muted);padding:40px;font-size:14px;}
+  .count{font-size:12.5px;color:var(--muted);margin-bottom:8px;}
+  .liblist .row{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .liblist .row .ops{display:flex;gap:6px;}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  @media(max-width:560px){.form2{grid-template-columns:1fr;}.detail dl{grid-template-columns:72px 1fr;}}
+
+  /* 脉诊模块 */
+  .pulsecards{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:10px;margin:8px 0 14px;}
+  .pulse-hands{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0 6px;}
+  .hand-box{border:2px solid #ccc;border-radius:10px;padding:10px 10px 6px;}
+  .hand-left{border-color:#e3604a;background:#fff6f4;}
+  .hand-right{border-color:#3f9d6d;background:#f1faf4;}
+  .hand-title{font-weight:700;font-size:13px;margin-bottom:2px;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;}
+  .hand-left .hand-title{color:#c8432c;}
+  .hand-right .hand-title{color:#2f7d54;}
+  .hand-sub{font-size:11px;color:#9aa;font-weight:400;}
+  @media(max-width:560px){.pulse-hands{grid-template-columns:1fr;}}
+  .pulsecard{border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;background:#fff;transition:.15s;}
+  .pulsecard:hover{border-color:var(--accent);}
+  .pulsecard.sel{background:var(--accent-soft);border-color:var(--accent);box-shadow:var(--shadow);}
+  .pulsecard h4{margin:0 0 4px;font-size:15px;}
+  .pulsecard .pf{font-size:11.5px;color:var(--muted);}
+  .pulsecard .pz{font-size:12px;color:#48615a;margin-top:4px;}
+  .pulse-summary{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:12px;line-height:1.7;}
+  .srcbox{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:12px;font-size:12.5px;color:var(--muted);}
+  .srcbox summary{cursor:pointer;font-weight:600;color:var(--accent);font-size:13px;}
+  .srcbox ol{margin:8px 0 0;padding-left:18px;}
+  .srcbox li{margin:5px 0;line-height:1.6;}
+  .srcbadge{display:inline-block;background:#eef4f1;border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-size:11px;color:#48615a;margin-left:6px;}
+  .oildiv{border:none;border-top:1px dashed var(--line);margin:8px 0;}
+  .oil p{margin:3px 0;line-height:1.5;}
+
+  /* 脉象示意图 */
+  .psvg{display:block;width:100%;height:auto;background:#f7faf8;border:1px solid var(--line);border-radius:8px;margin:6px 0 1px;}
+  .pulselabel{font-size:10px;color:#9aa;text-align:center;margin-bottom:2px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>🌿 中医芳香理疗知识库</h1>
+  <p>辨证 · 脉诊 · 精油性味归经 · 对症配方自动推荐　|　输入症状/体质，或选择脉象，自动弹出精油配方</p>
+</header>
+
+<div class="wrap">
+  <div class="disclaimer">
+    ⚠️ 本知识库为中医芳香疗法辅助养生参考，基于性味归经与公开资料整理，<b>不替代医疗诊断与治疗</b>。
+    孕妇、婴幼儿、癫痫、哮喘及慢性病患者使用前请咨询专业芳疗师/中医师。首次使用请做手腕过敏测试。
+  </div>
+
+  <details class="srcbox" id="srcbox">
+    <summary>📖 资料来源 / 出处标注说明（点击展开）</summary>
+    <div id="srcboxBody"></div>
+  </details>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="search">🔍 智能配方</div>
+    <div class="tab" data-tab="pulse">💓 脉诊辨证</div>
+    <div class="tab" data-tab="oils">🧪 精油档案</div>
+    <div class="tab" data-tab="hydro">💧 纯露档案</div>
+    <div class="tab" data-tab="lib">📚 我的库</div>
+  </div>
+
+  <!-- 智能配方 -->
+  <section id="tab-search">
+    <div class="toolbar">
+      <input type="text" id="q" class="search" placeholder="输入症状 / 证型 / 体质 / 精油，如：失眠 焦虑、痛经、脾胃虚寒、祛湿…" />
+      <button class="btn" onclick="runSearch()">搜索配方</button>
+      <button class="btn ghost sm" onclick="clearSearch()">清空</button>
+    </div>
+    <div class="syschips" id="syschips"></div>
+    <div class="hint" style="margin:-8px 0 10px;">快捷症状（点击填入搜索）：</div>
+    <div class="cloud" id="cloud"></div>
+
+    <!-- 初学者：智能配方页内即可按脉象找配方 -->
+    <div class="card" style="background:var(--accent-soft);border-color:#bfe3d4;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+        <strong style="color:var(--accent)">💓 初学者：按症状 + 脉象找配方</strong>
+        <span class="hint" style="margin:0">先在上方症状框填症状/证型，再分左右手勾选脉象（红=左手 / 绿=右手）；<b>每只手仅选一种</b>（再次点同一个可取消）。<b>只选一侧即视为双手同脉</b>。点推荐需<b>同时</b>有症状与脉象。</span>
+      </div>
+      <div class="pulse-hands">
+        <div class="hand-box hand-left">
+          <div class="hand-title">✋ 左手（红框）<span class="hand-sub">寸·心｜关·肝｜尺·肾</span></div>
+          <div class="pulsecards" id="searchPulseCardsL" style="margin:6px 0 0"></div>
+        </div>
+        <div class="hand-box hand-right">
+          <div class="hand-title">🤚 右手（绿框）<span class="hand-sub">寸·肺｜关·脾｜尺·肾(命门)</span></div>
+          <div class="pulsecards" id="searchPulseCardsR" style="margin:6px 0 0"></div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <button class="btn" onclick="runSearchPulse()">🔎 按症状+脉象推荐配方</button>
+        <button class="btn ghost sm" onclick="clearPulseSelection()">清空选择</button>
+      </div>
+      <div class="pulse-summary" id="searchPulseSummary" style="display:none;"></div>
+      <div class="count" id="searchPulseCount"></div>
+      <div id="searchPulseResults"></div>
+    </div>
+
+    <div class="count" id="count"></div>
+    <div id="results"></div>
+  </section>
+
+  <!-- 精油档案 -->
+  <section id="tab-oils" style="display:none;">
+    <div class="toolbar">
+      <input type="text" id="oilq" class="search" placeholder="搜精油（名称/功效/归经）…" />
+      <button class="btn" onclick="renderOils()">搜索</button>
+    </div>
+    <div class="grid" id="oilgrid"></div>
+  </section>
+
+  <!-- 纯露档案 -->
+  <section id="tab-hydro" style="display:none;">
+    <div class="hint" style="margin-bottom:8px;">纯露（Hydrosol／花水）为精油蒸馏萃取时留下的蒸馏水，性质温和、可直接喷敷，是《芳香疗法学》第二章第四节（p104）的独立内容。字段格式与精油档案对齐。</div>
+    <div class="toolbar">
+      <input type="text" id="hydq" class="search" placeholder="搜纯露（名称/功效/气味）…" />
+      <button class="btn" onclick="renderHydro()">搜索</button>
+    </div>
+    <div class="grid" id="hydrogrid"></div>
+  </section>
+
+  <!-- 我的库 -->
+  <section id="tab-lib" style="display:none;">
+    <div class="toolbar">
+      <button class="btn" onclick="openForm()">＋ 添加配方</button>
+      <button class="btn ghost" onclick="exportDB()">⬇ 导出 JSON</button>
+      <button class="btn ghost" onclick="importDB()">⬆ 导入 JSON</button>
+      <button class="btn warn ghost" onclick="resetDB()">↺ 恢复初始库</button>
+      <input type="file" id="fileIn" accept=".json" style="display:none" onchange="handleImport(event)" />
+    </div>
+    <div class="hint" style="margin-bottom:10px;">「我的库」中的所有改动保存在本机浏览器（localStorage）。导入会覆盖当前库；恢复初始库将清除你的修改并回到内置底库。</div>
+    <div id="liblist" class="liblist"></div>
+  </section>
+
+  <!-- 脉诊辨证 -->
+  <section id="tab-pulse" style="display:none;">
+    <div class="hint" style="margin-bottom:8px;">分左右手勾选脉象（红=左手 / 绿=右手）；<b>每只手仅选一种</b>（再次点同一个可取消）；<b>只选一侧即视为双手同脉</b>。下方可填症状/证型（与『智能配方』顶部症状框同步），点推荐需<b>同时</b>有症状与脉象。系统按中医「脉 → 证 → 方」推断并推荐配方。外部把脉项目可调用 <code>AROMA_pulseRecommend(['弦脉','迟脉'])</code> 直接取得推荐配方。</div>
+    <div class="toolbar">
+      <input type="text" id="pulseSym" class="search" placeholder="结合症状 / 证型（可选，与『智能配方』顶部症状框同步）" oninput="document.getElementById('q').value=this.value;" />
+    </div>
+    <div class="pulse-hands">
+      <div class="hand-box hand-left">
+        <div class="hand-title">✋ 左手（红框）<span class="hand-sub">寸·心｜关·肝｜尺·肾</span></div>
+        <div class="pulsecards" id="pulseCardsL" style="margin:6px 0 0"></div>
+      </div>
+      <div class="hand-box hand-right">
+        <div class="hand-title">🤚 右手（绿框）<span class="hand-sub">寸·肺｜关·脾｜尺·肾(命门)</span></div>
+        <div class="pulsecards" id="pulseCardsR" style="margin:6px 0 0"></div>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button class="btn" onclick="runPulse()">🔎 按症状+脉象推荐配方</button>
+      <button class="btn ghost sm" onclick="clearPulseSelection()">清空选择</button>
+    </div>
+    <div class="pulse-summary" id="pulseSummary" style="display:none;"></div>
+    <div class="count" id="pulsecount"></div>
+    <div id="pulseResults"></div>
+  </section>
+</div>
+
+<!-- 详情弹窗 -->
+<div class="modal" id="modal">
+  <div class="sheet" id="modalBody"></div>
+</div>
+
+<!-- 编辑/添加弹窗 -->
+<div class="modal" id="formModal">
+  <div class="sheet">
+    <h2 id="formTitle">添加配方</h2>
+    <div class="form2">
+      <div class="formrow"><label>配方名称 *</label><input type="text" id="f_name" /></div>
+      <div class="formrow"><label>系统分类 *</label><input type="text" id="f_system" list="syslist" placeholder="如：安神情志" /><datalist id="syslist"></datalist></div>
+    </div>
+    <div class="formrow"><label>适用证型 / 体质</label><input type="text" id="f_pattern" placeholder="如：肝郁气滞、心肝火旺（压力型失眠）" /></div>
+    <div class="formrow"><label>关键词 / 症状（逗号分隔，用于搜索）</label><input type="text" id="f_sym" placeholder="失眠,焦虑,烦躁,压力大" /></div>
+    <div class="formrow"><label>辨证思路</label><textarea id="f_ratio" placeholder="为何这样组方…"></textarea></div>
+    <div class="form2">
+      <div class="formrow"><label>基础油</label><input type="text" id="f_carrier" placeholder="甜杏仁油 10ml" /></div>
+      <div class="formrow"><label>建议浓度</label><input type="text" id="f_conc" placeholder="2-3%" /></div>
+    </div>
+    <div class="formrow"><label>使用方法</label><textarea id="f_method" placeholder="香薰 / 按摩 / 泡浴 / 穴位…"></textarea></div>
+    <div class="formrow"><label>穴位（可选）</label><input type="text" id="f_acu" placeholder="三阴交、涌泉、八髎" /></div>
+    <div class="formrow"><label>禁忌 / 注意</label><textarea id="f_caution" placeholder="孕妇忌用…"></textarea></div>
+    <div class="formrow"><label>资料来源 / 出处（可选）</label><input type="text" id="f_source" placeholder="如：《芳香疗法学》Pxx 第二章；或 通用芳疗知识" /></div>
+    <div class="formrow"><label>精油与角色（每行：精油名|角色）</label>
+      <textarea id="f_oils" placeholder="真实薰衣草|君—疏肝安神&#10;乳香|臣—宁心定志"></textarea></div>
+    <div class="formrow"><label>配方配比（每行：精油名|滴数）</label>
+      <textarea id="f_blend" placeholder="真实薰衣草|3&#10;乳香|2&#10;檀香|2"></textarea></div>
+    <div class="actions">
+      <button class="btn ghost" onclick="closeForm()">取消</button>
+      <button class="btn" onclick="saveForm()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+(function(){
+  "use strict";
+  var LS_KEY="aroma_db_v1";
+  var db={formulas:[],oils:[]};
+  try{
+    var saved=localStorage.getItem(LS_KEY);
+    if(saved){ db=JSON.parse(saved); }
+    else { db=JSON.parse(JSON.stringify(window.AROMA_BASE)); }
+  }catch(e){ db=JSON.parse(JSON.stringify(window.AROMA_BASE)); }
+
+  function save(){ try{ localStorage.setItem(LS_KEY,JSON.stringify(db)); }catch(e){ console.warn("本地存储不可用（可能为 file:// 限制），本次改动仅当前会话有效。",e); } }
+  window.__db=db; window.__save=save;
+
+  // 兼容旧存档：补齐脉诊与来源元数据
+  if(!db.pulses || !db.pulses.length) db.pulses = (window.AROMA_BASE && window.AROMA_BASE.pulses) ? window.AROMA_BASE.pulses : [];
+  if(!db.meta) db.meta = window.AROMA_BASE.meta;
+  else if(!db.meta.sources) db.meta.sources = window.AROMA_BASE.meta.sources;
+
+  var DEFAULT_SOURCE = (db.meta && db.meta.sourceDefault) ? db.meta.sourceDefault : "通用芳疗知识（未标注具体出处）";
+  function srcOf(entry){
+    if(!entry) return DEFAULT_SOURCE;
+    if(entry.page && String(entry.page).trim()){
+      // 书本出处：优先显示《芳香疗法学》+ 页码
+      return "《芳香疗法学》" + entry.page.trim();
+    }
+    if(entry.source && String(entry.source).trim()) return entry.source.trim();
+    return DEFAULT_SOURCE;
+  }
+
+  var curSys="全部";
+  var curQuery="";
+
+  /* ---- 分词 ---- */
+  function tokenize(q){
+    q=(q||"").trim();
+    if(!q) return [];
+    var cleaned=q.replace(/[，,、；;。.+\/\\|（）()【】\[\]""''：:]/g," ");
+    var parts=cleaned.split(/\s+/).filter(Boolean);
+    return parts;
+  }
+
+  function scoreFormula(f,tokens){
+    if(!tokens.length) return 1;
+    var hay=[
+      f.name,f.system,f.tcmPattern,f.constitution,(f.symptoms||[]).join(" "),
+      (f.oils||[]).map(function(o){return o.name+" "+(o.role||"");}).join(" "),
+      f.rationale||""
+    ].join(" ").toLowerCase();
+    var score=0;
+    tokens.forEach(function(t){
+      var tt=t.toLowerCase();
+      if(hay.indexOf(tt)>=0) score+=1;
+      // 症状精确命中加权
+      (f.symptoms||[]).forEach(function(s){ if(s.toLowerCase().indexOf(tt)>=0) score+=1; });
+    });
+    return score;
+  }
+
+  function systems(){
+    var s={}; db.formulas.forEach(function(f){ s[f.system]=1; });
+    return Object.keys(s);
+  }
+
+  function renderSysChips(){
+    var box=document.getElementById("syschips");
+    var arr=["全部"].concat(systems());
+    box.innerHTML="";
+    arr.forEach(function(s){
+      var el=document.createElement("span");
+      el.className="schip"+(s===curSys?" active":"");
+      el.textContent=s;
+      el.onclick=function(){ curSys=s; renderSysChips(); runSearch(); };
+      box.appendChild(el);
+    });
+  }
+
+  function renderCloud(){
+    var all={};
+    db.formulas.forEach(function(f){ (f.symptoms||[]).forEach(function(s){ all[s]=(all[s]||0)+1; }); });
+    var keys=Object.keys(all).sort(function(a,b){return all[b]-all[a];});
+    keys=keys.slice(0,40);
+    var box=document.getElementById("cloud");
+    box.innerHTML="";
+    keys.forEach(function(k){
+      var el=document.createElement("span");
+      el.className="tag"; el.textContent=k;
+      el.onclick=function(){
+        var inp=document.getElementById("q");
+        var v=inp.value.trim();
+        inp.value=v? v+" "+k : k;
+        runSearch();
+      };
+      box.appendChild(el);
+    });
+  }
+
+  function highlight(text,tokens){
+    if(!tokens.length) return escapeHtml(text);
+    var safe=escapeHtml(text);
+    tokens.forEach(function(t){
+      if(!t) return;
+      var re=new RegExp("("+t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")","gi");
+      safe=safe.replace(re,'<span class="match">$1</span>');
+    });
+    return safe;
+  }
+  function escapeHtml(s){ return (s||"").replace(/[&<>"]/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m];}); }
+
+  function runSearch(){
+    var q=document.getElementById("q").value;
+    curQuery=q;
+    var tokens=tokenize(q);
+    var list=db.formulas.filter(function(f){ return curSys==="全部"||f.system===curSys; });
+    var scored=list.map(function(f){ return {f:f,s:scoreFormula(f,tokens)}; })
+                   .filter(function(x){ return tokens.length? x.s>0 : true; });
+    if(tokens.length) scored.sort(function(a,b){ return b.s-a.s; });
+    var box=document.getElementById("results");
+    var count=document.getElementById("count");
+    box.innerHTML="";
+    if(!scored.length){ box.innerHTML='<div class="empty">没有匹配的配方，换个关键词试试，或到「我的库」添加。</div>'; count.textContent=""; return; }
+    count.textContent="共 "+scored.length+" 条"+(tokens.length?("（按相关度排序）"):"");
+    scored.forEach(function(x){
+      var f=x.f;
+      var card=document.createElement("div");
+      card.className="card";
+      var sym=(f.symptoms||[]).slice(0,10).map(function(s){return '<span class="sym">'+highlight(s,tokens)+'</span>';}).join("");
+      var oils=(f.oils||[]).map(function(o){return o.name;}).join("、");
+      card.innerHTML=
+        '<h3>'+highlight(f.name,tokens)+'</h3>'+
+        '<div class="meta"><span class="badge">'+escapeHtml(f.system)+'</span>'+(f.tcmPattern?highlight(f.tcmPattern,tokens):"")+'</div>'+
+        '<div class="oils-line">精油：'+highlight(oils,tokens)+'</div>'+
+        (sym?'<div style="margin-top:6px">'+sym+'</div>':"")+
+        '<div style="margin-top:10px"><button class="btn sm" onclick="openDetail(\''+f.id+'\')">查看完整配方 ▸</button></div>';
+      box.appendChild(card);
+    });
+  }
+
+  function clearSearch(){
+    document.getElementById("q").value=""; curQuery=""; curSys="全部";
+    renderSysChips(); runSearch();
+  }
+  window.runSearch=runSearch; window.clearSearch=clearSearch;
+
+  function openDetail(id){
+    var f=db.formulas.find(function(x){return x.id===id;});
+    if(!f) return;
+    var oilsHtml=(f.oils||[]).map(function(o){
+      return "<dt>"+escapeHtml(o.name)+"</dt><dd>"+escapeHtml(o.role||"")+"</dd>";
+    }).join("");
+    var blendHtml=(f.blend&&f.blend.length)?
+      (f.blend.map(function(b){return escapeHtml(b.oil)+" "+b.drops+"滴";}).join(" ＋ ")):"";
+    var sym=(f.symptoms||[]).map(function(s){return '<span class="sym">'+escapeHtml(s)+'</span>';}).join("");
+    var body=document.getElementById("modalBody");
+    body.innerHTML=
+      '<h2>'+escapeHtml(f.name)+'</h2>'+
+      '<div class="meta"><span class="badge">'+escapeHtml(f.system)+'</span>'+escapeHtml(f.tcmPattern||"")+'</div>'+
+      '<div class="detail" style="margin-top:4px"><b>来源：</b><span class="srcbadge">'+escapeHtml(srcOf(f))+'</span></div>'+
+      (f.constitution?'<div class="detail"><b>适用体质：</b>'+escapeHtml(f.constitution)+'</div>':"")+
+      '<div class="detail"><b>辨证思路：</b>'+escapeHtml(f.rationale||"")+'</div>'+
+      (sym?'<div style="margin:6px 0">'+sym+'</div>':"")+
+      '<div class="detail" style="margin-top:8px"><dl>'+oilsHtml+'</dl></div>'+
+      (blendHtml?'<div class="blend"><b>配方：</b>'+blendHtml+'<br><b>基础油：</b>'+escapeHtml(f.carrier||"—")+'　<b>浓度：</b>'+escapeHtml(f.concentration||"—")+'</div>':"")+
+      '<div class="detail"><dl>'+
+        '<dt>用法</dt><dd>'+escapeHtml(f.method||"—")+'</dd>'+
+        (f.acupoints&&f.acupoints!=="—"?'<dt>穴位</dt><dd>'+escapeHtml(f.acupoints)+'</dd>':"")+
+      '</dl></div>'+
+      (f.caution?'<div class="caution"><b>禁忌 / 注意：</b>'+escapeHtml(f.caution)+'</div>':"")+
+      '<div class="actions"><button class="btn" onclick="closeModal()">关闭</button>'+
+      '<button class="btn ghost" onclick="editFromDetail(\''+f.id+'\')">编辑</button></div>';
+    document.getElementById("modal").classList.add("show");
+  }
+  window.openDetail=openDetail;
+
+  function closeModal(){ document.getElementById("modal").classList.remove("show"); }
+  window.closeModal=closeModal;
+  window.editFromDetail=function(id){ closeModal(); openForm(id); };
+
+  /* ---- 精油档案 ---- */
+  function renderOils(){
+    var q=(document.getElementById("oilq").value||"").trim().toLowerCase();
+    var list=db.oils.filter(function(o){
+      if(!q) return true;
+      var hay=(o.name+o.gongxiao+o.guijing+o.xing+o.wei+(o.latin||"")+(o.family||"")+(o.part||"")+(o.extract||"")+(o.aroma||"")+(o.body||"")+(o.skin||"")+(o.mind||"")).toLowerCase();
+      return hay.indexOf(q)>=0;
+    });
+    var grid=document.getElementById("oilgrid");
+    grid.innerHTML="";
+    if(!list.length){ grid.innerHTML='<div class="empty">未找到精油</div>'; return; }
+    list.forEach(function(o){
+      var el=document.createElement("div");
+      el.className="oil";
+      var L=function(k,v){ return v?('<p><b>'+k+'：</b>'+escapeHtml(v)+'</p>'):''; };
+      var tcm=(o.xing||o.wei||o.guijing||o.gongxiao||o.xitong);
+      el.innerHTML='<h4>'+escapeHtml(o.name)+(o.book===false?' <span style="font-size:11px;color:#fff;background:#e0992b;padding:1px 6px;border-radius:8px;vertical-align:middle">补充·非本书</span>':'')+'</h4>'+
+        ((o.xing||o.wei)?'<div class="xingwei">性 '+escapeHtml(o.xing||"")+' ｜ 味 '+escapeHtml(o.wei||"")+'</div>':'')+
+        L('归经',o.guijing)+
+        L('功效',o.gongxiao)+
+        (o.xitong?L('常用',o.xitong):'')+
+        (tcm?'<p style="color:#b07a1f;font-size:11px;margin:2px 0">※ 性味归经/功效/常用为中医芳疗补充标注，非《芳香疗法学》原文</p>':'')+
+        '<hr class="oildiv"/>'+
+        L('拉丁学名',o.latin)+
+        L('植物科属',o.family)+
+        L('萃取部位',o.part)+
+        L('萃取方法',o.extract)+
+        L('气味',o.aroma)+
+        L('身体作用',o.body)+
+        L('皮肤作用',o.skin)+
+        L('心理作用',o.mind)+
+        (o.zhuyi?'<p class="zy">⚠ '+escapeHtml(o.zhuyi)+'</p>':"")+
+        '<p style="color:#9aa;font-size:11px">📖 '+escapeHtml(srcOf(o))+'</p>';
+      grid.appendChild(el);
+    });
+  }
+  window.renderOils=renderOils;
+
+  /* ---- 纯露档案 ---- */
+  function renderHydro(){
+    var q=(document.getElementById("hydq").value||"").trim().toLowerCase();
+    var list=(db.hydrosols||[]).filter(function(h){
+      if(!q) return true;
+      var hay=(h.name+(h.source||"")+(h.page||"")+(h.gongxiao||"")+(h.changyong||"")+(h.xing||"")+(h.guijing||"")+(h.latin||"")+(h.family||"")+(h.part||"")+(h.extract||"")+(h.aroma||"")+(h.body||"")+(h.skin||"")+(h.mind||"")+(h.use||"")+(h.stability||"")+(h.pH||"")+(h.zhuyi||"")+(h.xitong||"")).toLowerCase();
+      return hay.indexOf(q)>=0;
+    });
+    var grid=document.getElementById("hydrogrid");
+    grid.innerHTML="";
+    if(!list.length){ grid.innerHTML='<div class="empty">未找到纯露</div>'; return; }
+    list.forEach(function(h){
+      var el=document.createElement("div");
+      el.className="oil";
+      var L=function(k,v){ return v?('<p><b>'+k+'：</b>'+escapeHtml(v)+'</p>'):''; };
+      el.innerHTML='<h4>'+escapeHtml(h.name)+'</h4>'+
+        (h.xing||h.guijing?'<div class="xingwei">性 '+escapeHtml(h.xing||"")+' ｜ 归经 '+escapeHtml(h.guijing||"")+'</div>':'')+
+        L('功效',h.gongxiao)+
+        L('常用',h.changyong)+
+        L('来源植物',h.source)+
+        '<hr class="oildiv"/>'+
+        (h.pH?'<p><b>纯露 pH 值：</b>'+escapeHtml(h.pH)+'</p>':'')+
+        L('拉丁学名',h.latin)+
+        L('植物科属',h.family)+
+        L('来源植物部位',h.part)+
+        L('萃取方式',h.extract)+
+        L('香气与口感',h.aroma)+
+        L('稳定性与保存期限',h.stability)+
+        L('皮肤作用',h.skin)+
+        L('身体作用',h.body)+
+        L('心理作用',h.mind)+
+        L('使用方法',h.use)+
+        (h.zhuyi?'<p class="zy">⚠ '+escapeHtml(h.zhuyi)+'</p>':"")+
+        '<p style="color:#9aa;font-size:11px">📖 '+escapeHtml(srcOf(h))+'</p>';
+      grid.appendChild(el);
+    });
+  }
+  window.renderHydro=renderHydro;
+
+  /* ---- 脉诊辨证（左右手） ---- */
+  // 左手选择（红框）/ 右手选择（绿框）；只选一侧即视为双手同脉
+  var selectedLeft={};
+  var selectedRight={};
+  // 脉象波形示意图参数（初学者友好）：depth=浮/中/沉 取脉深度；shape=波形特征
+  var PULSE_WAVES={
+    "浮脉":{amp:20,freq:4,shape:"sine",depth:"浮"},
+    "沉脉":{amp:20,freq:4,shape:"sine",depth:"沉"},
+    "迟脉":{amp:22,freq:2.2,shape:"sine",depth:"中"},
+    "数脉":{amp:22,freq:7,shape:"sine",depth:"中"},
+    "虚脉":{amp:10,freq:4,shape:"soft",depth:"中"},
+    "实脉":{amp:30,freq:4,shape:"sine",depth:"中"},
+    "滑脉":{amp:20,freq:4,shape:"round",depth:"中"},
+    "涩脉":{amp:16,freq:4,shape:"jag",depth:"中"},
+    "弦脉":{amp:16,freq:3,shape:"flat",depth:"中"},
+    "细脉":{amp:8,freq:5,shape:"sine",depth:"中"},
+    "洪脉":{amp:32,freq:3,shape:"surge",depth:"中"},
+    "紧脉":{amp:18,freq:4,shape:"saw",depth:"中"},
+    "濡脉":{amp:11,freq:4,shape:"soft",depth:"浮"},
+    "缓脉":{amp:16,freq:3.5,shape:"sine",depth:"中"},
+    "促/结/代脉":{amp:18,freq:4,shape:"irregular",depth:"中"}
+  };
+  function pulseSvg(p){
+    var W=240,H=84,mid=46,leftPad=26,rightPad=4;
+    var m=PULSE_WAVES[p.name]||{amp:18,freq:4,shape:"sine",depth:"中"};
+    var amp=m.amp,freq=m.freq,shape=m.shape,depth=m.depth;
+    var pts=[];
+    function sineY(ph){
+      if(shape==="soft") return mid-amp*Math.sin(ph)*0.85;
+      if(shape==="round") return mid-amp*(0.5-0.5*Math.cos(ph)); // 滑：圆润如珠
+      if(shape==="flat"){ var s=Math.sin(ph); return mid-amp*(s>0?0.9:-0.22); } // 弦：端直如弦
+      if(shape==="saw"){ var f=(ph/(2*Math.PI))%1; if(f<0)f+=1; return mid-amp*(1-2*f); } // 紧：如牵绳转索
+      if(shape==="jag"){ var b=Math.sin(ph); var n=Math.sin(ph*1.7)*0.16+Math.sin(ph*0.9+1)*0.12; return mid-amp*(b*0.8+n); } // 涩：如轻刀刮竹
+      if(shape==="surge"){ var sv=Math.sin(ph); return mid-amp*(sv>=0?Math.pow(sv,0.55):sv*0.5); } // 洪：来盛去衰
+      return mid-amp*Math.sin(ph);
+    }
+    if(shape==="irregular"){
+      var beats=6,gap=(W-leftPad-rightPad)/(beats+1);
+      for(var i=0;i<=beats;i++){
+        var cx=(i+0.5)*gap+leftPad;
+        if(i===3) cx+=gap*0.7; // 代：止有定数（较长停顿）
+        var bw=gap*0.52,steps=8;
+        for(var s2=0;s2<=steps;s2++){
+          var xx=cx-bw/2+bw*(s2/steps);
+          var yy=mid-amp*Math.sin(Math.PI*(s2/steps));
+          pts.push([xx,yy]);
+        }
+      }
+    }else{
+      var N=120;
+      for(var i=0;i<=N;i++){
+        var x=leftPad+(W-leftPad-rightPad)*(i/N);
+        var ph=freq*2*Math.PI*((x-leftPad)/(W-leftPad-rightPad));
+        pts.push([x,sineY(ph)]);
+      }
+    }
+    pts=pts.map(function(pt){var y=Math.max(8,Math.min(H-6,pt[1]));return pt[0].toFixed(1)+","+y.toFixed(1);});
+    var depthY=depth==="浮"?20:depth==="沉"?70:46;
+    var svg='<svg class="psvg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" role="img" aria-label="'+escapeHtml(p.name)+'脉象示意图">';
+    svg+='<line x1="14" y1="20" x2="14" y2="70" stroke="#c9d6cf" stroke-width="1"/>';
+    svg+='<text x="14" y="15" font-size="8" fill="#9aa" text-anchor="middle">浮</text>';
+    svg+='<text x="14" y="83" font-size="8" fill="#9aa" text-anchor="middle">沉</text>';
+    svg+='<circle cx="14" cy="'+depthY+'" r="3.6" fill="#b5651d"/>';
+    svg+='<polyline points="'+pts.join(" ")+'" fill="none" stroke="#2f8f6f" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>';
+    svg+='</svg>';
+    svg+='<div class="pulselabel">取脉深度：'+depth+'（●标记）</div>';
+    return svg;
+  }
+
+  // 统一渲染左右手四组脉象卡（左/右手各自对应一个选择对象）
+  function renderPulseGrids(){
+    [
+      {sel:selectedLeft,  id:"pulseCardsL"},
+      {sel:selectedRight, id:"pulseCardsR"},
+      {sel:selectedLeft,  id:"searchPulseCardsL"},
+      {sel:selectedRight, id:"searchPulseCardsR"}
+    ].forEach(function(d){
+      var container=document.getElementById(d.id);
+      if(!container) return;
+      container.innerHTML="";
+      var pulses=(db.pulses||[]);
+      if(!pulses.length){ container.innerHTML='<div class="empty">暂无脉象数据</div>'; return; }
+      pulses.forEach(function(p){
+        var el=document.createElement("div");
+        el.className="pulsecard"+(d.sel[p.name]?" sel":"");
+        el.innerHTML='<h4>'+escapeHtml(p.name)+'</h4>'+
+          '<div class="pf">'+escapeHtml(p.feel||"")+'</div>'+
+          pulseSvg(p)+
+          '<div class="pz">主病：'+(p.zhubing||"")+'</div>';
+        el.onclick=function(){
+          var hand=d.sel;
+          if(hand[p.name]){ delete hand[p.name]; }      // 再次点同一个 = 取消
+          else { for(var k in hand) delete hand[k]; hand[p.name]=p; }  // 单选手：清掉同手其它，只留这一个
+          renderPulseGrids();
+        };
+        container.appendChild(el);
+      });
+    });
+  }
+  function renderPulse(){ renderPulseGrids(); }
+  window.renderPulse=renderPulse;
+
+  function pulseTokens(){
+    var toks=[];
+    [selectedLeft,selectedRight].forEach(function(sel){
+      Object.keys(sel).forEach(function(k){
+        var p=sel[k];
+        (p.tags||[]).forEach(function(t){ if(toks.indexOf(t)<0) toks.push(t); });
+      });
+    });
+    return toks;
+  }
+  function selectedPulseNames(){ return Object.keys(selectedLeft).concat(Object.keys(selectedRight)); }
+
+  function makeResultCard(f,tokens){
+    var card=document.createElement("div");
+    card.className="card";
+    var sym=(f.symptoms||[]).slice(0,10).map(function(s){return '<span class="sym">'+highlight(s,tokens)+'</span>';}).join("");
+    var oils=(f.oils||[]).map(function(o){return o.name;}).join("、");
+    card.innerHTML=
+      '<h3>'+highlight(f.name,tokens)+'</h3>'+
+      '<div class="meta"><span class="badge">'+escapeHtml(f.system)+'</span>'+(f.tcmPattern?highlight(f.tcmPattern,tokens):"")+'</div>'+
+      '<div class="oils-line">精油：'+highlight(oils,tokens)+'</div>'+
+      (sym?'<div style="margin-top:6px">'+sym+'</div>':"")+
+      '<div style="margin-top:10px"><button class="btn sm" onclick="openDetail(\''+f.id+'\')">查看完整配方 ▸</button></div>';
+    return card;
+  }
+  window.makeResultCard=makeResultCard;
+
+  // 脉诊区推荐：必须「症状(上方框) + 脉象(左右手)」同时命中（AND），单症状不再单独出配方
+  function renderPulseRecommend(summaryEl, resultsEl, countEl){
+    var q=document.getElementById("q").value.trim();
+    var symToks=tokenize(q);
+    var pulseNames=selectedPulseNames();
+    var ptoks=pulseTokens();
+    // 校验：症状与脉象二者缺一不可
+    if(!q && !pulseNames.length){
+      summaryEl.style.display="block";
+      summaryEl.innerHTML='<span class="hint">请先在上方症状框填写症状/证型，并至少勾选一种脉象（分左右手红/绿框），再点推荐。</span>';
+      resultsEl.innerHTML=""; countEl.textContent=""; return;
+    }
+    if(!q){
+      summaryEl.style.display="block";
+      summaryEl.innerHTML='<span class="hint">⚠ 请先在上方症状框填写症状/证型（如：失眠 焦虑、痛经、脾胃虚寒），再结合脉象推荐。</span>';
+      resultsEl.innerHTML=""; countEl.textContent=""; return;
+    }
+    if(!pulseNames.length){
+      summaryEl.style.display="block";
+      summaryEl.innerHTML='<span class="hint">⚠ 请至少勾选一种脉象（左手红框 / 右手绿框），再结合症状推荐。</span>';
+      resultsEl.innerHTML=""; countEl.textContent=""; return;
+    }
+    // 双手同脉提示
+    var lk=Object.keys(selectedLeft), rk=Object.keys(selectedRight);
+    var handNote="";
+    if(lk.length && !rk.length) handNote="（仅选左手 → 视为双手同脉："+lk.join("、")+"）";
+    else if(rk.length && !lk.length) handNote="（仅选右手 → 视为双手同脉："+rk.join("、")+"）";
+    else if(lk.length && rk.length) handNote="（左手："+lk.join("、")+"；右手："+rk.join("、")+"）";
+    var zhubing=pulseNames.map(function(k){ return (selectedLeft[k]||selectedRight[k]).zhubing||k; });
+    summaryEl.style.display="block";
+    summaryEl.innerHTML='<b>症状/证型：</b>'+escapeHtml(q)+'<br><b>所选脉象：</b>'+pulseNames.join("、")+handNote+'<br><b>推断可能涉及：</b>'+zhubing.join("；")+'<br><span class="hint">（下方配方需<b>同时</b>命中「症状」与「脉象」关键词，按综合相关度排序）</span>';
+    // 评分：症状与脉象都需贡献（AND）
+    var toks=symToks.concat(ptoks);
+    var scored=db.formulas.map(function(f){
+      var sSym=scoreFormula(f, symToks);
+      var sPulse=scoreFormula(f, ptoks);
+      return {f:f, sSym:sSym, sPulse:sPulse, s:sSym+sPulse};
+    }).filter(function(x){ return x.sSym>0 && x.sPulse>0; })
+      .sort(function(a,b){ return b.s-a.s; });
+    resultsEl.innerHTML="";
+    if(!scored.length){ resultsEl.innerHTML='<div class="empty">没有同时命中症状与脉象的配方，可调整症状词或脉象组合，或到「我的库」补充</div>'; countEl.textContent=""; return; }
+    countEl.textContent="共推荐 "+scored.length+" 条配方（同时命中症状+脉象，显示前 12 条）";
+    scored.slice(0,12).forEach(function(x){ resultsEl.appendChild(makeResultCard(x.f,toks)); });
+  }
+  function runPulse(){
+    renderPulseRecommend(document.getElementById("pulseSummary"), document.getElementById("pulseResults"), document.getElementById("pulsecount"));
+  }
+  window.runPulse=runPulse;
+  function runSearchPulse(){
+    renderPulseRecommend(document.getElementById("searchPulseSummary"), document.getElementById("searchPulseResults"), document.getElementById("searchPulseCount"));
+  }
+  window.runSearchPulse=runSearchPulse;
+
+  function clearPulseSelection(){
+    selectedLeft={}; selectedRight={};
+    renderPulseGrids();
+    ["pulseSummary","pulseResults","pulsecount","searchPulseSummary","searchPulseResults","searchPulseCount"].forEach(function(id){
+      var el=document.getElementById(id); if(!el) return;
+      if(id.indexOf("Summary")>=0) el.style.display="none";
+      else if(id.indexOf("count")>=0) el.textContent="";
+      else el.innerHTML="";
+    });
+  }
+  window.clearPulseSelection=clearPulseSelection;
+
+  // 供外部「把脉项目」调用：传入脉象名称数组；可选第二参数 symptomsText（症状/证型），
+  // 若提供则按「症状 + 脉象」交集返回推荐配方（按匹配度降序）；不提供则仅按脉象返回
+  window.AROMA_pulseRecommend=function(pulseNames, symptomsText){
+    var map={}; (db.pulses||[]).forEach(function(p){ map[p.name]=p; });
+    var ptoks=[]; (pulseNames||[]).forEach(function(n){ var p=map[n]; if(p){ (p.tags||[]).forEach(function(t){ if(ptoks.indexOf(t)<0) ptoks.push(t); }); } });
+    var symToks=tokenize((symptomsText||"").trim());
+    var useSym=!!symToks.length;
+    return db.formulas.map(function(f){
+      var sPulse=scoreFormula(f, ptoks);
+      var sSym=useSym?scoreFormula(f, symToks):1;
+      var hit=useSym?(sSym>0 && sPulse>0):(sPulse>0);
+      return {formula:f, score:sSym+sPulse, _hit:hit};
+    }).filter(function(x){ return x._hit; })
+      .sort(function(a,b){ return b.score-a.score; })
+      .map(function(x){ return x.formula; });
+  };
+
+  /* ---- 资料来源面板 ---- */
+  function renderSrcBox(){
+    var box=document.getElementById("srcboxBody");
+    if(!box||!db.meta||!db.meta.sources) return;
+    var html='<p>当前底库版本 <b>'+escapeHtml(db.meta.version||"")+'</b>。为便于溯源与校对，每条精油/配方均标注「来源」；未单独标注具体出处的，默认归为下列综合来源，待与指定专著逐条对照。</p><ol>';
+    db.meta.sources.forEach(function(s){
+      html+='<li><b>'+escapeHtml(s.ref)+'</b> — '+(s.editor||"")+(s.publisher?('，'+s.publisher):"")+(s.year?('，'+s.year):"")+(s.isbn?('，ISBN '+s.isbn):"")+(s.note?('。'+s.note):"")+'</li>';
+    });
+    html+='</ol>';
+    box.innerHTML=html;
+  }
+  window.renderSrcBox=renderSrcBox;
+
+  /* ---- 我的库 ---- */
+  function renderLib(){
+    var box=document.getElementById("liblist");
+    box.innerHTML="";
+    if(!db.formulas.length){ box.innerHTML='<div class="empty">库为空</div>'; return; }
+    db.formulas.forEach(function(f){
+      var row=document.createElement("div");
+      row.className="card";
+      row.innerHTML=
+        '<div class="row"><div><b>'+escapeHtml(f.name)+'</b> <span class="badge">'+escapeHtml(f.system)+'</span></div>'+
+        '<div class="ops"><button class="btn ghost sm" onclick="openForm(\''+f.id+'\')">编辑</button>'+
+        '<button class="btn warn ghost sm" onclick="delFormula(\''+f.id+'\')">删除</button></div></div>';
+      box.appendChild(row);
+    });
+    // datalist for systems
+    var dl=document.getElementById("syslist");
+    dl.innerHTML=systems().map(function(s){return '<option value="'+escapeHtml(s)+'">';}).join("");
+  }
+  window.renderLib=renderLib;
+
+  var editingId=null;
+  function openForm(id){
+    editingId=id||null;
+    document.getElementById("formTitle").textContent=id?"编辑配方":"添加配方";
+    var f=id?db.formulas.find(function(x){return x.id===id;}):null;
+    function v(el,val){ document.getElementById(el).value=val||""; }
+    v("f_name",f&&f.name); v("f_system",f&&f.system); v("f_pattern",f&&f.tcmPattern);
+    v("f_sym",f&&(f.symptoms||[]).join(",")); v("f_ratio",f&&f.rationale);
+    v("f_carrier",f&&f.carrier); v("f_conc",f&&f.concentration); v("f_method",f&&f.method);
+    v("f_acu",f&&f.acupoints); v("f_caution",f&&f.caution); v("f_source",f&&f.source);
+    v("f_oils",f&&(f.oils||[]).map(function(o){return o.name+"|"+(o.role||"");}).join("\n"));
+    v("f_blend",f&&(f.blend||[]).map(function(b){return b.oil+"|"+b.drops;}).join("\n"));
+    document.getElementById("formModal").classList.add("show");
+  }
+  window.openForm=openForm;
+  function closeForm(){ document.getElementById("formModal").classList.remove("show"); }
+  window.closeForm=closeForm;
+
+  function parseLines(text,cb){
+    (text||"").split(/\n+/).map(function(l){return l.trim();}).filter(Boolean).forEach(cb);
+  }
+  function saveForm(){
+    var name=document.getElementById("f_name").value.trim();
+    var system=document.getElementById("f_system").value.trim();
+    if(!name||!system){ alert("请填写配方名称与系统分类"); return; }
+    var oils=[]; parseLines(document.getElementById("f_oils").value,function(l){
+      var p=l.split("|"); oils.push({name:(p[0]||"").trim(),role:(p[1]||"").trim()});
+    });
+    var blend=[]; parseLines(document.getElementById("f_blend").value,function(l){
+      var p=l.split("|"); var d=parseInt(p[1],10); if(isNaN(d))d=p[1];
+      blend.push({oil:(p[0]||"").trim(),drops:d});
+    });
+    var sym=document.getElementById("f_sym").value.split(/[,，]/).map(function(s){return s.trim();}).filter(Boolean);
+    var obj={
+      name:name, system:system,
+      tcmPattern:document.getElementById("f_pattern").value.trim(),
+      symptoms:sym,
+      constitution:"",
+      rationale:document.getElementById("f_ratio").value.trim(),
+      oils:oils,
+      blend:blend,
+      carrier:document.getElementById("f_carrier").value.trim(),
+      concentration:document.getElementById("f_conc").value.trim(),
+      method:document.getElementById("f_method").value.trim(),
+      acupoints:document.getElementById("f_acu").value.trim(),
+      caution:document.getElementById("f_caution").value.trim(),
+      source:document.getElementById("f_source").value.trim()
+    };
+    if(editingId){
+      var i=db.formulas.findIndex(function(x){return x.id===editingId;});
+      obj.id=editingId;
+      if(i>=0){ obj.constitution=db.formulas[i].constitution||""; db.formulas[i]=obj; } else db.formulas.push(obj);
+    }else{
+      obj.id="user-"+Date.now();
+      db.formulas.push(obj);
+    }
+    save(); closeForm(); renderLib(); renderSysChips(); renderCloud();
+    alert("已保存");
+  }
+  window.saveForm=saveForm;
+
+  function delFormula(id){
+    if(!confirm("确定删除该配方？")) return;
+    db.formulas=db.formulas.filter(function(x){return x.id!==id;});
+    save(); renderLib(); renderSysChips(); renderCloud();
+  }
+  window.delFormula=delFormula;
+
+  function exportDB(){
+    var blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"});
+    var a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="芳香理疗知识库_"+new Date().toISOString().slice(0,10)+".json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+  window.exportDB=exportDB;
+
+  function importDB(){ document.getElementById("fileIn").click(); }
+  window.importDB=importDB;
+  function handleImport(e){
+    var file=e.target.files[0]; if(!file) return;
+    var rd=new FileReader();
+    rd.onload=function(){
+      try{
+        var data=JSON.parse(rd.result);
+        if(!data.formulas||!data.oils) throw new Error("格式不正确");
+        db=data; save();
+        renderLib(); renderSysChips(); renderCloud(); renderOils();
+        alert("导入成功，共 "+data.formulas.length+" 条配方、"+data.oils.length+" 支精油");
+      }catch(err){ alert("导入失败："+err.message); }
+    };
+    rd.readAsText(file);
+    e.target.value="";
+  }
+  window.handleImport=handleImport;
+
+  function resetDB(){
+    if(!confirm("将清除你的所有修改并恢复到内置初始库，确定？")) return;
+    localStorage.removeItem(LS_KEY);
+    db=JSON.parse(JSON.stringify(window.AROMA_BASE));
+    save(); renderLib(); renderSysChips(); renderCloud(); renderOils();
+    alert("已恢复初始库");
+  }
+  window.resetDB=resetDB;
+
+  /* ---- tab 切换 ---- */
+  document.querySelectorAll(".tab").forEach(function(t){
+    t.onclick=function(){
+      document.querySelectorAll(".tab").forEach(function(x){x.classList.remove("active");});
+      t.classList.add("active");
+      var tab=t.getAttribute("data-tab");
+      document.getElementById("tab-search").style.display=tab==="search"?"block":"none";
+      document.getElementById("tab-pulse").style.display=tab==="pulse"?"block":"none";
+      document.getElementById("tab-oils").style.display=tab==="oils"?"block":"none";
+      document.getElementById("tab-hydro").style.display=tab==="hydro"?"block":"none";
+      document.getElementById("tab-lib").style.display=tab==="lib"?"block":"none";
+      if(tab==="oils") renderOils();
+      if(tab==="hydro") renderHydro();
+      if(tab==="lib") renderLib();
+      if(tab==="pulse") renderPulse();
+    };
+  });
+
+  // 点击弹窗外区域关闭
+  [["modal"],["formModal"]].forEach(function(m){
+    document.getElementById(m[0]).addEventListener("click",function(e){
+      if(e.target===this) this.classList.remove("show");
+    });
+  });
+  document.getElementById("q").addEventListener("keydown",function(e){ if(e.key==="Enter") runSearch(); });
+  document.getElementById("oilq").addEventListener("keydown",function(e){ if(e.key==="Enter") renderOils(); });
+  document.getElementById("hydq").addEventListener("keydown",function(e){ if(e.key==="Enter") renderHydro(); });
+
+  // 初始化
+  renderSysChips(); renderCloud(); runSearch(); renderSrcBox();
+  renderPulseGrids();
+
+  // 暴露给控制台调试
+  window.AROMA_DB=db;
+})();
+</script>
+</body>
+</html>
