@@ -3728,5 +3728,167 @@ window.AROMA_BASE = {
       ],
       "caution": "结代脉主脏气衰微，须结合心电图等检查"
     }
+  ],
+  "tongues": [
+    {
+      "name": "淡白舌",
+      "category": "舌色",
+      "feel": "舌色比正常浅淡，白多红少",
+      "zhubing": "虚寒证、气血两虚、阳虚",
+      "tags": ["虚寒","阳虚","气血两虚","血虚","气虚","面色苍白","乏力","畏寒"],
+      "viz": {"body":"#f7ecec","shape":"normal","coating":null,"marks":[]}
+    },
+    {
+      "name": "淡红舌（正常）",
+      "category": "舌色",
+      "feel": "舌淡红润泽，大小适中（健康对照）",
+      "zhubing": "正常舌象；若伴薄白苔则胃气充足",
+      "tags": ["正常","健康","薄白苔","胃气"],
+      "viz": {"body":"#f6c9c2","shape":"normal","coating":{"color":"#ededed","op":0.25,"type":"bao"},"marks":[]}
+    },
+    {
+      "name": "红舌",
+      "category": "舌色",
+      "feel": "舌色鲜红，甚于淡红",
+      "zhubing": "热证——实热或虚热（阴虚火旺）",
+      "tags": ["热","实热","阴虚火旺","上火","炎症","心烦","口疮"],
+      "viz": {"body":"#ef9a96","shape":"normal","coating":null,"marks":[]}
+    },
+    {
+      "name": "绛舌",
+      "category": "舌色",
+      "feel": "舌色深红（红中带暗）",
+      "zhubing": "热入营血、热盛伤阴；温病重候",
+      "tags": ["热盛","营血","血瘀","热毒","神昏","伤津"],
+      "viz": {"body":"#d9534f","shape":"normal","coating":null,"marks":[]}
+    },
+    {
+      "name": "青紫舌",
+      "category": "舌色",
+      "feel": "舌色青紫，或边尖有瘀斑",
+      "zhubing": "血瘀、寒凝、气滞血瘀",
+      "tags": ["血瘀","寒凝","气滞","面色暗","刺痛","经闭"],
+      "viz": {"body":"#9b6b8f","shape":"normal","coating":null,"marks":[]}
+    },
+    {
+      "name": "老舌",
+      "category": "舌形",
+      "feel": "舌体坚敛苍老，纹理粗糙",
+      "zhubing": "实证、热证",
+      "tags": ["实证","热","气郁","胀痛","便秘"],
+      "viz": {"body":"#f6c9c2","shape":"normal","coating":null,"marks":[]}
+    },
+    {
+      "name": "嫩舌",
+      "category": "舌形",
+      "feel": "舌体浮胖娇嫩，纹理细腻",
+      "zhubing": "虚证、虚寒",
+      "tags": ["虚证","虚寒","阳虚","浮肿","倦怠"],
+      "viz": {"body":"#f3d8d4","shape":"normal","coating":null,"marks":[]}
+    },
+    {
+      "name": "胖大齿痕舌",
+      "category": "舌形",
+      "feel": "舌体胖大、边有齿痕",
+      "zhubing": "脾虚、水湿、痰湿内停",
+      "tags": ["脾虚","痰湿","水湿","阳虚","齿痕","身重","腹胀"],
+      "viz": {"body":"#f3d6d2","shape":"pangda","coating":null,"marks":["chihen"]}
+    },
+    {
+      "name": "瘦薄舌",
+      "category": "舌形",
+      "feel": "舌体瘦小而薄",
+      "zhubing": "阴虚、血虚、气血两虚",
+      "tags": ["阴虚","血虚","气血两虚","瘦弱","口干"],
+      "viz": {"body":"#f6c9c2","shape":"thin","coating":null,"marks":[]}
+    },
+    {
+      "name": "裂纹舌",
+      "category": "舌形",
+      "feel": "舌面有纵横裂纹（先天或病理）",
+      "zhubing": "阴虚、血虚、热盛伤津",
+      "tags": ["阴虚","血虚","热盛","伤津","口干","五心烦热"],
+      "viz": {"body":"#f6c9c2","shape":"normal","coating":null,"marks":["liewen"]}
+    },
+    {
+      "name": "白苔",
+      "category": "苔色",
+      "feel": "苔色白（薄白或白厚）",
+      "zhubing": "表证、寒证、湿证",
+      "tags": ["表","寒","风寒","湿","痰白","恶寒"],
+      "viz": {"body":"#f6c9c2","shape":"normal","coating":{"color":"#ededed","op":0.4,"type":"bao"},"marks":[]}
+    },
+    {
+      "name": "黄苔",
+      "category": "苔色",
+      "feel": "苔色黄（淡黄→老黄）",
+      "zhubing": "热证、里热；黄腻主湿热",
+      "tags": ["热","里热","湿热","黄腻","口苦","苔黄"],
+      "viz": {"body":"#f6c9c2","shape":"normal","coating":{"color":"#e3c452","op":0.6,"type":"bao"},"marks":[]}
+    },
+    {
+      "name": "灰黑苔",
+      "category": "苔色",
+      "feel": "苔色灰黑（润者为寒极，燥者为热极）",
+      "zhubing": "寒极或热极；病情较重",
+      "tags": ["热极","寒极","里寒","里热","重病"],
+      "viz": {"body":"#f6c9c2","shape":"normal","coating":{"color":"#4a4a4a","op":0.7,"type":"hou"},"marks":[]}
+    },
+    {
+      "name": "薄苔",
+      "category": "苔质",
+      "feel": "苔薄如烟罩，透过苔见舌体",
+      "zhubing": "正常/表证；胃气未伤",
+      "tags": ["正常","表证","胃气","薄白"],
+      "viz": {"body":"#f6c9c2","shape":"normal","coating":{"color":"#ededed","op":0.22,"type":"bao"},"marks":[]}
+    },
+    {
+      "name": "厚苔",
+      "category": "苔质",
+      "feel": "苔厚腻，不能透过苔见舌体",
+      "zhubing": "里证、痰湿、饮食积滞",
+      "tags": ["里证","痰湿","积滞","厚腻","腹胀","食滞"],
+      "viz": {"body":"#f6c9c2","shape":"normal","coating":{"color":"#e6e6e6","op":0.72,"type":"hou"},"marks":[]}
+    },
+    {
+      "name": "腻苔",
+      "category": "苔质",
+      "feel": "苔黏腻致密，刮之难去",
+      "zhubing": "痰湿、湿热、湿浊内蕴",
+      "tags": ["痰湿","湿热","湿浊","腻","吐痰","胸闷"],
+      "viz": {"body":"#f6c9c2","shape":"normal","coating":{"color":"#e3c452","op":0.5,"type":"ni"},"marks":[]}
+    },
+    {
+      "name": "燥苔",
+      "category": "苔质",
+      "feel": "苔干燥少津，甚则裂",
+      "zhubing": "津液损伤、热盛伤津",
+      "tags": ["津伤","热盛","伤津","口干","便秘","燥"],
+      "viz": {"body":"#f6c9c2","shape":"normal","coating":{"color":"#e8e8e8","op":0.18,"type":"zao"},"marks":[]}
+    },
+    {
+      "name": "剥苔（花剥）",
+      "category": "苔质",
+      "feel": "舌苔剥落，斑驳不全（地图舌）",
+      "zhubing": "阴虚、胃阴不足、气阴两虚",
+      "tags": ["阴虚","胃阴","气阴两虚","地图舌","舌红少苔"],
+      "viz": {"body":"#f6c9c2","shape":"normal","coating":{"color":"#ededed","op":0.3,"type":"bo"},"marks":[]}
+    },
+    {
+      "name": "强硬舌",
+      "category": "舌态",
+      "feel": "舌体僵硬、屈伸不利",
+      "zhubing": "热入心包、风痰阻络（中风先兆）",
+      "tags": ["热陷","风痰","中风","神昏","窍闭"],
+      "viz": {"body":"#f6c9c2","shape":"normal","coating":null,"marks":["stiff"]}
+    },
+    {
+      "name": "痿软舌",
+      "category": "舌态",
+      "feel": "舌体软弱、伸卷无力",
+      "zhubing": "气血两虚、阴虚筋脉失养",
+      "tags": ["气血两虚","阴虚","痿软","乏力","气短"],
+      "viz": {"body":"#f3d8d4","shape":"normal","coating":null,"marks":[]}
+    }
   ]
 };
