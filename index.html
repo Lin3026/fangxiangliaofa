@@ -153,11 +153,11 @@
     <div class="hint" style="margin:-8px 0 10px;">快捷症状（按所选系统筛选，点击填入搜索）：</div>
     <div class="cloud" id="cloud"></div>
 
-    <!-- 初学者：智能配方页内即可按脉象找配方 -->
+    <!-- 选脉象（与下方三诊合参联动） -->
     <div class="card" style="background:var(--accent-soft);border-color:#bfe3d4;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
-        <strong style="color:var(--accent)">💓 初学者：按症状 + 脉象找配方</strong>
-        <span class="hint" style="margin:0">先在上方症状框填症状/证型，再分左右手勾选脉象（红=左手 / 绿=右手）；<b>每只手仅选一种</b>（再次点同一个可取消）。<b>只选一侧即视为双手同脉</b>。点推荐需<b>同时</b>有症状与脉象。</span>
+        <strong style="color:var(--accent)">💓 第一步：选脉象（左手红框 / 右手绿框）</strong>
+        <span class="hint" style="margin:0">分左右手勾选脉象；<b>每只手仅选一种</b>（再次点同一个可取消）。<b>只选一侧即视为双手同脉</b>。选好后到下方「🔬 三诊合参」与症状、舌象一并出方。</span>
       </div>
       <div class="pulse-hands">
         <div class="hand-box hand-left">
@@ -170,28 +170,35 @@
         </div>
       </div>
       <div class="toolbar">
-        <button class="btn" onclick="runSearchPulse()">🔎 按症状+脉象推荐配方</button>
-        <button class="btn ghost sm" onclick="clearPulseSelection()">清空选择</button>
+        <button class="btn ghost sm" onclick="clearPulseSelection()">清空脉象选择</button>
       </div>
-      <div class="pulse-summary" id="searchPulseSummary" style="display:none;"></div>
-      <div class="count" id="searchPulseCount"></div>
-      <div id="searchPulseResults"></div>
     </div>
 
-    <!-- 初学者：智能配方页内即可按舌象找配方 -->
+    <!-- 选舌象（与下方三诊合参联动） -->
     <div class="card" style="background:var(--accent-soft);border-color:#bfe3d4;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
-        <strong style="color:var(--accent)">👅 初学者：按症状 + 舌象找配方</strong>
-        <span class="hint" style="margin:0">先在上方症状框填症状/证型，再勾选舌象要素（可多选，分舌色/舌形/苔色/苔质/舌态）；<b>有舌象即可推荐</b>，填了症状则按「症状+舌象」精确匹配。</span>
+        <strong style="color:var(--accent)">👅 第二步：选舌象（可多选，分舌色/舌形/苔色/苔质/舌态）</strong>
+        <span class="hint" style="margin:0">勾选舌象要素（中医舌诊综合观察）。选好后到下方「🔬 三诊合参」与症状、脉象一并出方。</span>
       </div>
       <div class="tongue-groups" id="searchTongueGroups"></div>
       <div class="toolbar">
-        <button class="btn" onclick="runSearchTongue()">🔎 按症状+舌象推荐配方</button>
-        <button class="btn ghost sm" onclick="clearTongueSelection()">清空选择</button>
+        <button class="btn ghost sm" onclick="clearTongueSelection()">清空舌象选择</button>
       </div>
-      <div class="pulse-summary" id="searchTongueSummary" style="display:none;"></div>
-      <div class="count" id="searchTongueCount"></div>
-      <div id="searchTongueResults"></div>
+    </div>
+
+    <!-- 三诊合参：症状 + 脉象 + 舌象 一次性出方 -->
+    <div class="card" style="background:#eef6ff;border-color:#9cc8ff;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+        <strong style="color:#2266cc">🔬 三诊合参：症状 + 脉象 + 舌象 → 智能出配方</strong>
+        <span class="hint" style="margin:0">已在上方填症状/证型、选好左右手脉象、勾选舌象后，点下方按钮一次性综合推荐。<b>三者需同时命中配方</b>（症状＋脉象＋舌象均相关，按综合相关度排序）。</span>
+      </div>
+      <div class="toolbar">
+        <button class="btn" onclick="runSearchCombined()">🔎 三诊合参推荐配方</button>
+        <button class="btn ghost sm" onclick="clearDiagnosis()">清空三诊选择</button>
+      </div>
+      <div class="pulse-summary" id="searchCombinedSummary" style="display:none;"></div>
+      <div class="count" id="searchCombinedCount"></div>
+      <div id="searchCombinedResults"></div>
     </div>
 
     <div class="count" id="count"></div>
@@ -917,6 +924,87 @@
       var sS=useSym?scoreFormula(f, symToks):1;
       var hit= sT>0 && (useSym? sS>0 : true);
       return {formula:f, score:sT+(useSym?sS:0), _hit:hit};
+    }).filter(function(x){ return x._hit; })
+      .sort(function(a,b){ return b.score-a.score; })
+      .map(function(x){ return x.formula; });
+  };
+
+  // 三诊合参：症状(上方框) + 脉象(左右手) + 舌象(可多选) 三者共同出方（AND 命中）
+  function renderCombinedRecommend(summaryEl, resultsEl, countEl){
+    var q=document.getElementById("q").value.trim();
+    var symToks=tokenize(q);
+    var pulseNames=selectedPulseNames();
+    var ptoks=pulseTokens();
+    var tnames=selectedTongueNames();
+    var ttoks=tongueTokens();
+    // 三者缺一不可
+    if(!q){
+      summaryEl.style.display="block";
+      summaryEl.innerHTML='<span class="hint">⚠ 请先在上方症状框填写症状/证型（如：失眠 焦虑、痛经、脾胃虚寒），再结合脉象与舌象三诊合参。</span>';
+      resultsEl.innerHTML=""; countEl.textContent=""; return;
+    }
+    if(!pulseNames.length){
+      summaryEl.style.display="block";
+      summaryEl.innerHTML='<span class="hint">⚠ 请至少勾选一种脉象（左手红框 / 右手绿框）。</span>';
+      resultsEl.innerHTML=""; countEl.textContent=""; return;
+    }
+    if(!tnames.length){
+      summaryEl.style.display="block";
+      summaryEl.innerHTML='<span class="hint">⚠ 请至少勾选一种舌象要素（舌色/舌形/苔色/苔质/舌态）。</span>';
+      resultsEl.innerHTML=""; countEl.textContent=""; return;
+    }
+    // 双手同脉提示
+    var lk=Object.keys(selectedLeft), rk=Object.keys(selectedRight);
+    var handNote="";
+    if(lk.length && !rk.length) handNote="（仅选左手 → 视为双手同脉："+lk.join("、")+"）";
+    else if(rk.length && !lk.length) handNote="（仅选右手 → 视为双手同脉："+rk.join("、")+"）";
+    else if(lk.length && rk.length) handNote="（左手："+lk.join("、")+"；右手："+rk.join("、")+"）";
+    var pZhu=pulseNames.map(function(k){ return (selectedLeft[k]||selectedRight[k]).zhubing||k; });
+    var tZhu=tnames.map(function(k){ return (selectedTongues[k].zhubing||k); });
+    summaryEl.style.display="block";
+    summaryEl.innerHTML='<b>症状/证型：</b>'+escapeHtml(q)+'<br><b>所选脉象：</b>'+pulseNames.join("、")+handNote+'<br><b>所选舌象：</b>'+tnames.join("、")+'<br><b>推断可能涉及：</b>'+(pZhu.concat(tZhu)).join("；")+'<br><span class="hint">（下方配方需<b>同时</b>命中「症状 + 脉象 + 舌象」三类关键词，按综合相关度排序）</span>';
+    var toks=symToks.concat(ptoks).concat(ttoks);
+    var scored=db.formulas.map(function(f){
+      var sSym=scoreFormula(f, symToks);
+      var sPulse=scoreFormula(f, ptoks);
+      var sT=scoreFormula(f, ttoks);
+      return {f:f, sSym:sSym, sPulse:sPulse, sT:sT, s:sSym+sPulse+sT};
+    }).filter(function(x){ return x.sSym>0 && x.sPulse>0 && x.sT>0; })
+      .sort(function(a,b){ return b.s-a.s; });
+    resultsEl.innerHTML="";
+    if(!scored.length){
+      resultsEl.innerHTML='<div class="empty">没有同时命中「症状 + 脉象 + 舌象」三者的配方。可尝试：①放宽症状词（如用「失眠」而非「入睡困难」）；②减少舌象/脉象种类，保留主证；③到「我的库」补充对应配方。</div>';
+      countEl.textContent=""; return;
+    }
+    countEl.textContent="共推荐 "+scored.length+" 条配方（症状+脉象+舌象三者同中，显示前 12 条）";
+    scored.slice(0,12).forEach(function(x){ resultsEl.appendChild(makeResultCard(x.f,toks)); });
+  }
+  function runSearchCombined(){ renderCombinedRecommend(document.getElementById("searchCombinedSummary"), document.getElementById("searchCombinedResults"), document.getElementById("searchCombinedCount")); }
+  window.runSearchCombined=runSearchCombined;
+  function clearDiagnosis(){
+    selectedLeft={}; selectedRight={}; renderPulseGrids();
+    selectedTongues={}; renderTongueGroups();
+    ["searchCombinedSummary","searchCombinedResults","searchCombinedCount"].forEach(function(id){
+      var el=document.getElementById(id); if(!el) return;
+      if(id.indexOf("Summary")>=0) el.style.display="none";
+      else if(id.indexOf("count")>=0) el.textContent="";
+      else el.innerHTML="";
+    });
+  }
+  window.clearDiagnosis=clearDiagnosis;
+  // 供外部「把脉项目 / 舌诊项目」调用：症状文本 + 脉象名数组 + 舌象名数组，三者共同返回推荐配方
+  window.AROMA_combinedRecommend=function(symptomsText, pulseNames, tongueNames){
+    var pmap={}; (db.pulses||[]).forEach(function(p){ pmap[p.name]=p; });
+    var tmap={}; (db.tongues||[]).forEach(function(t){ tmap[t.name]=t; });
+    var ptoks=[]; (pulseNames||[]).forEach(function(n){ var p=pmap[n]; if(p){ (p.tags||[]).forEach(function(t){ if(ptoks.indexOf(t)<0) ptoks.push(t); }); } });
+    var ttoks=[]; (tongueNames||[]).forEach(function(n){ var t=tmap[n]; if(t){ (t.tags||[]).forEach(function(x){ if(ttoks.indexOf(x)<0) ttoks.push(x); }); } });
+    var symToks=tokenize((symptomsText||"").trim());
+    return db.formulas.map(function(f){
+      var sSym=symToks.length?scoreFormula(f, symToks):1;
+      var sPulse=ptoks.length?scoreFormula(f, ptoks):1;
+      var sT=ttoks.length?scoreFormula(f, ttoks):1;
+      var hit=(symToks.length? sSym>0 : true) && (ptoks.length? sPulse>0 : true) && (ttoks.length? sT>0 : true);
+      return {formula:f, score:sSym+sPulse+sT, _hit:hit};
     }).filter(function(x){ return x._hit; })
       .sort(function(a,b){ return b.score-a.score; })
       .map(function(x){ return x.formula; });
