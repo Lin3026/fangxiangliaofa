@@ -101,6 +101,19 @@
   /* 脉象示意图 */
   .psvg{display:block;width:100%;height:auto;background:#f7faf8;border:1px solid var(--line);border-radius:8px;margin:6px 0 1px;}
   .pulselabel{font-size:10px;color:#9aa;text-align:center;margin-bottom:2px;}
+  /* 舌诊模块 */
+  .tongue-groups{margin:8px 0 4px;}
+  .tonguecat{font-weight:700;font-size:12.5px;color:var(--accent);margin:10px 0 5px;display:flex;align-items:center;gap:6px;}
+  .tonguecat .cn{font-size:11px;color:var(--muted);font-weight:400;}
+  .tonguecards{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px;}
+  .tonguecard{border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;background:#fff;transition:.15s;}
+  .tonguecard:hover{border-color:var(--accent);}
+  .tonguecard.sel{background:var(--accent-soft);border-color:var(--accent);box-shadow:var(--shadow);}
+  .tonguecard h4{margin:0 0 4px;font-size:14.5px;}
+  .tonguecard .tf{font-size:11px;color:var(--muted);min-height:28px;}
+  .tonguecard .tz{font-size:11.5px;color:#48615a;margin-top:4px;}
+  .tsvg{display:block;width:100%;height:auto;background:#f7faf8;border:1px solid var(--line);border-radius:8px;margin:6px 0 2px;}
+  .tonguelabel{font-size:10px;color:#9aa;text-align:center;margin-bottom:2px;}
 </style>
 </head>
 <body>
@@ -123,6 +136,7 @@
   <div class="tabs">
     <div class="tab active" data-tab="search">🔍 智能配方</div>
     <div class="tab" data-tab="pulse">💓 脉诊辨证</div>
+    <div class="tab" data-tab="tongue">👅 舌诊辨证</div>
     <div class="tab" data-tab="oils">🧪 精油档案</div>
     <div class="tab" data-tab="hydro">💧 纯露档案</div>
     <div class="tab" data-tab="lib">📚 我的库</div>
@@ -162,6 +176,22 @@
       <div class="pulse-summary" id="searchPulseSummary" style="display:none;"></div>
       <div class="count" id="searchPulseCount"></div>
       <div id="searchPulseResults"></div>
+    </div>
+
+    <!-- 初学者：智能配方页内即可按舌象找配方 -->
+    <div class="card" style="background:var(--accent-soft);border-color:#bfe3d4;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+        <strong style="color:var(--accent)">👅 初学者：按症状 + 舌象找配方</strong>
+        <span class="hint" style="margin:0">先在上方症状框填症状/证型，再勾选舌象要素（可多选，分舌色/舌形/苔色/苔质/舌态）；<b>有舌象即可推荐</b>，填了症状则按「症状+舌象」精确匹配。</span>
+      </div>
+      <div class="tongue-groups" id="searchTongueGroups"></div>
+      <div class="toolbar">
+        <button class="btn" onclick="runSearchTongue()">🔎 按症状+舌象推荐配方</button>
+        <button class="btn ghost sm" onclick="clearTongueSelection()">清空选择</button>
+      </div>
+      <div class="pulse-summary" id="searchTongueSummary" style="display:none;"></div>
+      <div class="count" id="searchTongueCount"></div>
+      <div id="searchTongueResults"></div>
     </div>
 
     <div class="count" id="count"></div>
@@ -222,9 +252,25 @@
     </div>
     <div class="pulse-summary" id="pulseSummary" style="display:none;"></div>
     <div class="count" id="pulsecount"></div>
-    <div id="pulseResults"></div>
+      <div id="pulseResults"></div>
+    </section>
+
+  <!-- 舌诊辨证 -->
+  <section id="tab-tongue" style="display:none;">
+    <div class="hint" style="margin-bottom:8px;">勾选舌象要素（<b>可多选</b>，综合观察舌色/舌形/苔色/苔质/舌态）；下方症状框与『智能配方』顶部症状框同步。点推荐：<b>有舌象即可推荐配方</b>；若同时填了症状，则按「症状+舌象」精确匹配（AND）。系统按中医「舌 → 证 → 方」推断并推荐配方。外部项目可调用 <code>AROMA_tongueRecommend(['胖大齿痕舌','白苔'])</code> 直接取得推荐配方。</div>
+    <div class="toolbar">
+      <input type="text" id="tongueSym" class="search" placeholder="结合症状 / 证型（可选，与『智能配方』顶部症状框同步）" oninput="document.getElementById('q').value=this.value;" />
+    </div>
+    <div class="tongue-groups" id="tongueGroups"></div>
+    <div class="toolbar">
+      <button class="btn" onclick="runTongue()">🔎 按舌象推荐配方</button>
+      <button class="btn ghost sm" onclick="clearTongueSelection()">清空选择</button>
+    </div>
+    <div class="pulse-summary" id="tongueSummary" style="display:none;"></div>
+    <div class="count" id="tongueCount"></div>
+    <div id="tongueResults"></div>
   </section>
-</div>
+  </div>
 
 <!-- 详情弹窗 -->
 <div class="modal" id="modal">
@@ -278,6 +324,7 @@
 
   // 兼容旧存档：补齐脉诊与来源元数据
   if(!db.pulses || !db.pulses.length) db.pulses = (window.AROMA_BASE && window.AROMA_BASE.pulses) ? window.AROMA_BASE.pulses : [];
+  if(!db.tongues || !db.tongues.length) db.tongues = (window.AROMA_BASE && window.AROMA_BASE.tongues) ? window.AROMA_BASE.tongues : [];
   if(!db.meta) db.meta = window.AROMA_BASE.meta;
   else if(!db.meta.sources) db.meta.sources = window.AROMA_BASE.meta.sources;
 
@@ -732,6 +779,149 @@
       .map(function(x){ return x.formula; });
   };
 
+  /* ---- 舌诊辨证 ---- */
+  // 舌象要素可多选（综合观察），状态以 name 为键
+  var selectedTongues={};
+  function tongueSvg(t){
+    var v=t.viz||{body:"#f6c9c2",shape:"normal",coating:null,marks:[]};
+    var W=240,H=104,cx=120,cy=54;
+    var rx=70, ry=30;
+    if(v.shape==="pangda"){ rx=82; ry=33; }
+    else if(v.shape==="thin"){ rx=50; ry=28; }
+    var body=v.body||"#f6c9c2";
+    var svg='<svg class="tsvg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" role="img" aria-label="'+escapeHtml(t.name)+'舌象示意图">';
+    svg+='<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+rx+'" ry="'+ry+'" fill="'+body+'" stroke="#d98b86" stroke-width="1.6"/>';
+    if((v.marks||[]).indexOf("stiff")>=0){
+      svg+='<polyline points="'+(cx-40)+','+cy+' '+(cx-15)+','+(cy-2)+' '+cx+','+(cy+2)+' '+(cx+15)+','+(cy-2)+' '+(cx+40)+','+cy+'" fill="none" stroke="#c97b75" stroke-width="1.4"/>';
+    } else {
+      svg+='<path d="M'+(cx-rx+12)+','+cy+' Q'+cx+','+(cy-3)+' '+(cx+rx-12)+','+cy+'" fill="none" stroke="#c97b75" stroke-width="1.4"/>';
+    }
+    var co=v.coating;
+    if(co){
+      var op=co.op||0.4;
+      var cy2=cy+ry*0.32, ry2=ry*0.52;
+      svg+='<ellipse cx="'+cx+'" cy="'+cy2+'" rx="'+(rx*0.82)+'" ry="'+ry2+'" fill="'+co.color+'" opacity="'+op+'"/>';
+      if(co.type==="ni"){
+        var seed=String(t.name).length*7+3;
+        for(var n=0;n<14;n++){ var nx=cx-rx*0.7+((seed*n*37)%100)/100*rx*1.4; var ny=cy2-ry2+((seed*n*53)%100)/100*ry2*2; svg+='<circle cx="'+nx.toFixed(1)+'" cy="'+ny.toFixed(1)+'" r="1.5" fill="'+co.color+'" opacity="'+(op+0.25)+'"/>'; }
+      } else if(co.type==="bo"){
+        svg+='<ellipse cx="'+(cx-18)+'" cy="'+(cy2-2)+'" rx="14" ry="7" fill="#f7faf8" opacity="0.9"/>';
+        svg+='<ellipse cx="'+(cx+22)+'" cy="'+(cy2+3)+'" rx="10" ry="5" fill="#f7faf8" opacity="0.9"/>';
+      }
+    }
+    var marks=v.marks||[];
+    if(marks.indexOf("chihen")>=0){
+      for(var c2=0;c2<6;c2++){ var ang=Math.PI*(0.15+0.7*c2/5); var ex=cx+Math.cos(ang)*rx; var ey=cy+Math.sin(ang)*ry; svg+='<path d="M'+(ex-3)+','+(ey-4)+' a4,4 0 0 1 6,0" fill="#f7faf8" stroke="#d98b86" stroke-width="1"/>'; }
+    }
+    if(marks.indexOf("liewen")>=0){
+      svg+='<path d="M'+(cx-30)+','+(cy-6)+' Q'+(cx-10)+','+(cy+4)+' '+(cx+8)+','+(cy-5)+'" fill="none" stroke="#c97b75" stroke-width="1.2"/>';
+      svg+='<path d="M'+(cx-6)+','+(cy+2)+' Q'+(cx+12)+','+(cy-3)+' '+(cx+34)+','+(cy+4)+'" fill="none" stroke="#c97b75" stroke-width="1.2"/>';
+    }
+    if(marks.indexOf("mangci")>=0){
+      var dots=[[cx-20,cy-8],[cx,cy-10],[cx+22,cy-7],[cx-8,cy+2],[cx+12,cy+3]];
+      dots.forEach(function(p){ svg+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="2.4" fill="#d9534f"/>'; });
+    }
+    svg+='</svg>';
+    svg+='<div class="tonguelabel">舌象示意（仅示意，以实际观察为准）</div>';
+    return svg;
+  }
+  function catNote(cat){
+    return ({ "舌色":"舌体颜色","舌形":"舌体形态","苔色":"苔的颜色","苔质":"苔的厚薄润燥","舌态":"舌体动态" })[cat]||"";
+  }
+  function renderTongueGroups(){
+    var ids=["tongueGroups","searchTongueGroups"];
+    var tongues=(db.tongues||[]);
+    if(!tongues.length) return;
+    var cats={};
+    tongues.forEach(function(t){ (cats[t.category]=cats[t.category]||[]).push(t); });
+    ids.forEach(function(id){
+      var box=document.getElementById(id);
+      if(!box) return;
+      box.innerHTML="";
+      Object.keys(cats).forEach(function(cat){
+        var h=document.createElement("div");
+        h.className="tonguecat"; h.innerHTML=escapeHtml(cat)+'<span class="cn">'+catNote(cat)+'</span>';
+        box.appendChild(h);
+        var grid=document.createElement("div"); grid.className="tonguecards";
+        cats[cat].forEach(function(t){
+          var el=document.createElement("div");
+          el.className="tonguecard"+(selectedTongues[t.name]?" sel":"");
+          el.innerHTML='<h4>'+escapeHtml(t.name)+'</h4>'+
+            '<div class="tf">'+escapeHtml(t.feel||"")+'</div>'+
+            tongueSvg(t)+
+            '<div class="tz">主病：'+(t.zhubing||"")+'</div>';
+          el.onclick=function(){
+            if(selectedTongues[t.name]) delete selectedTongues[t.name];
+            else selectedTongues[t.name]=t;
+            renderTongueGroups();
+          };
+          grid.appendChild(el);
+        });
+        box.appendChild(grid);
+      });
+    });
+  }
+  function tongueTokens(){
+    var toks=[];
+    Object.keys(selectedTongues).forEach(function(k){ (selectedTongues[k].tags||[]).forEach(function(t){ if(toks.indexOf(t)<0) toks.push(t); }); });
+    return toks;
+  }
+  function selectedTongueNames(){ return Object.keys(selectedTongues); }
+  function renderTongueRecommend(summaryEl, resultsEl, countEl){
+    var q=document.getElementById("q").value.trim();
+    var symToks=tokenize(q);
+    var tnames=selectedTongueNames();
+    var ttoks=tongueTokens();
+    if(!tnames.length){
+      summaryEl.style.display="block";
+      summaryEl.innerHTML='<span class="hint">⚠ 请在下方勾选至少一种舌象要素（舌色/舌形/苔色/苔质/舌态，可多选），再点推荐。</span>';
+      resultsEl.innerHTML=""; countEl.textContent=""; return;
+    }
+    var zhubing=tnames.map(function(k){ return (selectedTongues[k].zhubing||k); });
+    var handNote="";
+    if(q) handNote='<br><b>结合症状/证型：</b>'+escapeHtml(q)+'（按「症状+舌象」精确匹配）';
+    summaryEl.style.display="block";
+    summaryEl.innerHTML='<b>所选舌象：</b>'+tnames.join("、")+'<br><b>推断可能涉及：</b>'+zhubing.join("；")+handNote+'<br><span class="hint">（下方配方需命中舌象关键词'+(q?'与症状关键词':'')+'，按综合相关度排序）</span>';
+    var toks=symToks.concat(ttoks);
+    var scored=db.formulas.map(function(f){
+      var sT=scoreFormula(f, ttoks);
+      var sS=symToks.length?scoreFormula(f, symToks):1;
+      return {f:f, sT:sT, sS:sS, s:sT+(symToks.length?sS:0)};
+    }).filter(function(x){ return x.sT>0 && (symToks.length? x.sS>0 : true); })
+      .sort(function(a,b){ return b.s-a.s; });
+    resultsEl.innerHTML="";
+    if(!scored.length){ resultsEl.innerHTML='<div class="empty">没有命中舌象'+(q?'与症状':'')+'的配方，可调整舌象组合或症状词，或到「我的库」补充</div>'; countEl.textContent=""; return; }
+    countEl.textContent="共推荐 "+scored.length+" 条配方"+(q?'（症状+舌象）':'（舌象）')+"，显示前 12 条";
+    scored.slice(0,12).forEach(function(x){ resultsEl.appendChild(makeResultCard(x.f,toks)); });
+  }
+  function runTongue(){ renderTongueRecommend(document.getElementById("tongueSummary"), document.getElementById("tongueResults"), document.getElementById("tongueCount")); }
+  window.runTongue=runTongue;
+  function runSearchTongue(){ renderTongueRecommend(document.getElementById("searchTongueSummary"), document.getElementById("searchTongueResults"), document.getElementById("searchTongueCount")); }
+  window.runSearchTongue=runSearchTongue;
+  function clearTongueSelection(){ selectedTongues={}; renderTongueGroups();
+    ["tongueSummary","tongueResults","tongueCount","searchTongueSummary","searchTongueResults","searchTongueCount"].forEach(function(id){
+      var el=document.getElementById(id); if(!el) return;
+      if(id.indexOf("Summary")>=0) el.style.display="none";
+      else if(id.indexOf("count")>=0) el.textContent="";
+      else el.innerHTML="";
+    });
+  }
+  window.clearTongueSelection=clearTongueSelection;
+  window.AROMA_tongueRecommend=function(tongueNames, symptomsText){
+    var map={}; (db.tongues||[]).forEach(function(t){ map[t.name]=t; });
+    var ttoks=[]; (tongueNames||[]).forEach(function(n){ var t=map[n]; if(t){ (t.tags||[]).forEach(function(x){ if(ttoks.indexOf(x)<0) ttoks.push(x); }); } });
+    var symToks=tokenize((symptomsText||"").trim());
+    var useSym=!!symToks.length;
+    return db.formulas.map(function(f){
+      var sT=scoreFormula(f, ttoks);
+      var sS=useSym?scoreFormula(f, symToks):1;
+      var hit= sT>0 && (useSym? sS>0 : true);
+      return {formula:f, score:sT+(useSym?sS:0), _hit:hit};
+    }).filter(function(x){ return x._hit; })
+      .sort(function(a,b){ return b.score-a.score; })
+      .map(function(x){ return x.formula; });
+  };
+
   /* ---- 资料来源面板 ---- */
   function renderSrcBox(){
     var box=document.getElementById("srcboxBody");
@@ -882,10 +1072,12 @@
       document.getElementById("tab-oils").style.display=tab==="oils"?"block":"none";
       document.getElementById("tab-hydro").style.display=tab==="hydro"?"block":"none";
       document.getElementById("tab-lib").style.display=tab==="lib"?"block":"none";
+      document.getElementById("tab-tongue").style.display=tab==="tongue"?"block":"none";
       if(tab==="oils") renderOils();
       if(tab==="hydro") renderHydro();
       if(tab==="lib") renderLib();
       if(tab==="pulse") renderPulse();
+      if(tab==="tongue") renderTongueGroups();
     };
   });
 
@@ -902,6 +1094,7 @@
   // 初始化
   renderSysChips(); renderCloud(); runSearch(); renderSrcBox();
   renderPulseGrids();
+  renderTongueGroups();
 
   // 暴露给控制台调试
   window.AROMA_DB=db;
