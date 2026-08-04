@@ -136,7 +136,7 @@
       <button class="btn ghost sm" onclick="clearSearch()">清空</button>
     </div>
     <div class="syschips" id="syschips"></div>
-    <div class="hint" style="margin:-8px 0 10px;">快捷症状（点击填入搜索）：</div>
+    <div class="hint" style="margin:-8px 0 10px;">快捷症状（按所选系统筛选，点击填入搜索）：</div>
     <div class="cloud" id="cloud"></div>
 
     <!-- 初学者：智能配方页内即可按脉象找配方 -->
@@ -334,18 +334,22 @@
       var el=document.createElement("span");
       el.className="schip"+(s===curSys?" active":"");
       el.textContent=s;
-      el.onclick=function(){ curSys=s; renderSysChips(); runSearch(); };
+      el.onclick=function(){ curSys=s; renderSysChips(); renderCloud(); runSearch(); };
       box.appendChild(el);
     });
   }
 
   function renderCloud(){
     var all={};
-    db.formulas.forEach(function(f){ (f.symptoms||[]).forEach(function(s){ all[s]=(all[s]||0)+1; }); });
+    db.formulas.forEach(function(f){
+      if(curSys!=="全部" && f.system!==curSys) return;
+      (f.symptoms||[]).forEach(function(s){ all[s]=(all[s]||0)+1; });
+    });
     var keys=Object.keys(all).sort(function(a,b){return all[b]-all[a];});
     keys=keys.slice(0,40);
     var box=document.getElementById("cloud");
     box.innerHTML="";
+    if(!keys.length){ box.innerHTML='<span class="hint">该系统暂无快捷症状</span>'; return; }
     keys.forEach(function(k){
       var el=document.createElement("span");
       el.className="tag"; el.textContent=k;
@@ -402,7 +406,7 @@
 
   function clearSearch(){
     document.getElementById("q").value=""; curQuery=""; curSys="全部";
-    renderSysChips(); runSearch();
+    renderSysChips(); renderCloud(); runSearch();
   }
   window.runSearch=runSearch; window.clearSearch=clearSearch;
 
