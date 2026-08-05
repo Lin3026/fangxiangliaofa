@@ -1,0 +1,19 @@
+name: Validate
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 校验 data.js 语法
+        run: node --check data.js
+      - name: 校验 oils/hydrosols/formulas 结构完整性
+        run: node -e "const fs=require('fs');const c=fs.readFileSync('data.js','utf8');const i=c.indexOf('{',c.indexOf('window.AROMA_BASE'));let d=0,e=-1;for(let k=i;k<c.length;k++){const x=c[k];if(x==='{')d++;else if(x==='}'){d--;if(d===0){e=k;break;}}}const o=eval('('+c.slice(i,e+1)+')');console.log('oils',o.oils.length,'hydrosols',o.hydrosols.length,'formulas',o.formulas.length);"
