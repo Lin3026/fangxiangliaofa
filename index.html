@@ -579,69 +579,100 @@
   // 左手选择（红框）/ 右手选择（绿框）；只选一侧即视为双手同脉
   var selectedLeft={};
   var selectedRight={};
-  // 脉象波形示意图参数（初学者友好）：depth=浮/中/沉 取脉深度；shape=波形特征
+  // 脉象波形示意图参数（初学者友好 · 强辨识度版）
+  // depth=浮/中/沉 取脉深度(决定波形纵向位置)；shape=波形特征；rate=脉率；strength=力度；rhythm=节律
   var PULSE_WAVES={
-    "浮脉":{amp:20,freq:4,shape:"sine",depth:"浮"},
-    "沉脉":{amp:20,freq:4,shape:"sine",depth:"沉"},
-    "迟脉":{amp:22,freq:2.2,shape:"sine",depth:"中"},
-    "数脉":{amp:22,freq:7,shape:"sine",depth:"中"},
-    "虚脉":{amp:10,freq:4,shape:"soft",depth:"中"},
-    "实脉":{amp:30,freq:4,shape:"sine",depth:"中"},
-    "滑脉":{amp:20,freq:4,shape:"round",depth:"中"},
-    "涩脉":{amp:16,freq:4,shape:"jag",depth:"中"},
-    "弦脉":{amp:16,freq:3,shape:"flat",depth:"中"},
-    "细脉":{amp:8,freq:5,shape:"sine",depth:"中"},
-    "洪脉":{amp:32,freq:3,shape:"surge",depth:"中"},
-    "紧脉":{amp:18,freq:4,shape:"saw",depth:"中"},
-    "濡脉":{amp:11,freq:4,shape:"soft",depth:"浮"},
-    "缓脉":{amp:16,freq:3.5,shape:"sine",depth:"中"},
-    "促/结/代脉":{amp:18,freq:4,shape:"irregular",depth:"中"}
+    "浮脉":{depth:"浮", amp:15, beats:4, shape:"sine", rate:"平", strength:"中", rhythm:"齐"},
+    "沉脉":{depth:"沉", amp:15, beats:4, shape:"sine", rate:"平", strength:"中", rhythm:"齐"},
+    "迟脉":{depth:"中", amp:17, beats:2.4, shape:"sine", rate:"慢", strength:"中", rhythm:"齐"},
+    "数脉":{depth:"中", amp:17, beats:8, shape:"sine", rate:"快", strength:"中", rhythm:"齐"},
+    "缓脉":{depth:"中", amp:15, beats:4, shape:"sine", rate:"缓", strength:"中", rhythm:"齐"},
+    "虚脉":{depth:"中", amp:9, beats:4, shape:"sine", rate:"平", strength:"弱", rhythm:"齐"},
+    "实脉":{depth:"中", amp:30, beats:4, shape:"sine", rate:"平", strength:"强", rhythm:"齐"},
+    "滑脉":{depth:"中", amp:17, beats:5, shape:"round", rate:"平", strength:"中", rhythm:"齐"},
+    "涩脉":{depth:"中", amp:13, beats:4, shape:"jag", rate:"平", strength:"中", rhythm:"齐"},
+    "弦脉":{depth:"中", amp:14, beats:3, shape:"flat", rate:"平", strength:"中", rhythm:"齐"},
+    "细脉":{depth:"中", amp:7, beats:6, shape:"sine", rate:"平", strength:"弱", rhythm:"齐"},
+    "洪脉":{depth:"中", amp:33, beats:3, shape:"surge", rate:"平", strength:"强", rhythm:"齐"},
+    "紧脉":{depth:"中", amp:16, beats:4, shape:"saw", rate:"平", strength:"中", rhythm:"齐"},
+    "濡脉":{depth:"浮", amp:9, beats:4, shape:"sine", rate:"平", strength:"弱", rhythm:"齐"},
+    "促/结/代脉":{depth:"中", amp:15, beats:6, shape:"irregular", rate:"平", strength:"中", rhythm:"不齐"}
   };
   function pulseSvg(p){
-    var W=240,H=84,mid=46,leftPad=26,rightPad=4;
-    var m=PULSE_WAVES[p.name]||{amp:18,freq:4,shape:"sine",depth:"中"};
-    var amp=m.amp,freq=m.freq,shape=m.shape,depth=m.depth;
-    var pts=[];
-    function sineY(ph){
-      if(shape==="soft") return mid-amp*Math.sin(ph)*0.85;
-      if(shape==="round") return mid-amp*(0.5-0.5*Math.cos(ph)); // 滑：圆润如珠
-      if(shape==="flat"){ var s=Math.sin(ph); return mid-amp*(s>0?0.9:-0.22); } // 弦：端直如弦
-      if(shape==="saw"){ var f=(ph/(2*Math.PI))%1; if(f<0)f+=1; return mid-amp*(1-2*f); } // 紧：如牵绳转索
-      if(shape==="jag"){ var b=Math.sin(ph); var n=Math.sin(ph*1.7)*0.16+Math.sin(ph*0.9+1)*0.12; return mid-amp*(b*0.8+n); } // 涩：如轻刀刮竹
-      if(shape==="surge"){ var sv=Math.sin(ph); return mid-amp*(sv>=0?Math.pow(sv,0.55):sv*0.5); } // 洪：来盛去衰
-      return mid-amp*Math.sin(ph);
+    var W=248,H=132;
+    var m=PULSE_WAVES[p.name]||{depth:"中",amp:16,beats:4,shape:"sine",rate:"平",strength:"中",rhythm:"齐"};
+    var depth=m.depth, amp=m.amp, beats=m.beats, shape=m.shape, rate=m.rate, strength=m.strength, rhythm=m.rhythm;
+    var depthY={"浮":34,"中":63,"沉":92}[depth];
+    var x0=44, x1=W-4, waveW=x1-x0;
+    function yAt(ph){
+      if(shape==="round"){ var c=Math.cos(ph); return depthY-amp*(0.5-0.5*c); }            // 滑：圆润如珠
+      if(shape==="flat"){ var s=Math.sin(ph); return depthY-amp*(s>=0?0.95:-0.55); }          // 弦：端直如弦
+      if(shape==="saw"){ var f=(ph/(2*Math.PI))%1; if(f<0)f+=1; return depthY-amp*(1-2*f); }   // 紧：如牵绳转索
+      if(shape==="jag"){ var b=Math.sin(ph); var n=Math.sin(ph*2.3)*0.18+Math.sin(ph*0.7+1)*0.14; return depthY-amp*(b*0.82+n); } // 涩：如轻刀刮竹
+      if(shape==="surge"){ var sv=Math.sin(ph); return depthY-amp*(sv>=0?sv:sv*0.38); }        // 洪：来盛去衰
+      return depthY-amp*Math.sin(ph);                                                     // sine
     }
+    var subpaths=[], ticks=[];
     if(shape==="irregular"){
-      var beats=6,gap=(W-leftPad-rightPad)/(beats+1);
-      for(var i=0;i<=beats;i++){
-        var cx=(i+0.5)*gap+leftPad;
-        if(i===3) cx+=gap*0.7; // 代：止有定数（较长停顿）
-        var bw=gap*0.52,steps=8;
-        for(var s2=0;s2<=steps;s2++){
-          var xx=cx-bw/2+bw*(s2/steps);
-          var yy=mid-amp*Math.sin(Math.PI*(s2/steps));
-          pts.push([xx,yy]);
+      var nb=beats, gap=waveW/nb;
+      for(var b=0;b<nb;b++){
+        if(b===2||b===5){ ticks.push(x0+(b+0.5)*gap); continue; } // 歇止（有定数 / 偶发）
+        var cx0=x0+b*gap, cx1=x0+(b+1)*gap, steps=12, pts=[];
+        for(var s=0;s<=steps;s++){
+          var xx=cx0+(cx1-cx0)*(s/steps);
+          var yy=depthY-amp*Math.sin(Math.PI*(s/steps));
+          pts.push([xx.toFixed(1),yy.toFixed(1)]);
         }
+        subpaths.push(pts);
       }
     }else{
-      var N=120;
+      var N=170, pts=[];
       for(var i=0;i<=N;i++){
-        var x=leftPad+(W-leftPad-rightPad)*(i/N);
-        var ph=freq*2*Math.PI*((x-leftPad)/(W-leftPad-rightPad));
-        pts.push([x,sineY(ph)]);
+        var xx=x0+waveW*(i/N);
+        var ph=beats*2*Math.PI*((xx-x0)/waveW);
+        var yy=yAt(ph);
+        yy=Math.max(14,Math.min(H-8,yy));
+        pts.push([xx.toFixed(1),yy.toFixed(1)]);
       }
+      subpaths.push(pts);
     }
-    pts=pts.map(function(pt){var y=Math.max(8,Math.min(H-6,pt[1]));return pt[0].toFixed(1)+","+y.toFixed(1);});
-    var depthY=depth==="浮"?20:depth==="沉"?70:46;
+    // 取脉深度计（左侧竖条：上=浮，下=沉）
     var svg='<svg class="psvg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" role="img" aria-label="'+escapeHtml(p.name)+'脉象示意图">';
-    svg+='<line x1="14" y1="20" x2="14" y2="70" stroke="#c9d6cf" stroke-width="1"/>';
-    svg+='<text x="14" y="15" font-size="8" fill="#9aa" text-anchor="middle">浮</text>';
-    svg+='<text x="14" y="83" font-size="8" fill="#9aa" text-anchor="middle">沉</text>';
-    svg+='<circle cx="14" cy="'+depthY+'" r="3.6" fill="#b5651d"/>';
-    svg+='<polyline points="'+pts.join(" ")+'" fill="none" stroke="#2f8f6f" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>';
+    svg+='<defs><linearGradient id="pdg" x1="0" y1="0" x2="0" y2="1">'
+       + '<stop offset="0" stop-color="#f6c9c2"/><stop offset="1" stop-color="#aac4e6"/></linearGradient></defs>';
+    svg+='<rect x="9" y="22" width="11" height="84" rx="5.5" fill="url(#pdg)" stroke="#cdd8d2" stroke-width="1"/>';
+    svg+='<text x="14" y="18" font-size="8" fill="#9aa" text-anchor="middle">浮</text>';
+    svg+='<text x="14" y="66" font-size="8" fill="#9aa" text-anchor="middle">中</text>';
+    svg+='<text x="14" y="114" font-size="8" fill="#9aa" text-anchor="middle">沉</text>';
+    svg+='<path d="M14 8 l-4 6 h8 z" fill="#b5651d"/>'; // 指压指示
+    var mkY={"浮":30,"中":64,"沉":106}[depth];
+    svg+='<circle cx="14.5" cy="'+mkY+'" r="4" fill="#b5651d" stroke="#fff" stroke-width="1.2"/>';
+    // 波形（力度决定粗细/虚实）
+    var sw=strength==="强"?3:strength==="弱"?1.6:2.2;
+    var op=strength==="弱"?0.6:1;
+    var dash=strength==="弱"?" stroke-dasharray=\"5 3\"":"";
+    subpaths.forEach(function(sp){
+      svg+='<polyline points="'+sp.join(" ")+'" fill="none" stroke="#2f8f6f" stroke-width="'+sw+'\"'+dash+' opacity="'+op+'" stroke-linejoin="round" stroke-linecap="round"/>';
+    });
+    // 歇止标记
+    ticks.forEach(function(tx){
+      svg+='<line x1="'+tx+'" y1="'+(depthY-amp-4)+'" x2="'+tx+'" y2="'+(depthY+amp+4)+'" stroke="#d98324" stroke-width="1.4" stroke-dasharray="2 2"/>';
+      svg+='<text x="'+tx+'" y="'+(depthY-amp-7)+'" font-size="8" fill="#d98324" text-anchor="middle">止</text>';
+    });
     svg+='</svg>';
-    svg+='<div class="pulselabel">取脉深度：'+depth+'（●标记）</div>';
-    return svg;
+    // 辨识特征小标签
+    function chip(lab,val,col){
+      return '<span style="display:inline-block;font-size:10px;line-height:1;padding:2px 5px;border-radius:6px;margin:3px 3px 0 0;background:'+col+'22;color:'+col+';border:1px solid '+col+'55;">'+lab+'·'+val+'</span>';
+    }
+    var dcol={"浮":"#c0392b","中":"#6b8a7e","沉":"#2c6fbb"}[depth];
+    var rcol={"慢":"#2c6fbb","缓":"#2e8b6b","平":"#6b8a7e","快":"#c0392b"}[rate];
+    var scol={"弱":"#8a98c0","中":"#6b8a7e","强":"#c0392b"}[strength];
+    var chips='<div style="margin-top:2px;">'+chip("位",depth,dcol);
+    if(rate!=="平") chips+=chip("速",rate,rcol);
+    if(strength!=="中") chips+=chip("力",strength,scol);
+    if(rhythm!=="齐") chips+=chip("律",rhythm,"#d98324");
+    chips+='</div>';
+    return svg+chips;
   }
 
   // 统一渲染左右手四组脉象卡（左/右手各自对应一个选择对象）
