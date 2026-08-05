@@ -114,6 +114,7 @@
   .tonguecard .tz{font-size:11.5px;color:#48615a;margin-top:4px;}
   .tsvg{display:block;width:100%;height:auto;background:#f7faf8;border:1px solid var(--line);border-radius:8px;margin:6px 0 2px;}
   .tonguelabel{font-size:10px;color:#9aa;text-align:center;margin-bottom:2px;}
+  .tonguekey{font-size:11px;color:#22325a;background:#eef3ff;border:1px solid #d6e0ff;border-radius:6px;padding:2px 6px;margin:1px 0 4px;text-align:center;line-height:1.45;font-weight:600;white-space:normal;}
 </style>
 </head>
 <body>
@@ -820,47 +821,94 @@
   /* ---- 舌诊辨证 ---- */
   // 舌象要素可多选（综合观察），状态以 name 为键
   var selectedTongues={};
+  // 舌象强辨识度示意图：统一以「正常舌（淡红+薄白）」为参照底图，夸张突出本要素差异
+  var TONGUE_DRAW={
+    "淡白舌":{body:"#f7ecec",coating:null,key:"色·淡白　提示·虚寒/血虚",note:"比正常更浅淡"},
+    "淡红舌（正常）":{body:"#f6c9c2",coating:{color:"#efefef",op:0.3,type:"bao"},key:"色·淡红　正常舌象",note:"健康对照"},
+    "红舌":{body:"#ee6a64",coating:null,key:"色·红　提示·热(实/虚)",note:"鲜红胜淡红"},
+    "绛舌":{body:"#bf3b30",coating:null,key:"色·绛红　提示·热入营血",note:"深红带暗"},
+    "青紫舌":{body:"#7a578f",coating:null,key:"色·青紫　提示·血瘀/寒凝",note:"青紫或瘀斑"},
+    "老舌":{body:"#f6c9c2",coating:null,rough:true,key:"形·苍老　提示·实证/热",note:"坚敛纹理粗糙"},
+    "嫩舌":{body:"#f3d8d4",coating:null,glossy:true,key:"形·娇嫩　提示·虚/虚寒",note:"浮胖水润"},
+    "胖大齿痕舌":{body:"#f3d6d2",coating:null,shape:"pangda",tooth:true,key:"形·胖大　边有齿痕",note:"脾虚水湿"},
+    "瘦薄舌":{body:"#f6c9c2",coating:null,shape:"thin",key:"形·瘦薄　提示·阴虚/血虚",note:"瘦小单薄"},
+    "裂纹舌":{body:"#f6c9c2",coating:null,crack:true,key:"形·裂纹　提示·阴虚伤津",note:"纵横裂纹"},
+    "白苔":{body:"#f6c9c2",coating:{color:"#f2f2f2",op:0.6,type:"bao"},key:"苔色·白　提示·寒/表",note:"白苔"},
+    "黄苔":{body:"#f6c9c2",coating:{color:"#dcae2e",op:0.72,type:"bao"},key:"苔色·黄　提示·热/里热",note:"黄苔(黄腻主湿热)"},
+    "灰黑苔":{body:"#f6c9c2",coating:{color:"#3a3a3a",op:0.82,type:"hou"},key:"苔色·灰黑　提示·寒极/热极",note:"病情较重"},
+    "薄苔":{body:"#f6c9c2",coating:{color:"#ededed",op:0.26,type:"bao"},key:"苔质·薄　透见舌体",note:"薄如烟罩"},
+    "厚苔":{body:"#f6c9c2",coating:{color:"#e4e4e4",op:0.9,type:"hou"},key:"苔质·厚　不透光",note:"厚腻不见底"},
+    "腻苔":{body:"#f6c9c2",coating:{color:"#d9b94a",op:0.62,type:"ni"},key:"苔质·腻　黏腻致密",note:"刮之难去"},
+    "燥苔":{body:"#f6c9c2",coating:{color:"#e9e9e9",op:0.4,type:"zao"},key:"苔质·燥　干而少津",note:"干燥少津"},
+    "剥苔（花剥）":{body:"#f6c9c2",coating:{color:"#ededed",op:0.6,type:"bo"},key:"苔质·剥(花剥)　斑驳不全",note:"地图舌"},
+    "强硬舌":{body:"#f6c9c2",coating:null,stiff:true,key:"态·强硬　屈伸不利",note:"警惕中风先兆"},
+    "痿软舌":{body:"#f3d8d4",coating:null,sag:true,key:"态·痿软　伸卷无力",note:"气血/阴虚"}
+  };
   function tongueSvg(t){
-    var v=t.viz||{body:"#f6c9c2",shape:"normal",coating:null,marks:[]};
-    var W=240,H=104,cx=120,cy=54;
-    var rx=70, ry=30;
-    if(v.shape==="pangda"){ rx=82; ry=33; }
-    else if(v.shape==="thin"){ rx=50; ry=28; }
-    var body=v.body||"#f6c9c2";
-    var svg='<svg class="tsvg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" role="img" aria-label="'+escapeHtml(t.name)+'舌象示意图">';
-    svg+='<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+rx+'" ry="'+ry+'" fill="'+body+'" stroke="#d98b86" stroke-width="1.6"/>';
-    if((v.marks||[]).indexOf("stiff")>=0){
-      svg+='<polyline points="'+(cx-40)+','+cy+' '+(cx-15)+','+(cy-2)+' '+cx+','+(cy+2)+' '+(cx+15)+','+(cy-2)+' '+(cx+40)+','+cy+'" fill="none" stroke="#c97b75" stroke-width="1.4"/>';
-    } else {
-      svg+='<path d="M'+(cx-rx+12)+','+cy+' Q'+cx+','+(cy-3)+' '+(cx+rx-12)+','+cy+'" fill="none" stroke="#c97b75" stroke-width="1.4"/>';
+    var d=TONGUE_DRAW[t.name]||{body:(t.viz&&t.viz.body)||"#f6c9c2",coating:(t.viz&&t.viz.coating)||null,key:t.name};
+    var W=240,H=118,cx=112,cy=52;
+    var shape=d.shape||"normal";
+    var rx=72, ry=30;
+    if(shape==="pangda"){ rx=84; ry=34; }
+    else if(shape==="thin"){ rx=52; ry=26; }
+    var sag=d.sag?10:0;
+    var cya=cy+sag;
+    function outline(){
+      var x0=cx-rx, x1=cx+rx;
+      var p="M "+x0+","+cya;
+      p+=" C "+x0+","+(cya-ry)+" "+(cx-rx*0.3)+","+(cya-ry*1.05)+" "+cx+","+(cya-ry*0.7);
+      p+=" C "+(cx+rx*0.5)+","+(cya-ry*0.5)+" "+x1+","+(cya-ry*0.12)+" "+x1+","+cya;
+      p+=" C "+x1+","+(cya+ry*0.12)+" "+(cx+rx*0.5)+","+(cya+ry*0.5)+" "+cx+","+(cya+ry*0.7);
+      p+=" C "+(cx-rx*0.3)+","+(cya+ry*1.05)+" "+x0+","+(cya+ry)+" "+x0+","+cya;
+      p+=" Z";
+      return p;
     }
-    var co=v.coating;
+    var svg='<svg class="tsvg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" role="img" aria-label="'+escapeHtml(t.name)+'舌象示意图">';
+    svg+='<text x="6" y="13" font-size="9" fill="#9aa">'+escapeHtml(t.category||"")+'</text>';
+    var stroke="#d98b86", sw=1.6;
+    if(d.rough){ stroke="#b56b66"; }
+    if(d.glossy){ stroke="#ee9988"; sw=2.4; }
+    svg+='<path d="'+outline()+'" fill="'+d.body+'" stroke="'+stroke+'" stroke-width="'+sw+'"'+(d.glossy?' opacity="0.92"':'')+'/>';
+    if(d.glossy){ svg+='<ellipse cx="'+(cx-rx*0.2)+'" cy="'+(cya-ry*0.3)+'" rx="'+(rx*0.4)+'" ry="'+(ry*0.4)+'" fill="#fff" opacity="0.35"/>'; }
+    if(d.rough){
+      for(var r=0;r<24;r++){ var a=r/24*2*Math.PI; var ox=cx+Math.cos(a)*rx, oy=cya+Math.sin(a)*ry*0.9; svg+='<line x1="'+(ox-2).toFixed(1)+'" y1="'+oy.toFixed(1)+'" x2="'+(ox+2).toFixed(1)+'" y2="'+oy.toFixed(1)+'" stroke="#b56b66" stroke-width="1"/>'; }
+    }
+    if(d.tooth){
+      for(var th=0;th<10;th++){ var ta=Math.PI*0.18+th/10*Math.PI*1.64; var exc=cx+Math.cos(ta)*rx, eyc=cya+Math.sin(ta)*ry*0.92; svg+='<circle cx="'+exc.toFixed(1)+'" cy="'+eyc.toFixed(1)+'" r="3.4" fill="#fff" stroke="#d98b86" stroke-width="1"/>'; }
+    }
+    if(d.crack){
+      svg+='<path d="M'+(cx-30)+','+(cya-6)+' L'+(cx-6)+','+(cya+2)+' L'+(cx+14)+','+(cya-8)+'" fill="none" stroke="#c97b75" stroke-width="1.3"/>';
+      svg+='<path d="M'+(cx-12)+','+(cya+8)+' L'+(cx+8)+','+(cya+1)+' L'+(cx+34)+','+(cya+9)+'" fill="none" stroke="#c97b75" stroke-width="1.3"/>';
+      svg+='<path d="M'+cx+','+(cya-12)+' L'+cx+','+(cya+12)+'" fill="none" stroke="#c97b75" stroke-width="1.2"/>';
+    }
+    if(d.stiff){
+      svg+='<line x1="'+(cx-rx*0.7)+'" y1="'+cya+'" x2="'+(cx+rx*0.7)+'" y2="'+cya+'" stroke="#a8544f" stroke-width="2"/>';
+      svg+='<polyline points="'+(cx-rx+18)+','+cya+' '+(cx-rx*0.4)+','+(cya-3)+' '+(cx+rx*0.2)+','+(cya+3)+' '+(cx+rx-18)+','+cya+'" fill="none" stroke="#a8544f" stroke-width="1.4"/>';
+    }
+    if(d.sag){
+      svg+='<path d="M'+(cx-rx*0.6)+','+(cya-2)+' Q'+cx+','+(cya+ry*0.6)+' '+(cx+rx*0.6)+','+(cya-2)+'" fill="none" stroke="#c97b75" stroke-width="1.3" opacity="0.8"/>';
+    }
+    var co=d.coating;
     if(co){
-      var op=co.op||0.4;
-      var cy2=cy+ry*0.32, ry2=ry*0.52;
-      svg+='<ellipse cx="'+cx+'" cy="'+cy2+'" rx="'+(rx*0.82)+'" ry="'+ry2+'" fill="'+co.color+'" opacity="'+op+'"/>';
+      var cyc=cya+ry*0.05, ry2=ry*0.82, rx2=rx*0.9;
+      svg+='<ellipse cx="'+cx+'" cy="'+cyc+'" rx="'+rx2+'" ry="'+ry2+'" fill="'+co.color+'" opacity="'+co.op+'"/>';
       if(co.type==="ni"){
-        var seed=String(t.name).length*7+3;
-        for(var n=0;n<14;n++){ var nx=cx-rx*0.7+((seed*n*37)%100)/100*rx*1.4; var ny=cy2-ry2+((seed*n*53)%100)/100*ry2*2; svg+='<circle cx="'+nx.toFixed(1)+'" cy="'+ny.toFixed(1)+'" r="1.5" fill="'+co.color+'" opacity="'+(op+0.25)+'"/>'; }
+        var _s=t.name.length*9301+49297;
+        function rnd(){ _s=(_s*9301+49297)%233280; return _s/233280; }
+        for(var g=0;g<70;g++){ var gx=cx-rx2+rnd()*rx2*2, gy=cyc-ry2+rnd()*ry2*2; if(((gx-cx)*(gx-cx))/(rx2*rx2)+((gy-cyc)*(gy-cyc))/(ry2*ry2)<=1) svg+='<circle cx="'+gx.toFixed(1)+'" cy="'+gy.toFixed(1)+'" r="1.1" fill="'+co.color+'" opacity="'+(co.op+0.2)+'"/>'; }
+      } else if(co.type==="zao"){
+        for(var z=0;z<5;z++){ var zy=cyc-ry2*0.5+z*ry2*0.25; svg+='<path d="M'+(cx-rx2*0.6)+','+zy.toFixed(1)+' q'+(rx2*0.3)+','+(z%2?-4:4)+' '+(rx2*0.6)+',0 q'+(rx2*0.3)+','+(z%2?4:-4)+' '+(rx2*0.6)+',0" fill="none" stroke="#bbb" stroke-width="0.9" opacity="0.7"/>'; }
       } else if(co.type==="bo"){
-        svg+='<ellipse cx="'+(cx-18)+'" cy="'+(cy2-2)+'" rx="14" ry="7" fill="#f7faf8" opacity="0.9"/>';
-        svg+='<ellipse cx="'+(cx+22)+'" cy="'+(cy2+3)+'" rx="10" ry="5" fill="#f7faf8" opacity="0.9"/>';
+        svg+='<ellipse cx="'+(cx-20)+'" cy="'+(cyc-4)+'" rx="15" ry="8" fill="'+d.body+'" opacity="0.95"/>';
+        svg+='<ellipse cx="'+(cx+22)+'" cy="'+(cyc+5)+'" rx="11" ry="6" fill="'+d.body+'" opacity="0.95"/>';
       }
     }
-    var marks=v.marks||[];
-    if(marks.indexOf("chihen")>=0){
-      for(var c2=0;c2<6;c2++){ var ang=Math.PI*(0.15+0.7*c2/5); var ex=cx+Math.cos(ang)*rx; var ey=cy+Math.sin(ang)*ry; svg+='<path d="M'+(ex-3)+','+(ey-4)+' a4,4 0 0 1 6,0" fill="#f7faf8" stroke="#d98b86" stroke-width="1"/>'; }
-    }
-    if(marks.indexOf("liewen")>=0){
-      svg+='<path d="M'+(cx-30)+','+(cy-6)+' Q'+(cx-10)+','+(cy+4)+' '+(cx+8)+','+(cy-5)+'" fill="none" stroke="#c97b75" stroke-width="1.2"/>';
-      svg+='<path d="M'+(cx-6)+','+(cy+2)+' Q'+(cx+12)+','+(cy-3)+' '+(cx+34)+','+(cy+4)+'" fill="none" stroke="#c97b75" stroke-width="1.2"/>';
-    }
-    if(marks.indexOf("mangci")>=0){
-      var dots=[[cx-20,cy-8],[cx,cy-10],[cx+22,cy-7],[cx-8,cy+2],[cx+12,cy+3]];
-      dots.forEach(function(p){ svg+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="2.4" fill="#d9534f"/>'; });
-    }
+    var cardColor=d.body;
+    if(co && (t.category==="苔色"||t.category==="苔质")) cardColor=co.color;
+    svg+='<rect x="'+(W-30)+'" y="6" width="22" height="14" rx="2" fill="'+cardColor+'" stroke="#ccc" stroke-width="0.8"/>';
     svg+='</svg>';
-    svg+='<div class="tonguelabel">舌象示意（仅示意，以实际观察为准）</div>';
+    svg+='<div class="tonguekey">'+escapeHtml(d.key||"")+'</div>';
+    svg+='<div class="tonguelabel">'+escapeHtml(d.note||"舌象示意（以实际观察为准）")+'</div>';
     return svg;
   }
   function catNote(cat){
