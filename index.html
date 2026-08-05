@@ -89,6 +89,21 @@
   .pulsecard h4{margin:0 0 4px;font-size:15px;}
   .pulsecard .pf{font-size:11.5px;color:var(--muted);}
   .pulsecard .pz{font-size:12px;color:#48615a;margin-top:4px;}
+  .pulsesites{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0 6px;}
+  .psites-title{width:100%;font-weight:700;font-size:13px;color:var(--accent);margin-bottom:2px;}
+  .psites-group{flex:1;min-width:230px;border:2px solid #ccc;border-radius:10px;padding:10px 12px;}
+  .psites-group.psite-left{border-color:#e58;background:#fff5f7;}
+  .psites-group.psite-right{border-color:#3a8;background:#f0faf6;}
+  .psites-h{font-weight:700;font-size:13px;margin-bottom:6px;}
+  .psite-left .psites-h{color:#c8432c;}
+  .psite-right .psites-h{color:#2f7d54;}
+  .psite{display:flex;align-items:baseline;gap:6px;padding:5px 0;border-top:1px dashed #e6e6e6;}
+  .psite:first-child{border-top:none;}
+  .ps-part{font-weight:700;color:#888;width:24px;flex:none;}
+  .ps-organ{font-weight:700;color:#22325a;}
+  .ps-fu{font-size:11.5px;color:#666;}
+  .ps-note{font-size:10.5px;color:#9aa;margin-left:auto;text-align:right;}
+  @media(max-width:560px){.pulsesites{flex-direction:column;}}
   .pulse-summary{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:12px;line-height:1.7;}
   .srcbox{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:12px;font-size:12.5px;color:var(--muted);}
   .srcbox summary{cursor:pointer;font-weight:600;color:var(--accent);font-size:13px;}
@@ -162,11 +177,11 @@
       </div>
       <div class="pulse-hands">
         <div class="hand-box hand-left">
-          <div class="hand-title">✋ 左手（红框）<span class="hand-sub">寸·心｜关·肝｜尺·肾</span></div>
+          <div class="hand-title">✋ 左手（红框）<span class="hand-sub">寸·心(小肠)｜关·肝(胆)｜尺·肾(膀胱)</span></div>
           <div class="pulsecards" id="searchPulseCardsL" style="margin:6px 0 0"></div>
         </div>
         <div class="hand-box hand-right">
-          <div class="hand-title">🤚 右手（绿框）<span class="hand-sub">寸·肺｜关·脾｜尺·肾(命门)</span></div>
+          <div class="hand-title">🤚 右手（绿框）<span class="hand-sub">寸·肺(大肠)｜关·脾(胃)｜尺·肾(命门·三焦)</span></div>
           <div class="pulsecards" id="searchPulseCardsR" style="margin:6px 0 0"></div>
         </div>
       </div>
@@ -241,16 +256,17 @@
   <!-- 脉诊辨证 -->
   <section id="tab-pulse" style="display:none;">
     <div class="hint" style="margin-bottom:8px;">分左右手勾选脉象（红=左手 / 绿=右手）；<b>每只手仅选一种</b>（再次点同一个可取消）；<b>只选一侧即视为双手同脉</b>。下方可填症状/证型（与『智能配方』顶部症状框同步），点推荐需<b>同时</b>有症状与脉象。系统按中医「脉 → 证 → 方」推断并推荐配方。外部把脉项目可调用 <code>AROMA_pulseRecommend(['弦脉','迟脉'])</code> 直接取得推荐配方。</div>
+    <div class="pulsesites" id="pulseSites"></div>
     <div class="toolbar">
       <input type="text" id="pulseSym" class="search" placeholder="结合症状 / 证型（可选，与『智能配方』顶部症状框同步）" oninput="document.getElementById('q').value=this.value;" />
     </div>
     <div class="pulse-hands">
       <div class="hand-box hand-left">
-        <div class="hand-title">✋ 左手（红框）<span class="hand-sub">寸·心｜关·肝｜尺·肾</span></div>
+        <div class="hand-title">✋ 左手（红框）<span class="hand-sub">寸·心(小肠)｜关·肝(胆)｜尺·肾(膀胱)</span></div>
         <div class="pulsecards" id="pulseCardsL" style="margin:6px 0 0"></div>
       </div>
       <div class="hand-box hand-right">
-        <div class="hand-title">🤚 右手（绿框）<span class="hand-sub">寸·肺｜关·脾｜尺·肾(命门)</span></div>
+        <div class="hand-title">🤚 右手（绿框）<span class="hand-sub">寸·肺(大肠)｜关·脾(胃)｜尺·肾(命门·三焦)</span></div>
         <div class="pulsecards" id="pulseCardsR" style="margin:6px 0 0"></div>
       </div>
     </div>
@@ -705,6 +721,27 @@
         container.appendChild(el);
       });
     });
+  }
+  function renderPulseSites(){
+    var box=document.getElementById("pulseSites");
+    if(!box) return;
+    var sites=(db.pulseSites||[]);
+    if(!sites.length){ box.style.display="none"; return; }
+    var groups={};
+    sites.forEach(function(s){ (groups[s.hand]=groups[s.hand]||[]).push(s); });
+    var html='<div class="psites-title">📍 寸口分候脏腑（定位参考：先认在第几部，再对应脏器）</div>';
+    Object.keys(groups).forEach(function(hand){
+      var cls=hand==="左"?"psite-left":"psite-right";
+      html+='<div class="psites-group '+cls+'"><div class="psites-h">'+escapeHtml(hand)+'手（'+(hand==="左"?"红框":"绿框")+'）</div>';
+      groups[hand].forEach(function(s){
+        html+='<div class="psite"><span class="ps-part">'+escapeHtml(s.part)+'</span>'+
+              '<span class="ps-organ">'+escapeHtml(s.organ)+'</span>'+
+              '<span class="ps-fu">（'+escapeHtml(s.fu)+'）</span>'+
+              '<span class="ps-note">'+escapeHtml(s.note||"")+'</span></div>';
+      });
+      html+='</div>';
+    });
+    box.innerHTML=html;
   }
   function renderPulse(){ renderPulseGrids(); }
   window.renderPulse=renderPulse;
@@ -1261,6 +1298,7 @@
   // 初始化
   renderSysChips(); renderCloud(); runSearch(); renderSrcBox();
   renderPulseGrids();
+  renderPulseSites();
   renderTongueGroups();
 
   // 暴露给控制台调试
