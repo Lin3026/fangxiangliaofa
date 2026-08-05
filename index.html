@@ -70,6 +70,14 @@
   .liblist .row{display:flex;justify-content:space-between;align-items:center;gap:8px;}
   .liblist .row .ops{display:flex;gap:6px;}
   .hint{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  /* 示意图显示开关（第一步/第二步标题后） */
+  .imgswitch{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#48615a;cursor:pointer;user-select:none;margin-left:10px;vertical-align:middle;}
+  .imgswitch input{position:absolute;opacity:0;width:0;height:0;}
+  .imgswitch .track{width:38px;height:21px;border-radius:11px;background:#cdd8d2;position:relative;transition:background .2s;flex:none;}
+  .imgswitch .track:before{content:"";position:absolute;width:17px;height:17px;border-radius:50%;background:#fff;left:2px;top:2px;transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.25);}
+  .imgswitch input:checked + .track{background:var(--accent);}
+  .imgswitch input:checked + .track:before{transform:translateX(17px);}
+  .imgswitch .lbl{font-weight:600;}
   @media(max-width:560px){.form2{grid-template-columns:1fr;}.detail dl{grid-template-columns:72px 1fr;}}
 
   /* 脉诊模块 */
@@ -173,6 +181,7 @@
     <div class="card" style="background:var(--accent-soft);border-color:#bfe3d4;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
         <strong style="color:var(--accent)">💓 第一步：选脉象（左手红框 / 右手绿框）</strong>
+        <label class="imgswitch" title="显示 / 隐藏脉象示意图"><input type="checkbox" id="pulseImgToggle" onchange="togglePulseImg(this.checked)"><span class="track"></span><span class="lbl">显示脉象图</span></label>
         <span class="hint" style="margin:0">分左右手勾选脉象；<b>每只手仅选一种</b>（再次点同一个可取消）。<b>只选一侧即视为双手同脉</b>。选好后到下方「🔬 三诊合参」与症状、舌象一并出方。</span>
       </div>
       <div class="pulse-hands">
@@ -194,6 +203,7 @@
     <div class="card" style="background:var(--accent-soft);border-color:#bfe3d4;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
         <strong style="color:var(--accent)">👅 第二步：选舌象（可多选，分舌色/舌形/苔色/苔质/舌态）</strong>
+        <label class="imgswitch" title="显示 / 隐藏舌象示意图"><input type="checkbox" id="tongueImgToggle" onchange="toggleTongueImg(this.checked)"><span class="track"></span><span class="lbl">显示舌象图</span></label>
         <span class="hint" style="margin:0">勾选舌象要素（中医舌诊综合观察）。选好后到下方「🔬 三诊合参」与症状、脉象一并出方。</span>
       </div>
       <div class="tongue-groups" id="searchTongueGroups"></div>
@@ -596,6 +606,12 @@
   // 左手选择（红框）/ 右手选择（绿框）；只选一侧即视为双手同脉
   var selectedLeft={};
   var selectedRight={};
+  // 脉象/舌象示意图开关（默认隐藏，仅显示标题与主病描述，便于快速勾选；开关在「智能配方」第一步/第二步标题后）
+  var showPulseImg=false;
+  var showTongueImg=false;
+  function togglePulseImg(v){ showPulseImg=!!v; renderPulseGrids(); }
+  function toggleTongueImg(v){ showTongueImg=!!v; renderTongueGroups(); }
+  window.togglePulseImg=togglePulseImg; window.toggleTongueImg=toggleTongueImg;
   // 脉象波形示意图参数（初学者友好 · 强辨识度版）
   // depth=浮/中/沉 取脉深度(决定波形纵向位置)；shape=波形特征；rate=脉率；strength=力度；rhythm=节律
   var PULSE_WAVES={
@@ -710,7 +726,7 @@
         el.className="pulsecard"+(d.sel[p.name]?" sel":"");
         el.innerHTML='<h4>'+escapeHtml(p.name)+'</h4>'+
           '<div class="pf">'+escapeHtml(p.feel||"")+'</div>'+
-          pulseSvg(p)+
+          (showPulseImg?pulseSvg(p):"")+
           '<div class="pz">主病：'+(p.zhubing||"")+'</div>';
         el.onclick=function(){
           var hand=d.sel;
@@ -971,7 +987,7 @@
           el.className="tonguecard"+(selectedTongues[t.name]?" sel":"");
           el.innerHTML='<h4>'+escapeHtml(t.name)+'</h4>'+
             '<div class="tf">'+escapeHtml(t.feel||"")+'</div>'+
-            tongueSvg(t)+
+            (showTongueImg?tongueSvg(t):"")+
             '<div class="tz">主病：'+(t.zhubing||"")+'</div>';
           el.onclick=function(){
             if(selectedTongues[t.name]) delete selectedTongues[t.name];
