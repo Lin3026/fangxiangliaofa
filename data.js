@@ -3729,6 +3729,14 @@ window.AROMA_BASE = {
       "caution": "结代脉主脏气衰微，须结合心电图等检查"
     }
   ],
+  "pulseSites": [
+    {"hand":"左","part":"寸","organ":"心","fu":"小肠","note":"胸中、血脉、神志"},
+    {"hand":"左","part":"关","organ":"肝","fu":"胆","note":"胁肋、情志、目"},
+    {"hand":"左","part":"尺","organ":"肾","fu":"膀胱","note":"下腹、生殖泌尿、腰"},
+    {"hand":"右","part":"寸","organ":"肺","fu":"大肠","note":"胸、皮毛、呼吸"},
+    {"hand":"右","part":"关","organ":"脾","fu":"胃","note":"中焦、消化、肌肉"},
+    {"hand":"右","part":"尺","organ":"肾（命门）","fu":"三焦","note":"下焦、气化、命门火"}
+  ],
   "tongues": [
     {
       "name": "淡白舌",
