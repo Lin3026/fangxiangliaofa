@@ -138,6 +138,27 @@
   .tsvg{display:block;width:100%;height:auto;background:#f7faf8;border:1px solid var(--line);border-radius:8px;margin:6px 0 2px;}
   .tonguelabel{font-size:10px;color:#9aa;text-align:center;margin-bottom:2px;}
   .tonguekey{font-size:11px;color:#22325a;background:#eef3ff;border:1px solid #d6e0ff;border-radius:6px;padding:2px 6px;margin:1px 0 4px;text-align:center;line-height:1.45;font-weight:600;white-space:normal;}
+
+  /* 精油剂量计算器 */
+  .dose-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:10px 0;}
+  .quick-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+  .qchip{padding:4px 11px;border-radius:16px;background:var(--chip);border:1px solid var(--line);font-size:12px;color:var(--muted);cursor:pointer;font-weight:600;}
+  .qchip:hover{border-color:var(--accent);color:var(--accent);}
+  .dose-result{text-align:center;background:var(--accent-soft);border-radius:12px;padding:14px 10px;margin:6px 0;}
+  .dose-result.small{padding:8px 10px;font-size:13px;}
+  .dose-big{font-size:44px;font-weight:800;color:var(--accent);line-height:1.1;}
+  .dose-cap{font-size:13px;color:#48615a;margin-top:4px;}
+  .dose-rev{margin-top:8px;font-size:13px;}
+  .blendRow{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:13px;}
+  .blendRow input[type=number]{width:64px;}
+  .blendRow b{color:var(--accent);}
+  .dose-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px;}
+  .dose-table th,.dose-table td{border:1px solid var(--line);padding:6px 8px;text-align:center;}
+  .dose-table th{background:var(--accent-soft);color:var(--accent);font-weight:700;}
+  .dose-table td:first-child{text-align:left;font-weight:600;color:#48615a;}
+  .dose-table tbody tr:nth-child(even){background:#fafcfa;}
+  .dose-note{font-size:12px;color:var(--muted);margin:6px 0 2px;}
+  @media(max-width:560px){.dose-grid{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -159,6 +180,7 @@
 
   <div class="tabs">
     <div class="tab active" data-tab="search">🔍 智能配方</div>
+    <div class="tab" data-tab="dose">💊 剂量计算</div>
     <div class="tab" data-tab="pulse">💓 脉诊辨证</div>
     <div class="tab" data-tab="tongue">👅 舌诊辨证</div>
     <div class="tab" data-tab="oils">🧪 精油档案</div>
@@ -229,6 +251,97 @@
 
     <div class="count" id="count"></div>
     <div id="results"></div>
+  </section>
+
+  <!-- 精油剂量计算 -->
+  <section id="tab-dose" style="display:none;">
+    <div class="disclaimer">⚠️ 剂量计算仅作调配参考。精油为高浓度物质，<b>严禁口服</b>；涂抹前务必稀释于基础油。柑橘类具光敏性，孕妇、癫痫、哮喘人群使用部分精油须谨慎或禁用，详见各精油档案「注意」。</div>
+
+    <div class="card">
+      <h3>💊 精油剂量快速计算</h3>
+      <div class="dose-note">输入「基础油容量」与「目标浓度」，实时算出所需精油滴数（默认 1ml ≈ 20 滴）。也可勾选反向，由滴数推算实际浓度。</div>
+      <div class="dose-grid">
+        <div class="formrow">
+          <label>基础油 / 媒介油容量（ml）</label>
+          <input type="number" id="doseMl" value="10" min="0" step="1" oninput="calcDose()" />
+          <div class="quick-row">
+            <span class="qchip" onclick="setDoseMl(10)">10</span>
+            <span class="qchip" onclick="setDoseMl(30)">30</span>
+            <span class="qchip" onclick="setDoseMl(50)">50</span>
+            <span class="qchip" onclick="setDoseMl(100)">100</span>
+          </div>
+        </div>
+        <div class="formrow">
+          <label>目标浓度（%）</label>
+          <input type="number" id="dosePct" value="2" min="0" max="20" step="0.5" oninput="calcDose()" />
+          <div class="quick-row">
+            <span class="qchip" onclick="setDosePct(0.5)">0.5</span>
+            <span class="qchip" onclick="setDosePct(1)">1</span>
+            <span class="qchip" onclick="setDosePct(2)">2</span>
+            <span class="qchip" onclick="setDosePct(3)">3</span>
+            <span class="qchip" onclick="setDosePct(5)">5</span>
+          </div>
+        </div>
+      </div>
+      <div class="dose-result">
+        <div class="dose-big"><span id="doseDrops">4</span> 滴</div>
+        <div class="dose-cap">需精油约 <b id="doseDrops2">4</b> 滴（折合 <span id="doseMlOil">0.2</span> ml），加入 <span id="doseMl2">10</span> ml 基础油即约 <span id="dosePct2">2</span>%</div>
+      </div>
+      <div class="dose-rev">
+        <label style="cursor:pointer;"><input type="checkbox" id="doseRevChk" onchange="toggleRev()" /> 反向：已知滴数，算实际浓度</label>
+        <div id="doseRevBox" style="display:none;margin-top:8px;">
+          <div class="formrow" style="max-width:240px;">
+            <label>已加入精油滴数</label>
+            <input type="number" id="doseDropsIn" value="4" min="0" step="1" oninput="calcDose()" />
+          </div>
+          <div class="dose-result small">实际浓度 ≈ <b id="doseRevPct">2.0</b>%</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🌿 复方分配（把总滴数按比例分给多种精油）</h3>
+      <div class="dose-note">用于一个配方含多种精油时，按「份数」把上面算出的总滴数分配下去。</div>
+      <div class="dose-grid">
+        <div class="formrow">
+          <label>配方中精油种类数</label>
+          <input type="number" id="blendN" value="3" min="1" max="10" step="1" oninput="renderBlendRows()" />
+        </div>
+        <div class="formrow">
+          <label>分配基准总滴数</label>
+          <div style="margin-bottom:4px;">
+            <label style="cursor:pointer;"><input type="radio" name="blendBase" value="auto" checked onchange="calcBlend()" /> 用上方总滴数（<span id="blendAuto">4</span> 滴）</label>
+          </div>
+          <div>
+            <label style="cursor:pointer;"><input type="radio" name="blendBase" value="manual" onchange="calcBlend()" /> 自定义</label>
+            <input type="number" id="blendManual" value="10" min="1" step="1" style="width:70px;display:none" oninput="calcBlend()" />
+          </div>
+        </div>
+      </div>
+      <div id="blendRows"></div>
+      <div class="dose-result small" id="blendTotalLine"></div>
+    </div>
+
+    <div class="card">
+      <h3>⚠️ 安全浓度与禁忌参考</h3>
+      <div class="dose-note">不同人群 / 用途的推荐最高浓度（一般成人护肤，非治疗用途建议更低）：</div>
+      <table class="dose-table">
+        <thead><tr><th>人群 / 用途</th><th>建议最高浓度</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td>成人日常保养</td><td>1%–2%</td><td>日常护肤、按摩，安全温和</td></tr>
+          <tr><td>成人局部治疗</td><td>2%–3%（急性可达 5%）</td><td>对症短期使用，避开大面积</td></tr>
+          <tr><td>老年人 / 体弱</td><td>0.5%–1%</td><td>代谢慢，宜低浓度</td></tr>
+          <tr><td>儿童（6–12 岁）</td><td>0.5%–1%</td><td>按年龄递减</td></tr>
+          <tr><td>幼儿（2–6 岁）</td><td>0.25%–0.5%</td><td>仅少数温和精油</td></tr>
+          <tr><td>婴幼儿（&lt;2 岁）</td><td>0.1%–0.25% 或禁用</td><td>多数精油不推荐，咨询专业人士</td></tr>
+          <tr><td>孕妇</td><td>多数禁用或 ≤1%</td><td>尤其前三月；部分精油禁用</td></tr>
+          <tr><td>面部 / 敏感区</td><td>0.5%–1%</td><td>黏膜、眼周附近要更低</td></tr>
+        </tbody>
+      </table>
+      <div class="dose-note" style="margin-top:12px;">常用浓度速查（滴数 = 容量ml × 浓度% × 0.2）：</div>
+      <div id="doseRefTable"></div>
+      <div class="caution" style="margin-top:10px;">🍊 柑橘类（甜橙、柠檬、葡萄柚、佛手柑等）具光敏性，外用后 12 小时内避免日晒／紫外线。🌿 癫痫、哮喘、高血压人群使用部分精油（如迷迭香、尤加利、薄荷等）须谨慎。具体禁忌见各精油档案「注意」。</div>
+    </div>
   </section>
 
   <!-- 精油档案 -->
@@ -1281,6 +1394,90 @@
   }
   window.resetDB=resetDB;
 
+  /* ---- 精油剂量计算器 ---- */
+  var lastDoseDrops=4;
+  function calcDose(){
+    var ml=parseFloat(document.getElementById("doseMl").value)||0;
+    var pct=parseFloat(document.getElementById("dosePct").value)||0;
+    var drops=ml*pct*0.2;                 // 1ml≈20滴，精油体积=ml×(pct/100)
+    var dropsR=Math.round(drops*10)/10;
+    var pctR=Math.round(pct*10)/10;
+    var mlOil=Math.round(ml*pct/100*1000)/1000;
+    lastDoseDrops=dropsR;
+    document.getElementById("doseDrops").textContent=dropsR;
+    document.getElementById("doseDrops2").textContent=dropsR;
+    document.getElementById("doseMlOil").textContent=mlOil;
+    document.getElementById("doseMl2").textContent=ml;
+    document.getElementById("dosePct2").textContent=pctR;
+    document.getElementById("blendAuto").textContent=dropsR;
+    var revDrops=parseFloat(document.getElementById("doseDropsIn").value)||0;
+    var revPct = ml>0 ? Math.round(revDrops*5/ml*10)/10 : 0;
+    document.getElementById("doseRevPct").textContent=revPct;
+    calcBlend();
+  }
+  window.calcDose=calcDose;
+  function setDoseMl(v){ document.getElementById("doseMl").value=v; calcDose(); }
+  function setDosePct(v){ document.getElementById("dosePct").value=v; calcDose(); }
+  window.setDoseMl=setDoseMl; window.setDosePct=setDosePct;
+  function toggleRev(){
+    document.getElementById("doseRevBox").style.display=
+      document.getElementById("doseRevChk").checked?"block":"none";
+  }
+  window.toggleRev=toggleRev;
+  function renderBlendRows(){
+    var n=Math.max(1,Math.min(10,parseInt(document.getElementById("blendN").value,10)||1));
+    var html="";
+    for(var i=1;i<=n;i++){
+      html+='<div class="blendRow"><span>精油'+i+'</span>'+
+            '<input type="number" class="bw" data-i="'+i+'" value="1" min="0" step="1" oninput="calcBlend()" />'+
+            '<span class="hint">份</span><b id="bdrop'+i+'"></b></div>';
+    }
+    document.getElementById("blendRows").innerHTML=html;
+    calcBlend();
+  }
+  window.renderBlendRows=renderBlendRows;
+  function calcBlend(){
+    var n=Math.max(1,Math.min(10,parseInt(document.getElementById("blendN").value,10)||1));
+    var manual=document.querySelector('input[name=blendBase][value=manual]').checked;
+    var total = manual ? (parseFloat(document.getElementById("blendManual").value)||0)
+                       : (parseFloat(document.getElementById("doseDrops").textContent)||0);
+    document.getElementById("blendManual").style.display = manual?"inline-block":"none";
+    var rows=document.querySelectorAll("#blendRows .bw");
+    var ws=[], sum=0;
+    rows.forEach(function(r){ var w=parseFloat(r.value)||0; ws.push(w); sum+=w; });
+    if(sum<=0){
+      document.getElementById("blendTotalLine").textContent="请填写每种精油的份数（总份数需 > 0）";
+      return;
+    }
+    for(var i=1;i<=n;i++){
+      var d=Math.round(total*ws[i-1]/sum*10)/10;
+      var el=document.getElementById("bdrop"+i);
+      if(el) el.textContent=" "+d+" 滴";
+    }
+    document.getElementById("blendTotalLine").textContent=
+      "总 "+total+" 滴 → 已按份数比例分配（合计份数 "+sum+"）";
+  }
+  window.calcBlend=calcBlend;
+  function renderDose(){
+    var pcts=[0.5,1,2,3,5], vols=[10,30,50,100];
+    var html='<table class="dose-table"><thead><tr><th>浓度＼容量</th>';
+    vols.forEach(function(v){ html+='<th>'+v+'ml</th>'; });
+    html+='</tr></thead><tbody>';
+    pcts.forEach(function(p){
+      html+='<tr><td>'+p+'%</td>';
+      vols.forEach(function(v){
+        var d=Math.round(v*p*0.2*10)/10;
+        html+='<td>'+d+' 滴</td>';
+      });
+      html+='</tr>';
+    });
+    html+='</tbody></table>';
+    document.getElementById("doseRefTable").innerHTML=html;
+    if(!document.getElementById("blendRows").children.length) renderBlendRows();
+    calcDose();
+  }
+  window.renderDose=renderDose;
+
   /* ---- tab 切换 ---- */
   document.querySelectorAll(".tab").forEach(function(t){
     t.onclick=function(){
@@ -1293,11 +1490,13 @@
       document.getElementById("tab-hydro").style.display=tab==="hydro"?"block":"none";
       document.getElementById("tab-lib").style.display=tab==="lib"?"block":"none";
       document.getElementById("tab-tongue").style.display=tab==="tongue"?"block":"none";
+      document.getElementById("tab-dose").style.display=tab==="dose"?"block":"none";
       if(tab==="oils") renderOils();
       if(tab==="hydro") renderHydro();
       if(tab==="lib") renderLib();
       if(tab==="pulse") renderPulse();
       if(tab==="tongue") renderTongueGroups();
+      if(tab==="dose") renderDose();
     };
   });
 
@@ -1316,6 +1515,7 @@
   renderPulseGrids();
   renderPulseSites();
   renderTongueGroups();
+  renderDose();
 
   // 暴露给控制台调试
   window.AROMA_DB=db;
