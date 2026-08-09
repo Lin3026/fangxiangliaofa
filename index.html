@@ -1099,12 +1099,12 @@
   var TONGUE_REAL_PHOTOS={
     1:"tongues/tongue-01.jpg", 2:"tongues/tongue-02.jpg", 3:"tongues/tongue-03.jpg", 4:"tongues/tongue-04.jpg", 5:"tongues/tongue-05.jpg",
     6:"tongues/tongue-06.jpg", 7:"tongues/tongue-07.jpg", 8:"tongues/tongue-08.jpg", 9:"tongues/tongue-09.jpg", 10:"tongues/tongue-10.jpg",
+    11:"tongues/tongue-11.jpg", 12:"tongues/tongue-12.jpg", 13:"tongues/tongue-13.jpg",
     14:"tongues/tongue-14.jpg", 15:"tongues/tongue-15.jpg", 16:"tongues/tongue-16.jpg", 17:"tongues/tongue-17.jpg", 18:"tongues/tongue-18.jpg",
     19:"tongues/tongue-19.jpg", 20:"tongues/tongue-20.jpg"
   };
   function tongueMedia(t){
-    var m=/(\d+)/.exec(t.id||"");
-    var idx=m?parseInt(m[1],10):0;
+    var idx = (typeof db!=="undefined" && db.tongues) ? db.tongues.indexOf(t)+1 : 0;
     var src=TONGUE_REAL_PHOTOS[idx];
     if(src){
       var safeSrc=escapeAttr(src);
