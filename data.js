@@ -3676,7 +3676,7 @@ window.AROMA_BASE = {
     },
     {
       "id": "fx-086",
-      "name": "肝胃郁热、湿热中阻方",
+      "name": "肝胃郁热、湿热中阻方（胃食管反流）",
       "system": "消化系统",
       "tcmPattern": "肝胃郁热、湿热中阻",
       "symptoms": [
