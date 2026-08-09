@@ -315,6 +315,11 @@
         <div class="formrow">
           <label>配方中精油种类数</label>
           <input type="number" id="blendN" value="3" min="1" max="10" step="1" oninput="renderBlendRows()" />
+          <div class="quick-row">
+            <span class="qchip" onclick="setBlendN(3)">3</span>
+            <span class="qchip" onclick="setBlendN(4)">4</span>
+            <span class="qchip" onclick="setBlendN(5)">5</span>
+          </div>
         </div>
         <div class="formrow">
           <label>分配基准总滴数</label>
@@ -1426,6 +1431,8 @@
   function setDoseMl(v){ document.getElementById("doseMl").value=v; calcDose(); }
   function setDosePct(v){ document.getElementById("dosePct").value=v; calcDose(); }
   window.setDoseMl=setDoseMl; window.setDosePct=setDosePct;
+  function setBlendN(v){ document.getElementById("blendN").value=v; renderBlendRows(); }
+  window.setBlendN=setBlendN;
   function toggleRev(){
     document.getElementById("doseRevBox").style.display=
       document.getElementById("doseRevChk").checked?"block":"none";
