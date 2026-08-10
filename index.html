@@ -135,7 +135,7 @@
   .tonguecard h4{margin:0 0 4px;font-size:14.5px;}
   .tonguecard .tf{font-size:11px;color:var(--muted);min-height:28px;}
   .tonguecard .tz{font-size:11.5px;color:#48615a;margin-top:4px;}
-  .tonguecard .tphoto{display:block;width:100%;max-width:200px;height:auto;margin:6px auto;border-radius:8px;cursor:zoom-in;border:1px solid var(--line);background:#fff;}
+  .tonguecard .tphoto{display:block;width:100%;height:auto;aspect-ratio:220/315;object-fit:cover;margin:6px auto;border-radius:8px;cursor:zoom-in;border:1px solid var(--line);background:#fff;}
   .tonguecard .tphoto:hover{border-color:var(--accent);box-shadow:0 2px 6px rgba(0,0,0,.08);}
   .tphoto-fallback{font-size:11px;color:var(--muted);text-align:center;margin:4px 0;}
   .tonguephoto-disclaimer{font-size:11px;color:#a26b00;background:#fff7e6;border:1px solid #ffe1a3;border-radius:6px;padding:5px 8px;margin:6px 0 4px;line-height:1.45;}
@@ -1097,11 +1097,11 @@
   }
   /* 真实舌象照片映射（已裁剪的图片编号，缺的回退到卡通 SVG） */
   var TONGUE_REAL_PHOTOS={
-    1:"tongues/tongue-01.jpg", 2:"tongues/tongue-02.jpg", 3:"tongues/tongue-03.jpg", 4:"tongues/tongue-04.jpg", 5:"tongues/tongue-05.jpg",
-    6:"tongues/tongue-06.jpg", 7:"tongues/tongue-07.jpg", 8:"tongues/tongue-08.jpg", 9:"tongues/tongue-09.jpg", 10:"tongues/tongue-10.jpg",
-    11:"tongues/tongue-11.jpg", 12:"tongues/tongue-12.jpg", 13:"tongues/tongue-13.jpg",
-    14:"tongues/tongue-14.jpg", 15:"tongues/tongue-15.jpg", 16:"tongues/tongue-16.jpg", 17:"tongues/tongue-17.jpg", 18:"tongues/tongue-18.jpg",
-    19:"tongues/tongue-19.jpg", 20:"tongues/tongue-20.jpg"
+    1:"tongues/tongue-01.png", 2:"tongues/tongue-02.png", 3:"tongues/tongue-03.png", 4:"tongues/tongue-04.png", 5:"tongues/tongue-05.png",
+    6:"tongues/tongue-06.png", 7:"tongues/tongue-07.png", 8:"tongues/tongue-08.png", 9:"tongues/tongue-09.png", 10:"tongues/tongue-10.png",
+    11:"tongues/tongue-11.png", 12:"tongues/tongue-12.png", 13:"tongues/tongue-13.png",
+    14:"tongues/tongue-14.png", 15:"tongues/tongue-15.png", 16:"tongues/tongue-16.png", 17:"tongues/tongue-17.png", 18:"tongues/tongue-18.png",
+    19:"tongues/tongue-19.png", 20:"tongues/tongue-20.png"
   };
   function tongueMedia(t){
     var idx = (typeof db!=="undefined" && db.tongues) ? db.tongues.indexOf(t)+1 : 0;
