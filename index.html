@@ -423,6 +423,10 @@
   <!-- 舌诊辨证 -->
   <section id="tab-tongue" style="display:none;">
     <div class="hint" style="margin-bottom:8px;">勾选舌象要素（<b>可多选</b>，综合观察舌色/舌形/苔色/苔质/舌态）；下方症状框与『智能配方』顶部症状框同步。点推荐：<b>有舌象即可推荐配方</b>；若同时填了症状，则按「症状+舌象」精确匹配（AND）。系统按中医「舌 → 证 → 方」推断并推荐配方。外部项目可调用 <code>AROMA_tongueRecommend(['胖大齿痕舌','白苔'])</code> 直接取得推荐配方。</div>
+    <div class="toolbar" style="background:#fbf3e8;border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin-bottom:10px;">
+      <a class="btn" href="tongue_teach.html" target="_blank" style="background:linear-gradient(135deg,#a23b3b,#c8553d);color:#fff;">📖 进入舌诊教学</a>
+      <span class="hint" style="margin:0;font-size:12.5px;">系统教学 · 望舌顺序 / 舌体分区 / 舌色形态苔 / 各区辨证详解 / 速查表</span>
+    </div>
     <div class="toolbar">
       <input type="text" id="tongueSym" class="search" placeholder="结合症状 / 证型（可选，与『智能配方』顶部症状框同步）" oninput="document.getElementById('q').value=this.value;" />
     </div>
