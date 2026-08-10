@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>舌诊教学 · 中医舌诊辨证系统</title>
+<style>
+:root{
+  --accent:#a23b3b;
+  --accent2:#5b8a72;
+  --warn:#b94a00;
+  --line:#e6dccd;
+  --bg:#faf6ef;
+  --ink:#3a2e25;
+  --muted:#8a7a6a;
+  --card:#fff;
+  --shadow:0 2px 12px rgba(120,80,40,.08);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"PingFang SC","Microsoft YaHei",serif;line-height:1.7}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* 顶部 */
+header.top{background:linear-gradient(135deg,#a23b3b,#c8553d);color:#fff;padding:18px 22px;box-shadow:var(--shadow)}
+header.top h1{margin:0;font-size:22px;font-weight:700;letter-spacing:1px}
+header.top .sub{font-size:12.5px;opacity:.88;margin-top:4px}
+header.top .home{position:absolute;right:22px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.18);color:#fff;padding:7px 14px;border-radius:18px;font-size:13px;border:1px solid rgba(255,255,255,.3)}
+header.top .home:hover{background:rgba(255,255,255,.3);text-decoration:none}
+header.top{position:relative}
+
+/* 布局 */
+.layout{display:flex;max-width:1240px;margin:0 auto;gap:18px;padding:18px}
+aside.nav{position:sticky;top:14px;align-self:flex-start;width:208px;flex-shrink:0;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 0;box-shadow:var(--shadow);max-height:calc(100vh - 28px);overflow-y:auto}
+aside.nav h3{margin:0 14px 8px;font-size:13px;color:var(--muted);font-weight:600;letter-spacing:1px;border-bottom:1px solid var(--line);padding-bottom:6px}
+aside.nav a{display:block;padding:7px 16px;font-size:13.5px;color:var(--ink);border-left:3px solid transparent;transition:.12s}
+aside.nav a:hover{background:#fbf3e8;border-left-color:var(--accent);text-decoration:none}
+aside.nav a.active{background:#fbf3e8;color:var(--accent);border-left-color:var(--accent);font-weight:600}
+
+main{flex:1;min-width:0}
+section.block{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 24px;margin-bottom:18px;box-shadow:var(--shadow);scroll-margin-top:14px}
+section.block h2{margin:0 0 12px;font-size:19px;color:var(--accent);font-weight:700;display:flex;align-items:center;gap:8px;border-bottom:2px solid var(--line);padding-bottom:8px}
+section.block h3{margin:18px 0 8px;font-size:15px;color:var(--accent2);font-weight:700}
+section.block h4{margin:14px 0 6px;font-size:14px;color:var(--ink);font-weight:700}
+section.block p{margin:8px 0;color:#4a3e33;font-size:14px}
+section.block ul{margin:8px 0;padding-left:22px;font-size:14px;color:#4a3e33}
+section.block li{margin:3px 0}
+
+/* 警示/小贴士 */
+.tip{border-left:4px solid var(--accent);background:#fff8f0;padding:9px 13px;border-radius:0 6px 6px 0;margin:10px 0;font-size:13.5px;color:#6b4423}
+.warn{border-left:4px solid var(--warn);background:#fff3e6;padding:9px 13px;border-radius:0 6px 6px 0;margin:10px 0;font-size:13px;color:#7a3a00}
+.note{border-left:4px solid var(--accent2);background:#f3f8f4;padding:9px 13px;border-radius:0 6px 6px 0;margin:10px 0;font-size:13px;color:#3a5a45}
+
+/* 表格 */
+table.tc{width:100%;border-collapse:collapse;margin:10px 0;font-size:13.5px}
+table.tc th,table.tc td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+table.tc th{background:#fbf3e8;color:var(--accent);font-weight:600}
+table.tc tr:nth-child(even) td{background:#fdfaf4}
+table.tc .tag{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11.5px;margin:0 2px}
+.tag.hot{background:#fbe5e1;color:#a23b3b}
+.tag.cold{background:#e1eef9;color:#1f5b8a}
+.tag.damp{background:#e8f3e2;color:#3a6b35}
+.tag.defic{background:#f7eee0;color:#7a5a20}
+.tag.excess{background:#f0e1f3;color:#6b2b6b}
+
+/* 网格卡片 */
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin:12px 0}
+.card{background:#fdfaf4;border:1px solid var(--line);border-radius:9px;padding:12px 14px;transition:.15s}
+.card:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.card h4{margin:0 0 6px;font-size:14px;color:var(--accent)}
+.card .desc{font-size:12.5px;color:var(--muted);margin-bottom:6px}
+.card .ill{font-size:12.5px;color:#4a3e33}
+.card img.illu{display:block;width:100%;height:auto;max-width:140px;margin:6px auto 0;border-radius:6px;border:1px solid var(--line)}
+
+/* 局部图示区 */
+.illus{display:flex;flex-wrap:wrap;gap:18px;justify-content:center;align-items:flex-start;margin:14px 0}
+.illus svg, .illus .svgbox{max-width:100%;height:auto}
+.svgbox{background:#fdfaf4;border:1px solid var(--line);border-radius:8px;padding:12px}
+.svgcap{text-align:center;font-size:12px;color:var(--muted);margin-top:6px}
+
+/* 三栏对照 */
+.dual{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:10px 0}
+@media(max-width:780px){.dual{grid-template-columns:1fr}}
+
+/* 步骤 */
+ol.steps{counter-reset:stp;padding-left:0;list-style:none;margin:10px 0}
+ol.steps>li{counter-increment:stp;padding:8px 12px 8px 38px;position:relative;background:#fdfaf4;border-left:3px solid var(--accent2);margin:6px 0;border-radius:0 6px 6px 0;font-size:13.5px}
+ol.steps>li::before{content:counter(stp);position:absolute;left:10px;top:7px;background:var(--accent2);color:#fff;width:22px;height:22px;border-radius:50%;text-align:center;line-height:22px;font-size:12px;font-weight:700}
+
+/* 速查表样式 */
+.kv{display:grid;grid-template-columns:max-content 1fr;gap:6px 14px;font-size:13.5px}
+.kv dt{font-weight:700;color:var(--accent)}
+.kv dd{margin:0;color:#4a3e33}
+
+/* 移动端 */
+@media(max-width:860px){
+  .layout{flex-direction:column;padding:12px}
+  aside.nav{position:static;width:100%;max-height:none}
+  header.top h1{font-size:18px}
+  header.top .home{position:static;display:inline-block;margin-top:8px;transform:none}
+  header.top{text-align:left}
+}
+
+/* 返回顶部 */
+.toTop{position:fixed;right:18px;bottom:18px;background:var(--accent);color:#fff;width:42px;height:42px;border-radius:50%;display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow);font-size:18px;z-index:999}
+.toTop.show{display:flex}
+
+footer{padding:18px;text-align:center;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>👅 舌诊辨证教学</h1>
+  <div class="sub">系统整理 · 望舌顺序 / 舌体分区 / 舌色形态苔 / 各区辨证 / 速查</div>
+  <a class="home" href="index.html">← 返回主应用</a>
+</header>
+
+<div class="layout">
+
+<aside class="nav">
+  <h3>目 录</h3>
+  <a href="#overview">一、舌诊总览</a>
+  <a href="#zones">二、舌体分区（1/2/3 线）</a>
+  <a href="#order">三、望舌顺序</a>
+  <a href="#color">四、看舌色</a>
+  <a href="#shape">五、看舌形态</a>
+  <a href="#coating">六、看舌苔</a>
+  <a href="#normal">七、正常舌象</a>
+  <a href="#abnormal">八、常见异常舌象</a>
+  <a href="#special">九、特殊舌形</a>
+  <a href="#zone-dx">十、各区辨证详解</a>
+  <a href="#quick">十一、速查表</a>
+  <a href="#disclaimer">⚠ 免责声明</a>
+</aside>
+
+<main>
+
+<!-- 一、舌诊总览 -->
+<section class="block" id="overview">
+<h2>一、舌诊总览</h2>
+<p>舌诊是中医望诊的核心内容，通过观察舌质、舌苔、舌形、舌态及舌下脉络，</p>
+<p>判断人体气血的盛衰、病邪的深浅、脏腑的虚实以及病势的进退。</p>
+
+<div class="dual">
+<div>
+  <h3>如何看舌（三大要点）</h3>
+  <ul>
+    <li><b>看舌质</b> — 观<b>虚实</b>（颜色、润燥、形态）</li>
+    <li><b>看舌苔</b> — 观<b>六淫</b>（寒、热、湿、燥）</li>
+    <li><b>看舌形</b> — 观<b>气血</b>（凹陷、凸起、缺损）</li>
+  </ul>
+</div>
+<div>
+  <h3>舌质三辨</h3>
+  <ul>
+    <li><b>颜色</b>：淡白、淡红、青紫（定寒热虚实）</li>
+    <li><b>形态</b>：老嫩、胖瘦、齿痕、裂纹、芒刺（定虚实）</li>
+    <li><b>动态</b>：歪斜、震颤、痿软、短缩（定气血与神机）</li>
+  </ul>
+</div>
+</div>
+
+<div class="note">💡 舌诊要<b>结合全身症状</b>综合判断，单凭舌象不能确诊；本教学仅作<b>辨识练习</b>之用。</div>
+</section>
+
+<!-- 二、舌体分区 -->
+<section class="block" id="zones">
+<h2>二、舌体分区（1/2/3 线）</h2>
+
+<h3>三条主线</h3>
+<ul>
+  <li><b>1线</b>：将舌平均分为<b>上 1/3</b> 与<b>中下 2/3</b> 的横线</li>
+  <li><b>2线</b>：将舌分为<b>中 1/3</b> 与<b>下 1/3</b> 的横线</li>
+  <li><b>3线</b>：舌体中央纵线，对应<b>任督二脉 / 脊柱</b></li>
+</ul>
+
+<h3>三焦划分</h3>
+<div class="dual">
+  <div>
+    <b>上焦</b>（舌尖区）：心、肺、扁桃、颈
+  </div>
+  <div>
+    <b>中焦</b>（舌中区）：肝、胆、脾、胃、膻中
+  </div>
+</div>
+<div>
+  <b>下焦</b>（舌根区）：子宫、肚脐、腹股沟、肾、膀胱、生殖区
+</div>
+
+<h3>交点含义</h3>
+<ul>
+  <li>1线与3线交点 → <b>肚脐（命门）</b></li>
+  <li>2线与3线交点 → <b>膻中（至阳）</b></li>
+</ul>
+
+<div class="illus">
+  <div class="svgbox">
+<svg viewBox="0 0 320 380" width="280" xmlns="http://www.w3.org/2000/svg" aria-label="舌体分区示意图">
+  <!-- 舌体外轮廓 -->
+  <path d="M160 20 C 90 20 50 80 50 200 C 50 280 100 360 160 365 C 220 360 270 280 270 200 C 270 80 230 20 160 20 Z" fill="#fbe5e1" stroke="#a23b3b" stroke-width="2.5"/>
+  <!-- 1线 -->
+  <line x1="50" y1="140" x2="270" y2="140" stroke="#a23b3b" stroke-width="1.5" stroke-dasharray="6 3"/>
+  <text x="280" y="145" fill="#a23b3b" font-size="13" font-weight="700">1线</text>
+  <!-- 2线 -->
+  <line x1="50" y1="240" x2="270" y2="240" stroke="#a23b3b" stroke-width="1.5" stroke-dasharray="6 3"/>
+  <text x="280" y="245" fill="#a23b3b" font-size="13" font-weight="700">2线</text>
+  <!-- 3线 -->
+  <line x1="160" y1="20" x2="160" y2="365" stroke="#5b8a72" stroke-width="1.5" stroke-dasharray="6 3"/>
+  <text x="167" y="378" fill="#5b8a72" font-size="13" font-weight="700">3线（任督二脉）</text>
+
+  <!-- 三焦标记 -->
+  <text x="30" y="80" fill="#5b8a72" font-size="11" font-weight="700">1/3 上焦</text>
+  <text x="30" y="190" fill="#5b8a72" font-size="11" font-weight="700">1/3 中焦</text>
+  <text x="30" y="305" fill="#5b8a72" font-size="11" font-weight="700">1/3 下焦</text>
+
+  <!-- 交点 -->
+  <circle cx="160" cy="140" r="4" fill="#b94a00"/>
+  <text x="170" y="135" fill="#b94a00" font-size="10">肚脐（命门）</text>
+  <circle cx="160" cy="240" r="4" fill="#b94a00"/>
+  <text x="170" y="235" fill="#b94a00" font-size="10">膻中（至阳）</text>
+
+  <!-- 上焦区 -->
+  <text x="160" y="60" text-anchor="middle" fill="#3a2e25" font-size="13" font-weight="700">上焦</text>
+  <text x="160" y="80" text-anchor="middle" fill="#3a2e25" font-size="10">心、肺</text>
+  <text x="105" y="80" text-anchor="middle" fill="#3a2e25" font-size="10">扁桃</text>
+  <text x="215" y="80" text-anchor="middle" fill="#3a2e25" font-size="10">颈</text>
+
+  <!-- 中焦区 -->
+  <text x="160" y="160" text-anchor="middle" fill="#3a2e25" font-size="12" font-weight="700">中焦</text>
+  <text x="105" y="180" text-anchor="middle" fill="#3a2e25" font-size="10">肝</text>
+  <text x="215" y="180" text-anchor="middle" fill="#3a2e25" font-size="10">胆</text>
+  <text x="80" y="200" text-anchor="middle" fill="#3a2e25" font-size="10">脾</text>
+  <text x="240" y="200" text-anchor="middle" fill="#3a2e25" font-size="10">胃</text>
+  <text x="160" y="215" text-anchor="middle" fill="#b94a00" font-size="10">膻中</text>
+
+  <!-- 下焦区 -->
+  <text x="160" y="260" text-anchor="middle" fill="#3a2e25" font-size="12" font-weight="700">下焦</text>
+  <text x="160" y="280" text-anchor="middle" fill="#3a2e25" font-size="10">肚脐</text>
+  <text x="80" y="290" text-anchor="middle" fill="#3a2e25" font-size="9">腹股沟</text>
+  <text x="240" y="290" text-anchor="middle" fill="#3a2e25" font-size="9">腹股沟</text>
+  <text x="105" y="320" text-anchor="middle" fill="#3a2e25" font-size="10">肾</text>
+  <text x="215" y="320" text-anchor="middle" fill="#3a2e25" font-size="10">膀胱</text>
+  <text x="160" y="335" text-anchor="middle" fill="#3a2e25" font-size="10">生殖区 / 子宫</text>
+</svg>
+    <div class="svgcap">舌体分区示意图 · 三线三焦</div>
+  </div>
+</div>
+
+<div class="tip">⚠ 舌边属<b>肝胆</b>，舌中属<b>脾胃</b>，舌尖属<b>心肺</b>，舌根属<b>肾膀胱</b>。这是看舌定位脏腑的基础。</div>
+</section>
+
+<!-- 三、望舌顺序 -->
+<section class="block" id="order">
+<h2>三、望舌顺序</h2>
+
+<ol class="steps">
+  <li><b>望舌质</b>：先看舌体颜色（淡白/淡红/红/绛/青紫）</li>
+  <li><b>望舌苔</b>：再看舌上苔垢（薄厚、润燥、色泽）</li>
+  <li><b>望舌下脉络</b>：翘起舌尖，观察舌下青筋（瘀血、气滞）</li>
+  <li><b>望舌面分区</b>：舌尖 → 舌中 → 舌根；舌边 → 舌中，对应脏腑定位</li>
+  <li><b>望形态动态</b>：老嫩、胖瘦、裂纹、芒刺、齿痕、强硬、痿软</li>
+</ol>
+
+<h3>主线分布</h3>
+<ul>
+  <li>主线 <b>3 条</b>（1线/2线/3线）</li>
+  <li>纵线 <b>7 条</b>（将舌体纵分为 7 列，定位脏腑更精确）</li>
+  <li>分区 <b>25 格</b>（3×7 之外的余格，按脏腑分布）</li>
+</ul>
+
+<div class="note">📖 提示：诊舌时让患者<b>自然伸舌</b>，舌面平展，<b>不要用力</b>；晨起未刷牙、未进食为佳。</div>
+</section>
+
+<!-- 四、看舌色 -->
+<section class="block" id="color">
+<h2>四、看舌色</h2>
+<p>舌色主要反映气血的盛衰与寒热属性。</p>
+
+<div class="grid2">
+
+  <div class="card">
+    <h4>淡白舌</h4>
+    <div class="desc">白色偏多，红色偏少</div>
+    <div class="ill">
+      <span class="tag cold">寒证</span>
+      <span class="tag defc">阳虚</span>
+      <span class="tag defc">气血虚</span>
+    </div>
+    <p style="margin:6px 0 0;font-size:12.5px;color:#4a3e33"><b>主病</b>：寒证、阳虚；气血两虚、阳虚水泛</p>
+    <img class="illu" src="tongues/tongue-01.png" alt="淡白舌" loading="lazy">
+  </div>
+
+  <div class="card">
+    <h4>红舌</h4>
+    <div class="desc">舌色鲜红，甚于淡红</div>
+    <div class="ill">
+      <span class="tag hot">热证</span>
+      <span class="tag hot">实热</span>
+      <span class="tag hot">阴虚火旺</span>
+    </div>
+    <p style="margin:6px 0 0;font-size:12.5px;color:#4a3e33"><b>主病</b>：实热阴虚内热、阳亢阴虚</p>
+    <img class="illu" src="tongues/tongue-03.png" alt="红舌" loading="lazy">
+  </div>
+
+  <div class="card">
+    <h4>绛舌</h4>
+    <div class="desc">深红，红中带暗</div>
+    <div class="ill">
+      <span class="tag hot">热盛</span>
+      <span class="tag hot">营血</span>
+      <span class="tag damp">湿热</span>
+    </div>
+    <p style="margin:6px 0 0;font-size:12.5px;color:#4a3e33"><b>主病</b>：热入营血、热盛伤阴；湿热内蕴</p>
+    <img class="illu" src="tongues/tongue-04.png" alt="绛舌" loading="lazy">
+  </div>
+
+  <div class="card">
+    <h4>青紫舌</h4>
+    <div class="desc">舌色青紫，或边尖有瘀斑</div>
+    <div class="ill">
+      <span class="tag excess">血瘀</span>
+      <span class="tag cold">寒凝</span>
+      <span class="tag excess">气滞</span>
+    </div>
+    <p style="margin:6px 0 0;font-size:12.5px;color:#4a3e33"><b>主病</b>：气血运行不畅；血瘀、寒凝、痛证</p>
+    <img class="illu" src="tongues/tongue-05.png" alt="青紫舌" loading="lazy">
+  </div>
+
+</div>
+
+<div class="tip">📌 正常舌色为<b>淡红</b>（参考图：tongues/tongue-02.png）；红主热、淡白主寒、青紫主瘀。</div>
+</section>
+
+<!-- 五、看舌形态 -->
+<section class="block" id="shape">
+<h2>五、看舌形态</h2>
+<p>舌形反映气血的盈亏与脏腑的虚实状态。</p>
+
+<table class="tc">
+<thead><tr><th style="width:120px">舌形</th><th>特征</th><th>主病</th></tr></thead>
+<tbody>
+  <tr><td><b>老舌</b></td><td>舌质坚敛苍老，纹理粗糙</td><td><span class="tag excess">实证</span> <span class="tag hot">热证</span></td></tr>
+  <tr><td><b>嫩舌</b></td><td>舌质浮胖娇嫩，纹理细腻</td><td><span class="tag defc">虚证</span> <span class="tag cold">虚寒</span></td></tr>
+  <tr><td><b>胖大舌</b></td><td>舌体胖大、边有齿痕</td><td><span class="tag damp">水湿</span> <span class="tag defc">脾虚</span></td></tr>
+  <tr><td><b>瘦小舌</b></td><td>舌体瘦小而薄</td><td><span class="tag defc">气血两虚</span> <span class="tag hot">阴虚火旺</span></td></tr>
+  <tr><td><b>裂纹舌</b></td><td>舌面有纵横裂纹</td><td><span class="tag hot">热盛伤津</span> <span class="tag defc">血虚</span></td></tr>
+  <tr><td><b>芒刺舌</b></td><td>舌面有红点突起如刺</td><td><span class="tag hot">热邪亢盛</span> <span class="tag excess">血热</span></td></tr>
+  <tr><td><b>齿痕舌</b></td><td>舌边有牙齿印痕</td><td><span class="tag defc">脾虚</span> <span class="tag damp">湿盛</span></td></tr>
+  <tr><td><b>强硬舌</b></td><td>舌体僵硬、屈伸不利</td><td><span class="tag hot">热入心包</span> <span class="tag excess">中风先兆</span></td></tr>
+  <tr><td><b>痿软舌</b></td><td>舌体软弱、伸卷无力</td><td><span class="tag defc">气血虚极</span> <span class="tag defc">筋脉失养</span></td></tr>
+</tbody>
+</table>
+
+<div class="grid2" style="grid-template-columns:repeat(auto-fill,minmax(170px,1fr))">
+  <div class="card"><h4>老舌</h4><img class="illu" src="tongues/tongue-06.png" loading="lazy"></div>
+  <div class="card"><h4>嫩舌</h4><img class="illu" src="tongues/tongue-07.png" loading="lazy"></div>
+  <div class="card"><h4>胖大齿痕</h4><img class="illu" src="tongues/tongue-08.png" loading="lazy"></div>
+  <div class="card"><h4>瘦薄舌</h4><img class="illu" src="tongues/tongue-09.png" loading="lazy"></div>
+  <div class="card"><h4>裂纹舌</h4><img class="illu" src="tongues/tongue-10.png" loading="lazy"></div>
+  <div class="card"><h4>强硬舌</h4><img class="illu" src="tongues/tongue-19.png" loading="lazy"></div>
+  <div class="card"><h4>痿软舌</h4><img class="illu" src="tongues/tongue-20.png" loading="lazy"></div>
+</div>
+</section>
+
+<!-- 六、看舌苔 -->
+<section class="block" id="coating">
+<h2>六、看舌苔</h2>
+<p>舌苔反映邪气的性质与深浅（寒、热、湿、燥）。</p>
+
+<div class="grid2">
+  <div class="card">
+    <h4>白厚苔</h4>
+    <div class="desc">苔白厚如粉霜，遮盖舌体不能见底</div>
+    <p><b>主病</b>：表湿、寒湿；苔厚遮盖不能见底，主寒湿内停</p>
+    <img class="illu" src="tongues/tongue-15.png" alt="白厚苔" loading="lazy">
+  </div>
+
+  <div class="card">
+    <h4>白厚腻苔</h4>
+    <div class="desc">苔白而厚腻，致密颗粒细腻</div>
+    <p><b>主病</b>：寒湿内困、痰饮内停、食积</p>
+    <img class="illu" src="tongues/tongue-16.png" alt="白厚腻苔" loading="lazy">
+  </div>
+
+  <div class="card">
+    <h4>黄腻苔</h4>
+    <div class="desc">苔黄厚腻，颗粒紧密黏腻</div>
+    <p><b>主病</b>：湿热、痰热、食积化热</p>
+    <img class="illu" src="tongues/tongue-12.png" alt="黄腻苔" loading="lazy">
+  </div>
+
+  <div class="card">
+    <h4>灰黑苔</h4>
+    <div class="desc">苔色灰黑</div>
+    <p><b>主病</b>：热极伤阴、阳虚阴盛、痰湿久郁</p>
+    <img class="illu" src="tongues/tongue-13.png" alt="灰黑苔" loading="lazy">
+  </div>
+</div>
+
+<div class="note">📌 正常舌苔为<b>薄白苔</b>（参考：tongues/tongue-14.png）；白主寒、黄主热、灰黑主重病。</div>
+</section>
+
+<!-- 七、正常舌象 -->
+<section class="block" id="normal">
+<h2>七、正常舌象</h2>
+<p>正常舌象应同时满足以下 7 条：</p>
+
+<ol class="steps">
+  <li><b>粉红色</b> — 舌色淡红润泽</li>
+  <li><b>薄白苔</b> — 苔薄如烟，透过苔能见舌体</li>
+  <li><b>无缺损</b> — 舌体完整，无剥落</li>
+  <li><b>无凹凸</b> — 表面平整，无凹陷或凸起</li>
+  <li><b>无红点</b> — 不见瘀点或芒刺</li>
+  <li><b>无裂纹</b> — 舌面光润</li>
+  <li><b>饱满圆润</b> — 大小适中，伸缩灵活</li>
+</ol>
+
+<div class="note">💡 具备以上特征即为<b>健康对照</b>；出现任何偏差，结合症状进一步辨证。</div>
+</section>
+
+<!-- 八、常见异常舌象 -->
+<section class="block" id="abnormal">
+<h2>八、常见异常舌象</h2>
+
+<table class="tc">
+<thead><tr><th style="width:140px">异常象</th><th>主病</th></tr></thead>
+<tbody>
+  <tr><td><b>凹陷</b></td><td><span class="tag defc">气血不足</span></td></tr>
+  <tr><td><b>凸舌</b></td><td><span class="tag excess">胀气</span>（气机不畅）</td></tr>
+  <tr><td><b>缺损</b></td><td><span class="tag defc">脏腑功能失调</span></td></tr>
+  <tr><td><b>芒刺</b></td><td><span class="tag hot">热</span> 或 <span class="tag excess">淤堵</span></td></tr>
+  <tr><td><b>白苔</b></td><td><span class="tag cold">体内有寒</span></td></tr>
+  <tr><td><b>黄苔</b></td><td><span class="tag hot">体内有热</span></td></tr>
+  <tr><td><b>黄腻苔</b></td><td><span class="tag damp">体内有湿热</span></td></tr>
+  <tr><td><b>灰黑苔</b></td><td><span class="tag hot">里热</span> 或 <span class="tag cold">湿寒</span>（重病）</td></tr>
+</tbody>
+</table>
+
+<h3>舌质辨病（颜色组合）</h3>
+<table class="tc">
+<thead><tr><th style="width:140px">舌质</th><th>主病</th></tr></thead>
+<tbody>
+  <tr><td><b>舌质淡白</b></td><td><span class="tag defc">阳气不足，血虚</span></td></tr>
+  <tr><td><b>舌质红</b></td><td><span class="tag hot">有苔：实热</span> / <span class="tag defc">无苔：阴虚</span></td></tr>
+  <tr><td><b>舌质青紫</b></td><td>寒瘀偏<b>青紫</b>，血瘀偏<b>紫</b></td></tr>
+</tbody>
+</table>
+</section>
+
+<!-- 九、特殊舌形 -->
+<section class="block" id="special">
+<h2>九、特殊舌形</h2>
+<p>三种常见特殊舌形，对应<b>脊柱、心脑、肝胆</b>的深层问题。</p>
+
+<div class="grid2">
+
+  <div class="card">
+    <h4>3线侧歪舌</h4>
+    <div class="desc">舌中央 3 线向一侧偏移</div>
+    <div class="illus" style="justify-content:center">
+      <svg viewBox="0 0 220 260" width="150" xmlns="http://www.w3.org/2000/svg">
+        <path d="M110 18 C 50 18 25 60 25 160 C 25 220 70 255 110 258 C 150 255 195 220 195 160 C 195 60 170 18 110 18 Z" fill="#fbe5e1" stroke="#a23b3b" stroke-width="2"/>
+        <line x1="25" y1="100" x2="195" y2="100" stroke="#a23b3b" stroke-width="1" stroke-dasharray="4 3"/>
+        <text x="200" y="105" fill="#a23b3b" font-size="10">1线</text>
+        <line x1="25" y1="180" x2="195" y2="180" stroke="#a23b3b" stroke-width="1" stroke-dasharray="4 3"/>
+        <text x="200" y="185" fill="#a23b3b" font-size="10">2线</text>
+        <!-- 3线侧歪 -->
+        <path d="M 110 18 Q 95 100 130 258" stroke="#5b8a72" stroke-width="2.5" fill="none"/>
+        <text x="35" y="245" fill="#b94a00" font-size="11" font-weight="700">3线歪了</text>
+      </svg>
+    </div>
+    <p><b>小孩</b>：注意脊柱侧弯</p>
+    <p><b>成人</b>：注意中风、面瘫（特别是 40 岁以上人群）</p>
+  </div>
+
+  <div class="card">
+    <h4>心脑区缺损舌</h4>
+    <div class="desc">舌尖（心脑区）出现缺口或凹陷</div>
+    <div class="illus" style="justify-content:center">
+      <svg viewBox="0 0 220 260" width="150" xmlns="http://www.w3.org/2000/svg">
+        <path d="M110 18 C 50 18 25 60 25 160 C 25 220 70 255 110 258 C 150 255 195 220 195 160 C 195 60 170 18 110 18 Z" fill="#fbe5e1" stroke="#a23b3b" stroke-width="2"/>
+        <line x1="25" y1="100" x2="195" y2="100" stroke="#a23b3b" stroke-width="1" stroke-dasharray="4 3"/>
+        <line x1="25" y1="180" x2="195" y2="180" stroke="#a23b3b" stroke-width="1" stroke-dasharray="4 3"/>
+        <line x1="110" y1="18" x2="110" y2="258" stroke="#5b8a72" stroke-width="1" stroke-dasharray="4 3"/>
+        <!-- 缺口（V形凹陷在舌尖） -->
+        <path d="M 70 18 L 110 65 L 150 18" stroke="#a23b3b" stroke-width="2.5" fill="none"/>
+        <text x="110" y="80" text-anchor="middle" fill="#b94a00" font-size="11" font-weight="700">心脑区缺损</text>
+      </svg>
+    </div>
+    <p><b>孩子</b>：反应迟钝、注意力差、学习成绩一般</p>
+    <p><b>成人</b>：记忆力差、心慌、胸闷、颈椎不适</p>
+    <p><b>老人</b>：预防老年痴呆、心梗、脑梗</p>
+  </div>
+
+  <div class="card">
+    <h4>三角舌</h4>
+    <div class="desc">舌形呈倒三角，前窄后宽</div>
+    <div class="illus" style="justify-content:center">
+      <svg viewBox="0 0 220 260" width="150" xmlns="http://www.w3.org/2000/svg">
+        <path d="M110 18 L 30 240 L 190 240 Z" fill="#fbe5e1" stroke="#a23b3b" stroke-width="2"/>
+        <line x1="30" y1="120" x2="190" y2="120" stroke="#a23b3b" stroke-width="1" stroke-dasharray="4 3"/>
+        <line x1="30" y1="180" x2="190" y2="180" stroke="#a23b3b" stroke-width="1" stroke-dasharray="4 3"/>
+        <line x1="110" y1="18" x2="110" y2="240" stroke="#5b8a72" stroke-width="1" stroke-dasharray="4 3"/>
+        <text x="110" y="160" text-anchor="middle" fill="#b94a00" font-size="11" font-weight="700">倒三角舌</text>
+      </svg>
+    </div>
+    <p><b>心脑区、肩周区、肝胆区</b>缺损</p>
+    <p><b>肝气郁结，脾气差，易有乳腺增生</b></p>
+  </div>
+
+</div>
+</section>
+
+<!-- 十、各区辨证 -->
+<section class="block" id="zone-dx">
+<h2>十、各区辨证详解</h2>
+
+<div class="grid2">
+
+  <div class="card">
+    <h4>🔴 心脑区（舌尖）</h4>
+    <dl class="kv">
+      <dt>舌质红</dt><dd>心火旺（睡眠差、脾气大）</dd>
+      <dt>舌形凹</dt><dd>供血不足（头晕脑胀、记忆力差）</dd>
+      <dt>舌尖缺损</dt><dd>气血不足（胸闷、心慌）</dd>
+    </dl>
+  </div>
+
+  <div class="card">
+    <h4>🦴 颈椎区（舌尖下）</h4>
+    <dl class="kv">
+      <dt>舌质红</dt><dd>咽喉不适，扁桃体炎</dd>
+      <dt>舌形凹</dt><dd>颈椎变形</dd>
+      <dt>舌形凸</dt><dd>颈椎变形或富贵包</dd>
+    </dl>
+  </div>
+
+  <div class="card">
+    <h4>💪 肩周区（舌前两侧）</h4>
+    <dl class="kv">
+      <dt>舌质红点</dt><dd>肩周淤堵，发紧</dd>
+      <dt>舌形缺损</dt><dd>气机不畅，酸胀</dd>
+    </dl>
+  </div>
+
+  <div class="card">
+    <h4>🌸 乳腺区（舌边前段）</h4>
+    <dl class="kv">
+      <dt>舌质红点</dt><dd>乳腺增生</dd>
+      <dt>舌形凹陷</dt><dd>气血不足，胸下垂</dd>
+    </dl>
+  </div>
+
+  <div class="card">
+    <h4>🥣 脾胃区（舌中）</h4>
+    <dl class="kv">
+      <dt>舌色白</dt><dd>舌苔白，肺寒</dd>
+      <dt>舌色红</dt><dd>肺火旺，易咳嗽</dd>
+      <dt>舌形凹陷-舌红</dt><dd>胃火旺盛吃，吃一点就饱</dd>
+      <dt>舌形凹陷-舌白</dt><dd>脾胃虚，吃一点就饱</dd>
+      <dt>舌形凸起</dt><dd>胃气滞，积食</dd>
+      <dt>舌质白苔</dt><dd>脾胃虚寒</dd>
+      <dt>舌质黄苔</dt><dd>积食，口臭</dd>
+      <dt>舌质黄腻苔</dt><dd>积食，湿热，痰浊</dd>
+    </dl>
+  </div>
+
+  <div class="card">
+    <h4>🌬 肺区（舌前中）</h4>
+    <dl class="kv">
+      <dt>舌色发白</dt><dd>舌苔白，肺寒</dd>
+      <dt>舌色发红</dt><dd>肺火旺，易咳嗽</dd>
+      <dt>舌形凹陷</dt><dd>肺气不足，免疫力差</dd>
+      <dt>舌形凸起</dt><dd>肺气滞，胸闷咳嗽</dd>
+      <dt>舌质裂纹</dt><dd>肺阴虚，干咳，皮肤干</dd>
+    </dl>
+  </div>
+
+  <div class="card">
+    <h4>🟢 肝区（舌边左中）</h4>
+    <dl class="kv">
+      <dt>舌质红点</dt><dd>肝胆解毒功能弱</dd>
+      <dt>舌色红</dt><dd>肝火旺，脾气大</dd>
+      <dt>舌形凹陷</dt><dd>肝血不足</dd>
+      <dt></dt><dd style="padding-left:14px">· 孩子：肝主藏血，<b>注意力差</b></dd>
+      <dt></dt><dd style="padding-left:14px">· 女子：肝主藏血，<b>月经量少</b></dd>
+      <dt></dt><dd style="padding-left:14px">· 男子：肝主筋，<b>阳痿</b></dd>
+      <dt></dt><dd style="padding-left:14px">· 老人：肝主筋，<b>易抽筋</b></dd>
+      <dt>舌形凸起</dt><dd>肝气郁结（情志不畅、两肋胀痛）</dd>
+    </dl>
+  </div>
+
+  <div class="card">
+    <h4>🟡 胆区（舌边右中）</h4>
+    <dl class="kv">
+      <dt>舌质红点</dt><dd>胆红素偏高</dd>
+      <dt>舌色发红</dt><dd>肝胆火旺，口苦</dd>
+      <dt>舌形凹陷</dt><dd>胆囊功能差</dd>
+      <dt>舌形凸起</dt><dd>胆汁排泄异常</dd>
+    </dl>
+  </div>
+
+</div>
+
+<h3 style="margin-top:18px">🔴 肝胆区鼓胀（舌两侧明显肿胀鼓起）</h3>
+<ul>
+  <li><b>肝气郁结</b>：情志不畅，<b>暴躁易怒</b></li>
+  <li><b>胆囊功能异常</b></li>
+  <li>肝主一身之气机，会<b>影响脾胃功能</b></li>
+  <li>脾气升降 → <b>食欲</b>受影响</li>
+</ul>
+</section>
+
+<!-- 十一、速查表 -->
+<section class="block" id="quick">
+<h2>十一、速查表</h2>
+<p>一页速记 · 关键信息一览。</p>
+
+<h3>舌色</h3>
+<table class="tc">
+<thead><tr><th>舌色</th><th>主病</th></tr></thead>
+<tbody>
+  <tr><td>淡白</td><td>寒证、阳虚、气血虚</td></tr>
+  <tr><td>红</td><td>实热 / 阴虚火旺</td></tr>
+  <tr><td>绛</td><td>热入营血、热盛伤阴</td></tr>
+  <tr><td>青紫</td><td>血瘀、寒凝、气滞</td></tr>
+</tbody>
+</table>
+
+<h3>舌苔</h3>
+<table class="tc">
+<thead><tr><th>舌苔</th><th>主病</th></tr></thead>
+<tbody>
+  <tr><td>薄白</td><td>正常 / 表证</td></tr>
+  <tr><td>白厚</td><td>寒湿</td></tr>
+  <tr><td>白腻</td><td>寒湿内困、痰饮</td></tr>
+  <tr><td>黄腻</td><td>湿热、痰热、食积化热</td></tr>
+  <tr><td>灰黑</td><td>里热 / 湿寒（重病）</td></tr>
+</tbody>
+</table>
+
+<h3>舌形</h3>
+<table class="tc">
+<thead><tr><th>舌形</th><th>主病</th></tr></thead>
+<tbody>
+  <tr><td>老</td><td>实证、热证</td></tr>
+  <tr><td>嫩</td><td>虚证、虚寒</td></tr>
+  <tr><td>胖大齿痕</td><td>脾虚湿盛</td></tr>
+  <tr><td>瘦薄</td><td>气血两虚、阴虚</td></tr>
+  <tr><td>裂纹</td><td>热盛伤津、血虚</td></tr>
+  <tr><td>芒刺</td><td>热邪亢盛</td></tr>
+  <tr><td>强硬</td><td>热入心包、中风先兆</td></tr>
+  <tr><td>痿软</td><td>气血虚极</td></tr>
+</tbody>
+</table>
+
+<h3>分区定位</h3>
+<table class="tc">
+<thead><tr><th>区位</th><th>对应脏腑</th></tr></thead>
+<tbody>
+  <tr><td>舌尖</td><td>心、肺（心脑区）</td></tr>
+  <tr><td>舌中</td><td>脾胃</td></tr>
+  <tr><td>舌根</td><td>肾、膀胱、生殖区</td></tr>
+  <tr><td>舌边</td><td>肝、胆</td></tr>
+</tbody>
+</table>
+</section>
+
+<!-- 免责声明 -->
+<section class="block" id="disclaimer">
+<h2>⚠ 免责声明</h2>
+<div class="warn">
+本教学资料整理自用户提供的舌诊辨证图谱（含 AI 示意），<b>非临床真实照片与权威教材</b>，仅供<b>中医舌诊辨识练习</b>之用。<br>
+<b>不能作为临床诊断或治疗依据</b>。<br>
+辨证请结合全身症状、脉象、病史，<b>由执业中医师面诊为准</b>。<br>
+如有健康问题，请及时就医，勿自行诊断用药。
+</div>
+</section>
+
+<footer>
+  © 中医芳香理疗知识库 · 舌诊教学模块 · 仅供学习参考
+</footer>
+
+</main>
+</div>
+
+<div class="toTop" id="toTop" title="回到顶部">↑</div>
+
+<script>
+// 目录高亮联动
+const navLinks = document.querySelectorAll('aside.nav a');
+const sections = [...document.querySelectorAll('main section.block')];
+function updateNav(){
+  const y = window.scrollY + 60;
+  let activeId = '';
+  for (const s of sections){
+    if (s.offsetTop <= y) activeId = s.id;
+  }
+  navLinks.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + activeId);
+  });
+}
+window.addEventListener('scroll', updateNav);
+updateNav();
+
+// 回到顶部
+const toTop = document.getElementById('toTop');
+window.addEventListener('scroll', () => {
+  toTop.classList.toggle('show', window.scrollY > 300);
+});
+toTop.onclick = () => window.scrollTo({top:0, behavior:'smooth'});
+
+// 平滑滚动到锚点（兼容 sticky 头部）
+document.querySelectorAll('aside.nav a').forEach(a => {
+  a.addEventListener('click', (e) => {
+    e.preventDefault();
+    const t = document.querySelector(a.getAttribute('href'));
+    if (t) window.scrollTo({top: t.offsetTop - 10, behavior: 'smooth'});
+  });
+});
+</script>
+
+</body>
+</html>
