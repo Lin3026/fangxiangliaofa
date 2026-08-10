@@ -590,6 +590,7 @@
     return safe;
   }
   function escapeHtml(s){ return (s||"").replace(/[&<>"]/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m];}); }
+  function escapeAttr(s){ return (s||"").replace(/[&<>"']/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m];}); }
 
   function runSearch(){
     var q=document.getElementById("q").value;
