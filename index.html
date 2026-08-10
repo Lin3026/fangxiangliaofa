@@ -229,7 +229,7 @@
     <div class="card" style="background:var(--accent-soft);border-color:#bfe3d4;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
         <strong style="color:var(--accent)">👅 第二步：选舌象（可多选，分舌色/舌形/苔色/苔质/舌态）</strong>
-        <label class="imgswitch" title="显示 / 隐藏舌象示意图"><input type="checkbox" id="tongueImgToggle" onchange="toggleTongueImg(this.checked)"><span class="track"></span><span class="lbl">显示舌象图</span></label>
+        <label class="imgswitch" title="显示 / 隐藏舌象示意图"><input type="checkbox" id="tongueImgToggle" checked onchange="toggleTongueImg(this.checked)"><span class="track"></span><span class="lbl">显示舌象图</span></label>
         <span class="hint" style="margin:0">勾选舌象要素（中医舌诊综合观察）。选好后到下方「🔬 三诊合参」与症状、脉象一并出方。</span>
       </div>
       <div class="tonguephoto-disclaimer">⚠ 舌象图为参考图谱（含 AI 示意），<b>非临床真实照片</b>，仅供辨识练习，不能作为诊断依据。辨证请结合全身症状，由执业中医师面诊为准。</div>
@@ -743,7 +743,7 @@
   var selectedRight={};
   // 脉象/舌象示意图开关（默认隐藏，仅显示标题与主病描述，便于快速勾选；开关在「智能配方」第一步/第二步标题后）
   var showPulseImg=false;
-  var showTongueImg=false;
+  var showTongueImg=true;
   function togglePulseImg(v){ showPulseImg=!!v; renderPulseGrids(); }
   function toggleTongueImg(v){ showTongueImg=!!v; renderTongueGroups(); }
   window.togglePulseImg=togglePulseImg; window.toggleTongueImg=toggleTongueImg;
