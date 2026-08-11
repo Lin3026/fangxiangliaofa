@@ -110,7 +110,7 @@ header.top .home:hover{background:rgba(255,255,255,.3);text-decoration:none}
 </header>
 
 <div class="intro">
-  <div class="box">👅 <b>怎么用：</b>顺着 5 个步骤，每步把你<b>实际看到</b>的舌象点选出来（每步可多选，每个步骤第一张都是「正常」对照）。系统会实时记录，最后点「🔍 判断病情」给出证型候选、点「💊 推荐配方」给出对应芳疗配方。</div>
+  <div class="box">👅 <b>怎么用：</b>顺着 5 个步骤，每步把你<b>实际看到</b>的舌象点选出来（<b>每步只能选一张图</b>，再点可取消；每个步骤第一张都是「正常」对照）。系统会实时记录，最后点「🔍 判断病情」给出证型候选、点「💊 推荐配方」给出对应芳疗配方。</div>
 </div>
 
 <div class="layout">
@@ -200,9 +200,21 @@ function svgMangci(){
     '</g></svg>';
 }
 
+/* 正常舌象示意图：淡红舌 + 薄白苔 + 润泽，大小适中、柔软灵活，无老嫩/齿痕/裂纹/芒刺/瘀点
+   （用于 ②薄白苔正常、④分部正常、⑤正常舌形 三处的「正常对照」金标准） */
+function svgNormal(){
+  return '<svg viewBox="0 0 200 130">'+
+    '<ellipse cx="100" cy="70" rx="74" ry="46" fill="#f6c9c2" stroke="#d99a93" stroke-width="1.5"/>'+
+    '<ellipse cx="100" cy="66" rx="68" ry="40" fill="#ffffff" fill-opacity="0.32"/>'+
+    '<path d="M100 96 L100 44" stroke="#e8b8b0" stroke-width="0.8" fill="none" opacity="0.55"/>'+
+    '<ellipse cx="80" cy="58" rx="18" ry="6" fill="#ffffff" fill-opacity="0.38"/>'+
+    '<ellipse cx="120" cy="80" rx="14" ry="4" fill="#ffffff" fill-opacity="0.25"/>'+
+    '</svg>';
+}
+
 /* ============ 五步定义 ============ */
 var STEPS = [
-  { key:"qi", title:"① 望舌质 · 舌体颜色", sub:"先看舌体本身的颜色，反映气血阴阳盛衰（淡白→淡红→红→绛→青紫）。",
+  { key:"qi", title:"① 望舌质 · 舌体颜色", sub:"先看舌体本身的颜色，反映气血阴阳盛衰（淡白→淡红→红→绛→青紫）。正常 = 淡红舌。",
     options:[
       {name:"淡红舌（正常）", label:"淡红舌（正常）", normal:true},
       {name:"淡白舌", label:"淡白舌"},
@@ -210,12 +222,15 @@ var STEPS = [
       {name:"绛舌", label:"绛舌"},
       {name:"青紫舌", label:"青紫舌"}
     ]},
-  { key:"tai", title:"② 望舌苔 · 苔垢厚薄润燥色泽", sub:"再看舌面苔的颜色、厚薄、润燥与质地。",
-    groups:[
-      {label:"苔之厚薄", opts:[ {name:"薄苔", label:"薄苔（正常·薄润）", normal:true}, {name:"厚苔", label:"厚苔"} ]},
-      {label:"苔之润燥", opts:[ {key:"run", img:14, label:"润苔（正常）", normal:true, desc:"舌面润泽有津，为正常润燥状态"}, {name:"燥苔", label:"燥苔"} ]},
-      {label:"苔之色泽", opts:[ {name:"白苔", label:"白苔（正常）", normal:true}, {name:"黄苔", label:"黄苔"}, {name:"灰黑苔", label:"灰黑苔"} ]},
-      {label:"苔之质地", opts:[ {name:"腻苔", label:"腻苔"}, {name:"剥苔（花剥）", label:"剥苔（花剥）"} ]}
+  { key:"tai", title:"② 望舌苔 · 苔色苔质", sub:"看舌面苔的颜色、厚薄、润燥与质地。正常舌苔 = 薄白苔（淡红舌面上一层薄白、润泽）。",
+    options:[
+      {key:"normal", label:"薄白苔（正常）", normal:true, svg:"normal", desc:"淡红舌面上均匀薄白一层，干湿适中、润泽有津，为胃气充足之象", tags:["正常","薄白","胃气","健康"]},
+      {name:"厚苔", label:"厚苔"},
+      {name:"燥苔", label:"燥苔"},
+      {name:"黄苔", label:"黄苔"},
+      {name:"灰黑苔", label:"灰黑苔"},
+      {name:"腻苔", label:"腻苔"},
+      {name:"剥苔（花剥）", label:"剥苔（花剥）"}
     ]},
   { key:"mai", title:"③ 望舌下脉络 · 翘起舌尖", sub:"翘起舌尖，观察舌下两条青筋的形色，判断瘀血、气滞。",
     svg:true,
@@ -231,11 +246,11 @@ var STEPS = [
       {key:"bian", label:"舌边（肝·胆）", desc:"舌边红/紫 → 肝胆湿热、肝郁", tags:["肝胆","肝郁","舌边红","口苦"]},
       {key:"zhong", label:"舌中（脾·胃）", desc:"舌中厚腻/裂纹 → 脾胃湿滞、胃阴不足", tags:["脾胃","湿","厚腻","裂纹"]},
       {key:"gen", label:"舌根（肾·命门）", desc:"舌根苔厚/剥 → 下焦、肾", tags:["肾","下焦","命门"]},
-      {key:"normal", label:"分部正常", normal:true, desc:"各分区未见明显异常", tags:[]}
+      {key:"normal", label:"分部正常", normal:true, svg:"normal", desc:"各分区未见明显异常", tags:[]}
     ]},
-  { key:"xing", title:"⑤ 望形态动态 · 老嫩胖瘦裂纹芒刺齿痕强硬痿软", sub:"最后看舌体形态与动态，反映邪正虚实、动静。",
+  { key:"xing", title:"⑤ 望形态动态 · 老嫩胖瘦裂纹芒刺齿痕强硬痿软", sub:"最后看舌体形态与动态，反映邪正虚实、动静。正常 = 大小适中、柔软灵活。",
     options:[
-      {name:"淡红舌（正常）", label:"正常舌形", normal:true},
+      {key:"normal", label:"正常舌形", normal:true, svg:"normal", desc:"舌体大小适中、柔软灵活，无老嫩/胖瘦/裂纹/齿痕/芒刺"},
       {name:"老舌", label:"老舌"},
       {name:"嫩舌", label:"嫩舌"},
       {name:"胖大齿痕舌", label:"胖大齿痕舌"},
@@ -262,7 +277,7 @@ var ZHENG = [
 ];
 
 /* ============ 状态 ============ */
-var selection = {qi:[], tai:[], mai:[], qu:[], xing:[]};
+var selection = {qi:null, tai:null, mai:null, qu:null, xing:null};
 var curStep = 0;
 
 function optKey(step, opt){ return opt.key || opt.name || opt.label; }
@@ -272,7 +287,7 @@ function renderSteps(){
   var box=document.getElementById("steps"); box.innerHTML="";
   STEPS.forEach(function(s,i){
     var b=document.createElement("div");
-    b.className="stepbtn"+(i===curStep?" active":"")+(selection[s.key].length?" done":"");
+    b.className="stepbtn"+(i===curStep?" active":"")+(selection[s.key]!=null?" done":"");
     b.innerHTML='<span class="n">'+(i+1)+'</span><span class="t">'+s.title.replace(/^[①②③④⑤]\s*/,"")+'</span>';
     b.onclick=function(){ curStep=i; renderSteps(); renderStep(); };
     box.appendChild(b);
@@ -308,11 +323,12 @@ function renderStep(){
 function optCard(s,o){
   var el=document.createElement("div");
   var key=optKey(s,o);
-  var sel=selection[s.key].indexOf(key)>=0;
+  var sel=selection[s.key]===key;
   el.className="opt"+(sel?" sel":"")+(o.normal?" normal":"");
-  // 媒体
+  // 媒体（按优先级：芒刺SVG > 正常金标准SVG > 舌下脉络SVG > 真实照片）
   var media;
   if(o.svg==="mangci") media=svgMangci();
+  else if(o.svg==="normal") media=svgNormal();
   else if(s.svg && o.key) media=svgSublingual(o.key);
   else media=tongueImgOf(o);
   // 文字
@@ -325,14 +341,13 @@ function optCard(s,o){
     '<div class="nm">'+label+'</div>'+
     '<div class="ds">'+ds+'</div>'+
     (zb?'<div class="zb">'+zb+'</div>':"");
-  el.onclick=function(){ toggle(s.key,key); };
+  el.onclick=function(){ select(s.key,key); };
   return el;
 }
 
-function toggle(stepKey,key){
-  var arr=selection[stepKey];
-  var i=arr.indexOf(key);
-  if(i>=0) arr.splice(i,1); else arr.push(key);
+/* ============ 单选：每步同一时刻最多选一张图，再点取消 ============ */
+function select(stepKey,key){
+  selection[stepKey] = (selection[stepKey]===key ? null : key);
   renderSteps(); renderStep(); renderRecord();
 }
 
@@ -340,14 +355,13 @@ function toggle(stepKey,key){
 function selectedList(){
   var out=[];
   STEPS.forEach(function(s){
-    selection[s.key].forEach(function(key){
-      var o = (s.options||[]).filter(function(x){return optKey(s,x)===key;})[0];
-      if(!o && s.groups){ s.groups.forEach(function(g){ g.opts.forEach(function(x){ if(optKey(s,x)===key) o=x; }); }); }
-      if(!o) return;
-      var label=o.label||o.name;
-      var tags = o.tags ? o.tags.slice() : ((BY_NAME[o.name]&&BY_NAME[o.name].tags)||[]);
-      out.push({step:s.title, label:label, tags:tags});
-    });
+    var key=selection[s.key]; if(!key) return;
+    var o = (s.options||[]).filter(function(x){return optKey(s,x)===key;})[0];
+    if(!o && s.groups){ s.groups.forEach(function(g){ g.opts.forEach(function(x){ if(optKey(s,x)===key) o=x; }); }); }
+    if(!o) return;
+    var label=o.label||o.name;
+    var tags = o.tags ? o.tags.slice() : ((BY_NAME[o.name]&&BY_NAME[o.name].tags)||[]);
+    out.push({step:s.title, label:label, tags:tags});
   });
   return out;
 }
@@ -367,9 +381,9 @@ function renderRecord(){
 function removeOne(stepTitle,label){
   var s=STEPS.filter(function(x){return x.title===stepTitle;})[0]; if(!s) return;
   var key=null;
-  (s.options||[]).forEach(function(o){ if((o.name||o.label)===label) key=optKey(s,o); });
-  if(s.groups){ s.groups.forEach(function(g){ g.opts.forEach(function(o){ if((o.name||o.label)===label) key=optKey(s,o); }); }); }
-  if(key){ var arr=selection[s.key]; var i=arr.indexOf(key); if(i>=0) arr.splice(i,1); renderSteps(); renderStep(); renderRecord(); }
+  (s.options||[]).forEach(function(o){ if((o.label||o.name)===label) key=optKey(s,o); });
+  if(s.groups){ s.groups.forEach(function(g){ g.opts.forEach(function(o){ if((o.label||o.name)===label) key=optKey(s,o); }); }); }
+  if(key && selection[s.key]===key){ selection[s.key]=null; renderSteps(); renderStep(); renderRecord(); }
 }
 
 /* ============ 病情判断 ============ */
@@ -442,7 +456,7 @@ function runRecommend(){
 }
 
 function clearAll(){
-  selection={qi:[], tai:[], mai:[], qu:[], xing:[]};
+  selection={qi:null, tai:null, mai:null, qu:null, xing:null};
   document.getElementById("result").innerHTML='<div class="empty">已清空。重新从 5 步中点选舌象。</div>';
   renderSteps(); renderStep(); renderRecord();
 }
