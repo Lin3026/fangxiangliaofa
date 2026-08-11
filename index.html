@@ -419,21 +419,42 @@
       <div id="pulseResults"></div>
     </section>
 
-  <!-- 舌诊辨证 -->
+  <!-- 舌诊辨证（舌脉合参） -->
   <section id="tab-tongue" style="display:none;">
-    <div class="hint" style="margin-bottom:8px;">勾选舌象要素（<b>可多选</b>，综合观察舌色/舌形/苔色/苔质/舌态）；下方症状框与『智能配方』顶部症状框同步。点推荐：<b>有舌象即可推荐配方</b>；若同时填了症状，则按「症状+舌象」精确匹配（AND）。系统按中医「舌 → 证 → 方」推断并推荐配方。外部项目可调用 <code>AROMA_tongueRecommend(['胖大齿痕舌','白苔'])</code> 直接取得推荐配方。</div>
+    <div class="hint" style="margin-bottom:8px;">本页为<b>舌脉合参</b>：上方选脉象（左手红框 / 右手绿框）、填症状/证型、勾选舌象，点推荐需<b>同时</b>命中「症状＋脉象＋舌象」（按综合相关度排序），与『智能配方』的「三诊合参」同理。系统按中医「舌 + 脉 → 证 → 方」推断并推荐配方。外部项目可调用 <code>AROMA_tongueRecommend(['胖大齿痕舌','白苔'])</code> 直接取得舌象推荐配方。</div>
     <div class="toolbar" style="background:#fbf3e8;border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin-bottom:10px;">
       <a class="btn" href="tongue_teach.html" target="_blank" style="background:linear-gradient(135deg,#a23b3b,#c8553d);color:#fff;">📖 进入舌诊教学</a>
       <a class="btn" href="tongue_wizard.html" target="_blank" style="background:linear-gradient(135deg,#5b8a72,#3f6f57);color:#fff;">🩺 分步舌诊向导（自诊）</a>
       <span class="hint" style="margin:0;font-size:12.5px;">系统教学 · 望舌顺序 / 舌体分区 / 舌色形态苔 / 各区辨证详解 / 速查表</span>
     </div>
+
+    <!-- 脉诊（与舌象合参；选择状态与『智能配方』『脉诊辨证』三处同步） -->
+    <div class="card" style="background:#fdeef0;border-color:#f0c0c8;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+        <strong style="color:#b5485a">💓 脉诊（与下方舌象合参）</strong>
+        <label class="imgswitch" title="显示 / 隐藏脉象示意图"><input type="checkbox" id="tonguePulseImgToggle" onchange="togglePulseImg(this.checked)"><span class="track"></span><span class="lbl">显示脉象图</span></label>
+        <span class="hint" style="margin:0">分左右手勾选脉象（红=左手 / 绿=右手）；<b>每只手仅选一种</b>，再次点同一个可取消；<b>只选一侧即视为双手同脉</b>。下方与舌象一并「舌脉合参」出方。</span>
+      </div>
+      <div class="pulsesites" id="tonguePulseSites"></div>
+      <div class="pulse-hands">
+        <div class="hand-box hand-left">
+          <div class="hand-title">✋ 左手（红框）<span class="hand-sub">寸·心(小肠)｜关·肝(胆)｜尺·肾(膀胱)</span></div>
+          <div class="pulsecards" id="tonguePulseCardsL" style="margin:6px 0 0"></div>
+        </div>
+        <div class="hand-box hand-right">
+          <div class="hand-title">🤚 右手（绿框）<span class="hand-sub">寸·肺(大肠)｜关·脾(胃)｜尺·肾(命门·三焦)</span></div>
+          <div class="pulsecards" id="tonguePulseCardsR" style="margin:6px 0 0"></div>
+        </div>
+      </div>
+    </div>
+
     <div class="toolbar">
-      <input type="text" id="tongueSym" class="search" placeholder="结合症状 / 证型（可选，与『智能配方』顶部症状框同步）" oninput="document.getElementById('q').value=this.value;" />
+      <input type="text" id="tongueSym" class="search" placeholder="症状 / 证型（必填，与『智能配方』顶部症状框同步）" oninput="document.getElementById('q').value=this.value;" />
     </div>
     <div class="tongue-groups" id="tongueGroups"></div>
     <div class="toolbar">
-      <button class="btn" onclick="runTongue()">🔎 按舌象推荐配方</button>
-      <button class="btn ghost sm" onclick="clearTongueSelection()">清空选择</button>
+      <button class="btn" onclick="runTongue()">🔎 舌脉合参推荐配方</button>
+      <button class="btn ghost sm" onclick="clearTongueSelection(); clearPulseSelection();">清空选择</button>
     </div>
     <div class="pulse-summary" id="tongueSummary" style="display:none;"></div>
     <div class="count" id="tongueCount"></div>
@@ -850,7 +871,9 @@
       {sel:selectedLeft,  id:"pulseCardsL"},
       {sel:selectedRight, id:"pulseCardsR"},
       {sel:selectedLeft,  id:"searchPulseCardsL"},
-      {sel:selectedRight, id:"searchPulseCardsR"}
+      {sel:selectedRight, id:"searchPulseCardsR"},
+      {sel:selectedLeft,  id:"tonguePulseCardsL"},
+      {sel:selectedRight, id:"tonguePulseCardsR"}
     ].forEach(function(d){
       var container=document.getElementById(d.id);
       if(!container) return;
@@ -875,25 +898,27 @@
     });
   }
   function renderPulseSites(){
-    var box=document.getElementById("pulseSites");
-    if(!box) return;
     var sites=(db.pulseSites||[]);
-    if(!sites.length){ box.style.display="none"; return; }
-    var groups={};
-    sites.forEach(function(s){ (groups[s.hand]=groups[s.hand]||[]).push(s); });
-    var html='<div class="psites-title">📍 寸口分候脏腑（定位参考：先认在第几部，再对应脏器）</div>';
-    Object.keys(groups).forEach(function(hand){
-      var cls=hand==="左"?"psite-left":"psite-right";
-      html+='<div class="psites-group '+cls+'"><div class="psites-h">'+escapeHtml(hand)+'手（'+(hand==="左"?"红框":"绿框")+'）</div>';
-      groups[hand].forEach(function(s){
-        html+='<div class="psite"><span class="ps-part">'+escapeHtml(s.part)+'</span>'+
-              '<span class="ps-organ">'+escapeHtml(s.organ)+'</span>'+
-              '<span class="ps-fu">（'+escapeHtml(s.fu)+'）</span>'+
-              '<span class="ps-note">'+escapeHtml(s.note||"")+'</span></div>';
+    ["pulseSites","tonguePulseSites"].forEach(function(cid){
+      var box=document.getElementById(cid);
+      if(!box) return;
+      if(!sites.length){ box.style.display="none"; return; }
+      var groups={};
+      sites.forEach(function(s){ (groups[s.hand]=groups[s.hand]||[]).push(s); });
+      var html='<div class="psites-title">📍 寸口分候脏腑（定位参考：先认在第几部，再对应脏器）</div>';
+      Object.keys(groups).forEach(function(hand){
+        var cls=hand==="左"?"psite-left":"psite-right";
+        html+='<div class="psites-group '+cls+'"><div class="psites-h">'+escapeHtml(hand)+'手（'+(hand==="左"?"红框":"绿框")+'）</div>';
+        groups[hand].forEach(function(s){
+          html+='<div class="psite"><span class="ps-part">'+escapeHtml(s.part)+'</span>'+
+                '<span class="ps-organ">'+escapeHtml(s.organ)+'</span>'+
+                '<span class="ps-fu">（'+escapeHtml(s.fu)+'）</span>'+
+                '<span class="ps-note">'+escapeHtml(s.note||"")+'</span></div>';
+        });
+        html+='</div>';
       });
-      html+='</div>';
+      box.innerHTML=html;
     });
-    box.innerHTML=html;
   }
   function renderPulse(){ renderPulseGrids(); }
   window.renderPulse=renderPulse;
@@ -1170,28 +1195,47 @@
   function renderTongueRecommend(summaryEl, resultsEl, countEl){
     var q=document.getElementById("q").value.trim();
     var symToks=tokenize(q);
+    var pulseNames=selectedPulseNames();
+    var ptoks=pulseTokens();
     var tnames=selectedTongueNames();
     var ttoks=tongueTokens();
-    if(!tnames.length){
+    // 舌脉合参：症状 + 脉象 + 舌象 三者同时命中（与智能配方「三诊合参」同理）
+    if(!q){
       summaryEl.style.display="block";
-      summaryEl.innerHTML='<span class="hint">⚠ 请在下方勾选至少一种舌象要素（舌色/舌形/苔色/苔质/舌态，可多选），再点推荐。</span>';
+      summaryEl.innerHTML='<span class="hint">⚠ 请先在上方症状框填写症状/证型（如：失眠 焦虑、痛经、脾胃虚寒），再结合脉象与舌象「舌脉合参」。</span>';
       resultsEl.innerHTML=""; countEl.textContent=""; return;
     }
-    var zhubing=tnames.map(function(k){ return (selectedTongues[k].zhubing||k); });
+    if(!pulseNames.length){
+      summaryEl.style.display="block";
+      summaryEl.innerHTML='<span class="hint">⚠ 请至少勾选一种脉象（左手红框 / 右手绿框），再结合舌象合参。</span>';
+      resultsEl.innerHTML=""; countEl.textContent=""; return;
+    }
+    if(!tnames.length){
+      summaryEl.style.display="block";
+      summaryEl.innerHTML='<span class="hint">⚠ 请至少勾选一种舌象要素（舌色/舌形/苔色/苔质/舌态），再结合脉象合参。</span>';
+      resultsEl.innerHTML=""; countEl.textContent=""; return;
+    }
+    // 双手同脉提示
+    var lk=Object.keys(selectedLeft), rk=Object.keys(selectedRight);
     var handNote="";
-    if(q) handNote='<br><b>结合症状/证型：</b>'+escapeHtml(q)+'（按「症状+舌象」精确匹配）';
+    if(lk.length && !rk.length) handNote="（仅选左手 → 视为双手同脉："+lk.join("、")+"）";
+    else if(rk.length && !lk.length) handNote="（仅选右手 → 视为双手同脉："+rk.join("、")+"）";
+    else if(lk.length && rk.length) handNote="（左手："+lk.join("、")+"；右手："+rk.join("、")+"）";
+    var pzhu=pulseNames.map(function(k){ return (selectedLeft[k]||selectedRight[k]).zhubing||k; });
+    var tzhu=tnames.map(function(k){ return (selectedTongues[k].zhubing||k); });
     summaryEl.style.display="block";
-    summaryEl.innerHTML='<b>所选舌象：</b>'+tnames.join("、")+'<br><b>推断可能涉及：</b>'+zhubing.join("；")+handNote+'<br><span class="hint">（下方配方需命中舌象关键词'+(q?'与症状关键词':'')+'，按综合相关度排序）</span>';
-    var toks=symToks.concat(ttoks);
+    summaryEl.innerHTML='<b>症状/证型：</b>'+escapeHtml(q)+'<br><b>所选脉象：</b>'+pulseNames.join("、")+handNote+'<br><b>所选舌象：</b>'+tnames.join("、")+'<br><b>推断可能涉及：</b>'+pzhu.concat(tzhu).join("；")+'<br><span class="hint">（下方配方需<b>同时</b>命中「症状 + 脉象 + 舌象」，按综合相关度排序）</span>';
+    var toks=symToks.concat(ptoks).concat(ttoks);
     var scored=db.formulas.map(function(f){
+      var sSym=scoreFormula(f, symToks);
+      var sPulse=scoreFormula(f, ptoks);
       var sT=scoreFormula(f, ttoks);
-      var sS=symToks.length?scoreFormula(f, symToks):1;
-      return {f:f, sT:sT, sS:sS, s:sT+(symToks.length?sS:0)};
-    }).filter(function(x){ return x.sT>0 && (symToks.length? x.sS>0 : true); })
+      return {f:f, sSym:sSym, sPulse:sPulse, sT:sT, s:sSym+sPulse+sT};
+    }).filter(function(x){ return x.sSym>0 && x.sPulse>0 && x.sT>0; })
       .sort(function(a,b){ return b.s-a.s; });
     resultsEl.innerHTML="";
-    if(!scored.length){ resultsEl.innerHTML='<div class="empty">没有命中舌象'+(q?'与症状':'')+'的配方，可调整舌象组合或症状词，或到「我的库」补充</div>'; countEl.textContent=""; return; }
-    countEl.textContent="共推荐 "+scored.length+" 条配方"+(q?'（症状+舌象）':'（舌象）')+"，显示前 12 条";
+    if(!scored.length){ resultsEl.innerHTML='<div class="empty">没有同时命中症状、脉象与舌象的配方，可调整三者组合，或到「我的库」补充</div>'; countEl.textContent=""; return; }
+    countEl.textContent="共推荐 "+scored.length+" 条配方（症状+脉象+舌象，显示前 12 条）";
     scored.slice(0,12).forEach(function(x){ resultsEl.appendChild(makeResultCard(x.f,toks)); });
   }
   function runTongue(){ renderTongueRecommend(document.getElementById("tongueSummary"), document.getElementById("tongueResults"), document.getElementById("tongueCount")); }
@@ -1545,7 +1589,7 @@
       if(tab==="hydro") renderHydro();
       if(tab==="lib") renderLib();
       if(tab==="pulse") renderPulse();
-      if(tab==="tongue") renderTongueGroups();
+      if(tab==="tongue"){ renderTongueGroups(); renderPulseGrids(); renderPulseSites(); }
       if(tab==="dose") renderDose();
     };
   });
