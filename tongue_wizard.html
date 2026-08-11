@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>分步舌诊向导 · 中医芳香理疗</title>
+<style>
+:root{
+  --accent:#a23b3b;
+  --accent2:#5b8a72;
+  --warn:#b94a00;
+  --line:#e6dccd;
+  --bg:#faf6ef;
+  --ink:#3a2e25;
+  --muted:#8a7a6a;
+  --card:#fff;
+  --shadow:0 2px 12px rgba(120,80,40,.08);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"PingFang SC","Microsoft YaHei",serif;line-height:1.7}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+header.top{position:relative;background:linear-gradient(135deg,#a23b3b,#c8553d);color:#fff;padding:18px 22px;box-shadow:var(--shadow)}
+header.top h1{margin:0;font-size:22px;font-weight:700;letter-spacing:1px}
+header.top .sub{font-size:12.5px;opacity:.88;margin-top:4px}
+header.top .home{position:absolute;right:22px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.18);color:#fff;padding:7px 14px;border-radius:18px;font-size:13px;border:1px solid rgba(255,255,255,.3)}
+header.top .home:hover{background:rgba(255,255,255,.3);text-decoration:none}
+
+.intro{max-width:1080px;margin:14px auto 0;padding:0 16px}
+.intro .box{background:#fff7ee;border:1px solid var(--line);border-left:4px solid var(--accent2);border-radius:10px;padding:12px 16px;font-size:14px;color:#5b4a3a}
+
+.layout{max-width:1080px;margin:14px auto 40px;padding:0 16px;display:grid;grid-template-columns:1fr 330px;gap:18px;align-items:start}
+@media(max-width:860px){ .layout{grid-template-columns:1fr} }
+
+/* 步骤导航 */
+.steps{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.stepbtn{flex:1 1 0;min-width:128px;cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 8px;text-align:center;transition:.15s;box-shadow:var(--shadow)}
+.stepbtn .n{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--accent2);color:#fff;font-size:13px;align-items:center;justify-content:center;margin-right:6px;vertical-align:middle}
+.stepbtn .t{font-size:13.5px;font-weight:600;vertical-align:middle}
+.stepbtn:hover{border-color:var(--accent2)}
+.stepbtn.active{border-color:var(--accent);background:#fff3ee;box-shadow:0 0 0 2px rgba(162,59,59,.15)}
+.stepbtn.active .n{background:var(--accent)}
+.stepbtn.done .n{background:var(--accent)}
+
+.step-head{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);margin-bottom:12px}
+.step-head h2{margin:0 0 4px;font-size:18px;color:var(--accent)}
+.step-head .guide{font-size:13.5px;color:var(--muted)}
+
+.groups{display:flex;flex-direction:column;gap:14px}
+.glabel{font-size:13px;font-weight:700;color:var(--accent2);margin:2px 0 6px;border-left:3px solid var(--accent2);padding-left:8px}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.opt{cursor:pointer;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px;box-shadow:var(--shadow);transition:.15s;position:relative;display:flex;flex-direction:column}
+.opt:hover{border-color:var(--accent2)}
+.opt.sel{border-color:var(--accent);box-shadow:0 0 0 2px rgba(162,59,59,.18)}
+.opt .media{width:100%;aspect-ratio:220/315;background:#f3ece2;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.opt .media img{width:100%;height:100%;object-fit:cover;display:block}
+.opt .media svg{width:100%;height:100%}
+.opt .nm{font-size:13.5px;font-weight:700;margin-top:6px;line-height:1.35}
+.opt .ds{font-size:12px;color:var(--muted);margin-top:3px;flex:1}
+.opt .zb{font-size:11.5px;color:var(--accent);margin-top:4px}
+.opt .badge{position:absolute;top:6px;left:6px;background:var(--accent2);color:#fff;font-size:11px;padding:2px 8px;border-radius:10px}
+.opt.normal .badge{background:#7a9b6a}
+
+.regionmap{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;box-shadow:var(--shadow);text-align:center;margin-bottom:12px}
+.regionmap svg{width:min(320px,100%);height:auto}
+
+/* 侧栏 */
+.sidebar{position:sticky;top:14px;display:flex;flex-direction:column;gap:12px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:var(--shadow)}
+.panel h3{margin:0 0 10px;font-size:15px;color:var(--accent);display:flex;align-items:center;gap:6px}
+.record{display:flex;flex-direction:column;gap:8px;max-height:300px;overflow:auto}
+.rec-item{background:#faf6ef;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:12.5px}
+.rec-item .step{color:var(--accent2);font-weight:700;font-size:11.5px}
+.rec-item .lab{font-weight:600}
+.rec-item .x{float:right;color:var(--muted);cursor:pointer;font-weight:700}
+.rec-empty{color:var(--muted);font-size:12.5px;padding:6px 2px}
+.actions{display:flex;flex-direction:column;gap:8px}
+.btn{cursor:pointer;border:none;border-radius:9px;padding:10px 12px;font-size:14px;font-weight:600;font-family:inherit}
+.btn.primary{background:var(--accent);color:#fff}
+.btn.primary:hover{background:#8c2f2f}
+.btn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+.btn.ghost:hover{border-color:var(--accent2)}
+.btn.warn{background:#fff;border:1px solid #e7c9b8;color:var(--warn)}
+.btn.warn:hover{background:#fdf1e9}
+
+.result{display:flex;flex-direction:column;gap:10px}
+.zheng{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:9px 11px;background:#fffaf4}
+.zheng .name{font-weight:700;color:var(--accent)}
+.zheng .note{font-size:12px;color:var(--muted)}
+.zheng .ev{font-size:12px;color:#5b4a3a;margin-top:3px}
+.zheng .ev b{color:var(--accent2)}
+.empty{color:var(--muted);font-size:12.5px;padding:4px 2px}
+.fcard{border:1px solid var(--line);border-radius:9px;padding:10px 12px;background:#fff}
+.fcard h4{margin:0 0 4px;font-size:14px;color:var(--ink)}
+.fcard .meta{font-size:11.5px;color:var(--muted);margin-bottom:4px}
+.fcard .meta .badge{background:var(--accent2);color:#fff;padding:1px 7px;border-radius:9px;margin-right:5px}
+.fcard .oils{font-size:12.5px;color:#5b4a3a}
+.fcard .sym{font-size:11.5px;color:var(--muted)}
+
+.disclaimer{background:#fff3e6;border:1px solid #f0d3b0;border-radius:10px;padding:10px 14px;font-size:12.5px;color:var(--warn);max-width:1080px;margin:0 auto 30px}
+.disclaimer b{color:var(--accent)}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>分步舌诊向导</h1>
+  <div class="sub">按「望舌质 → 望舌苔 → 望舌下脉络 → 望分区 → 望形态」五步自诊，自动汇总判断病情</div>
+  <a class="home" href="index.html">← 返回完整版</a>
+</header>
+
+<div class="intro">
+  <div class="box">👅 <b>怎么用：</b>顺着 5 个步骤，每步把你<b>实际看到</b>的舌象点选出来（每步可多选，每个步骤第一张都是「正常」对照）。系统会实时记录，最后点「🔍 判断病情」给出证型候选、点「💊 推荐配方」给出对应芳疗配方。</div>
+</div>
+
+<div class="layout">
+  <main>
+    <div class="steps" id="steps"></div>
+    <div class="step-head" id="stepHead"></div>
+    <div id="stepBody"></div>
+  </main>
+
+  <aside class="sidebar">
+    <div class="panel">
+      <h3>📋 我的观察记录</h3>
+      <div class="record" id="record"></div>
+    </div>
+    <div class="panel">
+      <h3>⚙ 操作</h3>
+      <div class="actions">
+        <button class="btn primary" onclick="runInfer()">🔍 判断病情</button>
+        <button class="btn ghost" onclick="runRecommend()">💊 推荐配方</button>
+        <button class="btn warn" onclick="clearAll()">🧹 清空重选</button>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>📊 结果</h3>
+      <div class="result" id="result"><div class="empty">勾选舌象后，点上方按钮查看病情判断 / 配方推荐。</div></div>
+    </div>
+  </aside>
+</div>
+
+<div class="disclaimer">
+  ⚠ <b>免责声明：</b>本向导为中医舌诊<b>教学与辨识练习</b>工具，舌象图谱含参考图与示意图，<b>非临床真实照片、不能作为诊断依据</b>。辨证须结合全身症状，由执业中医师面诊为准；芳疗配方仅供养生参考，孕妇、婴幼儿、癫痫、哮喘及慢性病患者使用前请咨询专业人士。
+</div>
+
+<script src="data.js"></script>
+<script>
+/* ============ 数据准备 ============ */
+var BASE = window.AROMA_BASE || {tongues:[],formulas:[]};
+var TONGUES = BASE.tongues || [];
+var FORMULAS = BASE.formulas || [];
+var BY_NAME = {}; TONGUES.forEach(function(t){ BY_NAME[t.name]=t; });
+var MAP_NAME_IMG = {}; TONGUES.forEach(function(t,i){ MAP_NAME_IMG[t.name]=(i+1); }); // 图片序号=数组下标+1
+
+/* 舌图路径 */
+function photo(idx){ return "tongues/tongue-"+("0"+idx).slice(-2)+".png"; }
+function tongueImgOf(opt){
+  var idx = opt.img!=null ? opt.img : (opt.name ? MAP_NAME_IMG[opt.name] : null);
+  return idx ? '<img src="'+photo(idx)+'" alt="'+(opt.name||opt.label||"")+'" loading="lazy">' : '';
+}
+
+/* ============ SVG 示意图 ============ */
+function svgSublingual(variant){
+  var veinColor = variant==="xueyu" ? "#6b3b8f" : (variant==="qizhi" ? "#4a7a9b" : "#7a9bbf");
+  var w = variant==="xueyu" ? 5 : (variant==="qizhi" ? 3.2 : 2.2);
+  var d = "M100 96 C92 80 92 60 100 44";
+  var d2 = "M100 96 C108 80 108 60 100 44";
+  if(variant==="xueyu"){ d="M100 96 C84 82 112 70 94 56 C82 48 110 46 100 42"; d2="M100 96 C116 82 88 70 106 56 C118 48 90 46 100 42"; }
+  else if(variant==="qizhi"){ d="M100 96 C90 80 110 64 100 46"; d2="M100 96 C110 80 90 64 100 46"; }
+  var dots = variant==="xueyu" ? '<circle cx="94" cy="62" r="3.2" fill="#6b3b8f"/><circle cx="108" cy="68" r="2.6" fill="#6b3b8f"/>' : '';
+  return '<svg viewBox="0 0 200 130">'+
+    '<ellipse cx="100" cy="70" rx="72" ry="46" fill="#f3d8d4" stroke="#d9a7a0" stroke-width="1.5"/>'+
+    '<path d="'+d+'" fill="none" stroke="'+veinColor+'" stroke-width="'+w+'" stroke-linecap="round"/>'+
+    '<path d="'+d2+'" fill="none" stroke="'+veinColor+'" stroke-width="'+w+'" stroke-linecap="round"/>'+
+    dots+'</svg>';
+}
+function svgRegions(){
+  return '<svg viewBox="0 0 240 200">'+
+    '<ellipse cx="120" cy="100" rx="92" ry="92" fill="#f3d8d4" stroke="#d9a7a0" stroke-width="2"/>'+
+    '<ellipse cx="120" cy="46" rx="40" ry="34" fill="rgba(162,59,59,.30)"/>'+
+    '<ellipse cx="120" cy="158" rx="42" ry="34" fill="rgba(74,122,155,.30)"/>'+
+    '<ellipse cx="120" cy="102" rx="46" ry="44" fill="rgba(227,196,82,.30)"/>'+
+    '<path d="M28 100 a92 92 0 0 0 0 0" fill="none"/>'+
+    '<ellipse cx="44" cy="100" rx="30" ry="60" fill="rgba(91,138,114,.30)"/>'+
+    '<ellipse cx="196" cy="100" rx="30" ry="60" fill="rgba(91,138,114,.30)"/>'+
+    '<text x="120" y="40" text-anchor="middle" font-size="13" fill="#7a1f1f" font-weight="700">舌尖·心/肺</text>'+
+    '<text x="120" y="106" text-anchor="middle" font-size="13" fill="#7a5b00" font-weight="700">舌中·脾胃</text>'+
+    '<text x="120" y="164" text-anchor="middle" font-size="13" fill="#1f4a66" font-weight="700">舌根·肾</text>'+
+    '<text x="40" y="104" text-anchor="middle" font-size="12" fill="#2f5a3f" font-weight="700">舌边·肝胆</text>'+
+    '<text x="200" y="104" text-anchor="middle" font-size="12" fill="#2f5a3f" font-weight="700">舌边·肝胆</text>'+
+    '</svg>';
+}
+function svgMangci(){
+  return '<svg viewBox="0 0 200 130">'+
+    '<ellipse cx="100" cy="70" rx="78" ry="48" fill="#ef9a96" stroke="#d97a76" stroke-width="1.5"/>'+
+    '<g fill="#a23b3b">'+
+    '<polygon points="70,58 76,44 82,58"/><polygon points="92,64 98,49 104,64"/><polygon points="114,58 120,44 126,58"/>'+
+    '<polygon points="80,82 86,68 92,82"/><polygon points="104,84 110,70 116,84"/><polygon points="122,76 128,62 134,76"/>'+
+    '</g></svg>';
+}
+
+/* ============ 五步定义 ============ */
+var STEPS = [
+  { key:"qi", title:"① 望舌质 · 舌体颜色", sub:"先看舌体本身的颜色，反映气血阴阳盛衰（淡白→淡红→红→绛→青紫）。",
+    options:[
+      {name:"淡红舌（正常）", label:"淡红舌（正常）", normal:true},
+      {name:"淡白舌", label:"淡白舌"},
+      {name:"红舌", label:"红舌"},
+      {name:"绛舌", label:"绛舌"},
+      {name:"青紫舌", label:"青紫舌"}
+    ]},
+  { key:"tai", title:"② 望舌苔 · 苔垢厚薄润燥色泽", sub:"再看舌面苔的颜色、厚薄、润燥与质地。",
+    groups:[
+      {label:"苔之厚薄", opts:[ {name:"薄苔", label:"薄苔（正常·薄润）", normal:true}, {name:"厚苔", label:"厚苔"} ]},
+      {label:"苔之润燥", opts:[ {key:"run", img:14, label:"润苔（正常）", normal:true, desc:"舌面润泽有津，为正常润燥状态"}, {name:"燥苔", label:"燥苔"} ]},
+      {label:"苔之色泽", opts:[ {name:"白苔", label:"白苔（正常）", normal:true}, {name:"黄苔", label:"黄苔"}, {name:"灰黑苔", label:"灰黑苔"} ]},
+      {label:"苔之质地", opts:[ {name:"腻苔", label:"腻苔"}, {name:"剥苔（花剥）", label:"剥苔（花剥）"} ]}
+    ]},
+  { key:"mai", title:"③ 望舌下脉络 · 翘起舌尖", sub:"翘起舌尖，观察舌下两条青筋的形色，判断瘀血、气滞。",
+    svg:true,
+    options:[
+      {key:"normal", label:"正常脉络", normal:true, desc:"舌下两条淡红/青色细静脉，无迂曲、无瘀点", tags:[]},
+      {key:"xueyu", label:"瘀血", desc:"青紫、粗张、迂曲，或有瘀血点/结节", tags:["血瘀","青紫","瘀斑","刺痛","经闭"]},
+      {key:"qizhi", label:"气滞", desc:"青色、略张、欠畅，但无明显瘀点", tags:["气滞","肝郁","胀闷"]}
+    ]},
+  { key:"qu", title:"④ 望舌面分区 · 脏腑定位", sub:"按 舌尖→舌中→舌根、舌边→舌中，对应脏腑；点选异常所在的区域。",
+    regionMap:true,
+    options:[
+      {key:"jian", label:"舌尖（心·肺）", desc:"舌尖红/芒刺 → 心火、肺热", tags:["心火","心肺","舌尖红","口疮","心烦"]},
+      {key:"bian", label:"舌边（肝·胆）", desc:"舌边红/紫 → 肝胆湿热、肝郁", tags:["肝胆","肝郁","舌边红","口苦"]},
+      {key:"zhong", label:"舌中（脾·胃）", desc:"舌中厚腻/裂纹 → 脾胃湿滞、胃阴不足", tags:["脾胃","湿","厚腻","裂纹"]},
+      {key:"gen", label:"舌根（肾·命门）", desc:"舌根苔厚/剥 → 下焦、肾", tags:["肾","下焦","命门"]},
+      {key:"normal", label:"分部正常", normal:true, desc:"各分区未见明显异常", tags:[]}
+    ]},
+  { key:"xing", title:"⑤ 望形态动态 · 老嫩胖瘦裂纹芒刺齿痕强硬痿软", sub:"最后看舌体形态与动态，反映邪正虚实、动静。",
+    options:[
+      {name:"淡红舌（正常）", label:"正常舌形", normal:true},
+      {name:"老舌", label:"老舌"},
+      {name:"嫩舌", label:"嫩舌"},
+      {name:"胖大齿痕舌", label:"胖大齿痕舌"},
+      {name:"瘦薄舌", label:"瘦薄舌"},
+      {name:"裂纹舌", label:"裂纹舌"},
+      {name:"芒刺舌", svg:"mangci", label:"芒刺舌", desc:"舌面红刺（菌状乳头红肿），主热盛——心火、胃热", tags:["热盛","心火","胃热","芒刺","红"]},
+      {name:"强硬舌", label:"强硬舌"},
+      {name:"痿软舌", label:"痿软舌"}
+    ]}
+];
+
+/* ============ 证型推断词典 ============ */
+var ZHENG = [
+  {name:"脾胃虚寒", tags:["脾虚","虚寒","阳虚","齿痕","胖大","白苔","舌淡","畏寒","乏力"], note:"温中健脾、散寒"},
+  {name:"脾胃湿热（湿热中阻）", tags:["湿热","黄腻","苔黄","厚腻","厚","口苦","脘闷","胸闷"], note:"清热化湿"},
+  {name:"肝胆湿热 / 肝郁化火", tags:["肝胆","肝郁","舌边红","口苦","苔黄","胀闷","易怒"], note:"疏肝利胆、清泄"},
+  {name:"心火亢盛", tags:["心火","舌尖红","口疮","心烦","芒刺","口舌生疮"], note:"清心泻火"},
+  {name:"阴虚火旺", tags:["阴虚","火旺","裂纹","少苔","红","绛","五心烦热","口干"], note:"滋阴降火"},
+  {name:"血瘀（气滞血瘀）", tags:["血瘀","青紫","瘀斑","气滞","刺痛","经闭","面色暗"], note:"活血化瘀"},
+  {name:"痰湿内阻", tags:["痰湿","腻","厚","胖大","齿痕","白苔","身重","腹胀"], note:"化痰祛湿"},
+  {name:"气血两虚", tags:["气血两虚","痿软","瘦薄","乏力","血虚","气短","倦怠"], note:"益气养血"},
+  {name:"实热 / 里热", tags:["热","实热","红","里热","厚","便秘","炎症"], note:"清热泻火"},
+  {name:"表寒 / 风寒", tags:["寒","表","风寒","白苔","恶寒"], note:"解表散寒"}
+];
+
+/* ============ 状态 ============ */
+var selection = {qi:[], tai:[], mai:[], qu:[], xing:[]};
+var curStep = 0;
+
+function optKey(step, opt){ return opt.key || opt.name || opt.label; }
+
+/* ============ 渲染步骤导航 ============ */
+function renderSteps(){
+  var box=document.getElementById("steps"); box.innerHTML="";
+  STEPS.forEach(function(s,i){
+    var b=document.createElement("div");
+    b.className="stepbtn"+(i===curStep?" active":"")+(selection[s.key].length?" done":"");
+    b.innerHTML='<span class="n">'+(i+1)+'</span><span class="t">'+s.title.replace(/^[①②③④⑤]\s*/,"")+'</span>';
+    b.onclick=function(){ curStep=i; renderSteps(); renderStep(); };
+    box.appendChild(b);
+  });
+}
+
+/* ============ 渲染单步 ============ */
+function renderStep(){
+  var s=STEPS[curStep];
+  document.getElementById("stepHead").innerHTML='<h2>'+s.title+'</h2><div class="guide">'+s.sub+'</div>';
+  var body=document.getElementById("stepBody"); body.innerHTML="";
+
+  if(s.regionMap){
+    var rm=document.createElement("div"); rm.className="regionmap"; rm.innerHTML=svgRegions(); body.appendChild(rm);
+  }
+
+  if(s.groups){
+    var wrap=document.createElement("div"); wrap.className="groups";
+    s.groups.forEach(function(g){
+      var lab=document.createElement("div"); lab.className="glabel"; lab.textContent=g.label; wrap.appendChild(lab);
+      var grid=document.createElement("div"); grid.className="cards";
+      g.opts.forEach(function(o){ grid.appendChild(optCard(s,o)); });
+      wrap.appendChild(grid);
+    });
+    body.appendChild(wrap);
+  } else {
+    var grid=document.createElement("div"); grid.className="cards";
+    s.options.forEach(function(o){ grid.appendChild(optCard(s,o)); });
+    body.appendChild(grid);
+  }
+}
+
+function optCard(s,o){
+  var el=document.createElement("div");
+  var key=optKey(s,o);
+  var sel=selection[s.key].indexOf(key)>=0;
+  el.className="opt"+(sel?" sel":"")+(o.normal?" normal":"");
+  // 媒体
+  var media;
+  if(o.svg==="mangci") media=svgMangci();
+  else if(s.svg && o.key) media=svgSublingual(o.key);
+  else media=tongueImgOf(o);
+  // 文字
+  var label=o.label||o.name;
+  var t=BY_NAME[o.name];
+  var ds = o.desc || (t? t.feel : "");
+  var zb = (o.tags && o.tags.length) ? "" : (t? ("主病："+t.zhubing) : "");
+  el.innerHTML = (o.normal?'<span class="badge">正常对照</span>':"") +
+    '<div class="media">'+media+'</div>'+
+    '<div class="nm">'+label+'</div>'+
+    '<div class="ds">'+ds+'</div>'+
+    (zb?'<div class="zb">'+zb+'</div>':"");
+  el.onclick=function(){ toggle(s.key,key); };
+  return el;
+}
+
+function toggle(stepKey,key){
+  var arr=selection[stepKey];
+  var i=arr.indexOf(key);
+  if(i>=0) arr.splice(i,1); else arr.push(key);
+  renderSteps(); renderStep(); renderRecord();
+}
+
+/* ============ 记录面板 ============ */
+function selectedList(){
+  var out=[];
+  STEPS.forEach(function(s){
+    selection[s.key].forEach(function(key){
+      var o = (s.options||[]).filter(function(x){return optKey(s,x)===key;})[0];
+      if(!o && s.groups){ s.groups.forEach(function(g){ g.opts.forEach(function(x){ if(optKey(s,x)===key) o=x; }); }); }
+      if(!o) return;
+      var label=o.label||o.name;
+      var tags = o.tags ? o.tags.slice() : ((BY_NAME[o.name]&&BY_NAME[o.name].tags)||[]);
+      out.push({step:s.title, label:label, tags:tags});
+    });
+  });
+  return out;
+}
+
+function renderRecord(){
+  var box=document.getElementById("record");
+  var list=selectedList();
+  if(!list.length){ box.innerHTML='<div class="rec-empty">尚未选择任何舌象。从上方 5 步中依次点选你看到的特征。</div>'; return; }
+  box.innerHTML="";
+  list.forEach(function(it){
+    var item=document.createElement("div"); item.className="rec-item";
+    item.innerHTML='<span class="x" onclick="removeOne(\''+it.step+'\',\''+(it.label).replace(/'/g,"")+'\')">✕</span>'+
+      '<div class="step">'+it.step.replace(/^[①②③④⑤]\s*/,"")+'</div><div class="lab">'+it.label+'</div>';
+    box.appendChild(item);
+  });
+}
+function removeOne(stepTitle,label){
+  var s=STEPS.filter(function(x){return x.title===stepTitle;})[0]; if(!s) return;
+  var key=null;
+  (s.options||[]).forEach(function(o){ if((o.name||o.label)===label) key=optKey(s,o); });
+  if(s.groups){ s.groups.forEach(function(g){ g.opts.forEach(function(o){ if((o.name||o.label)===label) key=optKey(s,o); }); }); }
+  if(key){ var arr=selection[s.key]; var i=arr.indexOf(key); if(i>=0) arr.splice(i,1); renderSteps(); renderStep(); renderRecord(); }
+}
+
+/* ============ 病情判断 ============ */
+function runInfer(){
+  var list=selectedList();
+  var res=document.getElementById("result");
+  if(!list.length){ res.innerHTML='<div class="empty">⚠ 请先在上方 5 步中点选舌象，再判断病情。</div>'; return; }
+  // 证型评分
+  var scored = ZHENG.map(function(z){
+    var ev = list.filter(function(it){ return it.tags.some(function(t){ return z.tags.indexOf(t)>=0; }); });
+    return {z:z, ev:ev, score:ev.length};
+  }).filter(function(x){return x.score>0;}).sort(function(a,b){return b.score-a.score;});
+
+  var html='<div class="empty" style="color:#5b4a3a;font-weight:700">共选 '+list.length+' 项观察，证型候选如下（按支持证据多少）：</div>';
+  if(!scored.length){
+    html+='<div class="empty">所选特征暂未匹配到典型证型，可补充更多舌象（如搭配舌色/苔色），或到「智能配方」直接输入症状。</div>';
+  } else {
+    scored.slice(0,4).forEach(function(x){
+      var evNames = x.ev.map(function(e){return e.label;}).join("、");
+      html+='<div class="zheng"><div class="name">'+x.z.name+'</div>'+
+        '<div class="note">调理方向：'+x.z.note+'</div>'+
+        '<div class="ev">支持舌象：<b>'+evNames+'</b>（'+x.score+' 项吻合）</div></div>';
+    });
+  }
+  html+='<div class="empty" style="margin-top:6px">提示：证型为综合推断，供辨识参考；如需芳疗方案，点「💊 推荐配方」。</div>';
+  res.innerHTML=html;
+}
+
+/* ============ 推荐配方（复用 data.js 配方） ============ */
+function tokenize(q){
+  q=(q||"").trim(); if(!q) return [];
+  var cleaned=q.replace(/[，,、；;。.+\/\\|（）()【】\[\]""''：:]/g," ");
+  return cleaned.split(/\s+/).filter(Boolean);
+}
+function scoreFormula(f,tokens){
+  if(!tokens.length) return 1;
+  var hay=[f.name,f.system,f.tcmPattern,f.constitution,(f.symptoms||[]).join(" "),
+    (f.oils||[]).map(function(o){return o.name+" "+(o.role||"");}).join(" "), f.rationale||""].join(" ").toLowerCase();
+  var score=0;
+  tokens.forEach(function(t){ var tt=t.toLowerCase(); if(hay.indexOf(tt)>=0) score+=1;
+    (f.symptoms||[]).forEach(function(s){ if(s.toLowerCase().indexOf(tt)>=0) score+=1; }); });
+  return score;
+}
+function runRecommend(){
+  var list=selectedList();
+  var res=document.getElementById("result");
+  if(!list.length){ res.innerHTML='<div class="empty">⚠ 请先点选舌象，再推荐配方。</div>'; return; }
+  var toks=[]; list.forEach(function(it){ it.tags.forEach(function(t){ if(toks.indexOf(t)<0) toks.push(t); }); });
+  var scored=FORMULAS.map(function(f){
+    var s=scoreFormula(f,toks); return {f:f,s:s};
+  }).filter(function(x){return x.s>0;}).sort(function(a,b){return b.s-a.s;});
+
+  var html='';
+  if(!scored.length){
+    html='<div class="empty">没有命中所选舌象关键词的配方，可调整舌象组合，或到「我的库」补充对应配方。</div>';
+  } else {
+    html='<div class="empty" style="color:#5b4a3a;font-weight:700">共推荐 '+scored.length+' 条（按相关度，显示前 10）：</div>';
+    scored.slice(0,10).forEach(function(x){
+      var f=x.f;
+      var oils=(f.oils||[]).map(function(o){return o.name;}).join("、");
+      var sym=(f.symptoms||[]).slice(0,8).join("、");
+      html+='<div class="fcard"><h4>'+f.name+'</h4>'+
+        '<div class="meta"><span class="badge">'+(f.system||"")+'</span>'+(f.tcmPattern||"")+'</div>'+
+        '<div class="oils">精油：'+oils+'</div>'+
+        (sym?'<div class="sym">症状：'+sym+'</div>':"")+
+        '<div class="sym" style="margin-top:4px"><a href="index.html" target="_blank">在完整版查看 ▸</a></div></div>';
+    });
+  }
+  res.innerHTML=html;
+}
+
+function clearAll(){
+  selection={qi:[], tai:[], mai:[], qu:[], xing:[]};
+  document.getElementById("result").innerHTML='<div class="empty">已清空。重新从 5 步中点选舌象。</div>';
+  renderSteps(); renderStep(); renderRecord();
+}
+
+/* ============ 初始化 ============ */
+renderSteps(); renderStep(); renderRecord();
+</script>
+</body>
+</html>
