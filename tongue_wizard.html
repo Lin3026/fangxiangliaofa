@@ -156,8 +156,10 @@ var MAP_NAME_IMG = {}; TONGUES.forEach(function(t,i){ MAP_NAME_IMG[t.name]=(i+1)
 /* 舌图路径 */
 function photo(idx){ return "tongues/tongue-"+("0"+idx).slice(-2)+".png"; }
 function tongueImgOf(opt){
-  var idx = opt.img!=null ? opt.img : (opt.name ? MAP_NAME_IMG[opt.name] : null);
-  return idx ? '<img src="'+photo(idx)+'" alt="'+(opt.name||opt.label||"")+'" loading="lazy">' : '';
+  var src;
+  if(opt.imgPath) src=opt.imgPath;                              // 直接指定图片路径（如 tongues/正常舌下.png）
+  else { var idx = opt.img!=null ? opt.img : (opt.name ? MAP_NAME_IMG[opt.name] : null); src = idx ? photo(idx) : null; }
+  return src ? '<img src="'+src+'" alt="'+(opt.name||opt.label||"")+'" loading="lazy">' : '';
 }
 
 /* ============ SVG 示意图 ============ */
@@ -224,7 +226,7 @@ var STEPS = [
     ]},
   { key:"tai", title:"② 望舌苔 · 苔色苔质", sub:"看舌面苔的颜色、厚薄、润燥与质地。正常舌苔 = 薄白苔（淡红舌面上一层薄白、润泽）。",
     options:[
-      {key:"normal", label:"薄白苔（正常）", normal:true, svg:"normal", desc:"淡红舌面上均匀薄白一层，干湿适中、润泽有津，为胃气充足之象", tags:["正常","薄白","胃气","健康"]},
+      {key:"normal", label:"薄白苔（正常）", normal:true, img:2, desc:"淡红舌面上均匀薄白一层，干湿适中、润泽有津，为胃气充足之象", tags:["正常","薄白","胃气","健康"]},
       {name:"厚苔", label:"厚苔"},
       {name:"燥苔", label:"燥苔"},
       {name:"黄苔", label:"黄苔"},
@@ -233,11 +235,10 @@ var STEPS = [
       {name:"剥苔（花剥）", label:"剥苔（花剥）"}
     ]},
   { key:"mai", title:"③ 望舌下脉络 · 翘起舌尖", sub:"翘起舌尖，观察舌下两条青筋的形色，判断瘀血、气滞。",
-    svg:true,
     options:[
-      {key:"normal", label:"正常脉络", normal:true, desc:"舌下两条淡红/青色细静脉，无迂曲、无瘀点", tags:[]},
-      {key:"xueyu", label:"瘀血", desc:"青紫、粗张、迂曲，或有瘀血点/结节", tags:["血瘀","青紫","瘀斑","刺痛","经闭"]},
-      {key:"qizhi", label:"气滞", desc:"青色、略张、欠畅，但无明显瘀点", tags:["气滞","肝郁","胀闷"]}
+      {key:"normal", label:"正常脉络", normal:true, imgPath:"tongues/正常舌下.png", desc:"舌下两条淡红/青色细静脉，无迂曲、无瘀点", tags:[]},
+      {key:"xueyu", label:"瘀血", imgPath:"tongues/舌下淤血.png", desc:"青紫、粗张、迂曲，或有瘀血点/结节", tags:["血瘀","青紫","瘀斑","刺痛","经闭"]},
+      {key:"qizhi", label:"气滞", imgPath:"tongues/气滞.png", desc:"青色、略张、欠畅，但无明显瘀点", tags:["气滞","肝郁","胀闷"]}
     ]},
   { key:"qu", title:"④ 望舌面分区 · 脏腑定位", sub:"按 舌尖→舌中→舌根、舌边→舌中，对应脏腑；点选异常所在的区域。",
     regionMap:true,
