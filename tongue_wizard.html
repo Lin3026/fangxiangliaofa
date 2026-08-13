@@ -50,23 +50,31 @@ header.top .home:hover{background:rgba(255,255,255,.3);text-decoration:none}
 .glabel{font-size:13px;font-weight:700;color:var(--accent2);margin:2px 0 6px;border-left:3px solid var(--accent2);padding-left:8px}
 
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
-.opt{cursor:pointer;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px;box-shadow:var(--shadow);transition:.15s;position:relative;display:flex;flex-direction:column}
-.opt:hover{border-color:var(--accent2)}
-.opt.sel{border-color:var(--accent);box-shadow:0 0 0 2px rgba(162,59,59,.18)}
+.opt{cursor:pointer;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 8px 9px;box-shadow:var(--shadow);transition:.15s;position:relative;display:flex;flex-direction:column}
+.opt:hover{border-color:var(--accent2);background:#fdf8f1}
+.opt.sel{background:#fff3e6;border-color:var(--accent);box-shadow:0 0 0 2px rgba(162,59,59,.22)}
+.opt .check{position:absolute;top:7px;right:7px;width:18px;height:18px;border-radius:50%;border:2px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;transition:.15s;font-weight:700;line-height:1}
+.opt:hover .check{border-color:var(--accent2)}
+.opt.sel .check{background:var(--accent);border-color:var(--accent);color:#fff}
 .opt .media{width:100%;aspect-ratio:220/315;background:#f3ece2;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .opt .media img{width:100%;height:100%;object-fit:cover;display:block}
 .opt .media svg{width:100%;height:100%}
-.opt .nm{font-size:13.5px;font-weight:700;margin-top:6px;line-height:1.35}
+.opt .nm{font-size:13.5px;font-weight:700;margin-top:6px;line-height:1.35;padding-right:22px}
 .opt .ds{font-size:12px;color:var(--muted);margin-top:3px;flex:1}
 .opt .zb{font-size:11.5px;color:var(--accent);margin-top:4px}
 .opt .badge{position:absolute;top:6px;left:6px;background:var(--accent2);color:#fff;font-size:11px;padding:2px 8px;border-radius:10px}
 .opt.normal .badge{background:#7a9b6a}
 .opt .selbadge{position:absolute;bottom:6px;right:6px;background:var(--accent);color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12)}
 
-.regionmap{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;box-shadow:var(--shadow);text-align:center;margin-bottom:12px}
-.regionmap .regioncap{font-size:12.5px;color:var(--muted);margin-bottom:8px;font-weight:600}
-.regionmap img{max-width:100%;max-height:340px;display:block;margin:0 auto;height:auto}
-.regionmap svg{width:min(320px,100%);height:auto}
+.regionmap{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px 12px;box-shadow:var(--shadow);margin-bottom:8px}
+.regionmap .rmimg{flex:0 0 auto;background:#fbf6ee;border-radius:6px;padding:3px;line-height:0}
+.regionmap .rmimg img{max-width:100px;max-height:100px;display:block;border-radius:4px}
+.regionmap .regioncap{font-size:12.5px;color:var(--ink);font-weight:600;line-height:1.45;flex:1}
+.regionmap .regioncap .sub{display:block;font-size:11px;color:var(--muted);font-weight:400;margin-top:2px}
+.regionmap .count{font-size:11px;color:var(--accent);font-weight:700;background:#fff3e6;padding:1px 8px;border-radius:9px;margin-left:6px}
+
+.quprogress{margin:0 0 8px;padding:6px 10px;background:#faf6ef;border-radius:8px;font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.quprogress .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent)}
 
 /* 侧栏 */
 .sidebar{position:sticky;top:14px;display:flex;flex-direction:column;gap:12px}
@@ -101,11 +109,11 @@ header.top .home:hover{background:rgba(255,255,255,.3);text-decoration:none}
 .fcard .oils{font-size:12.5px;color:#5b4a3a}
 .fcard .sym{font-size:11.5px;color:var(--muted)}
 
-.chipsbar{margin-top:14px;padding:12px 14px;background:#fff;border:1px dashed var(--accent2);border-radius:10px}
-.chipsbar .ql{font-size:13.5px;font-weight:700;color:var(--accent2);margin-bottom:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.chipsbar{margin-top:10px;padding:8px 12px;background:#fff;border:1px dashed var(--accent2);border-radius:9px}
+.chipsbar .ql{font-size:13px;font-weight:700;color:var(--accent2);margin-bottom:5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .chipsbar .ql b{color:var(--accent)}
 .chipsbar .hint{font-size:12px;color:var(--muted);margin-bottom:10px}
-.chipsbar .hintmini{font-weight:400;color:var(--muted);font-size:11.5px;margin-left:6px;padding:1px 7px;background:#fbf3e8;border-radius:8px}
+.chipsbar .hintmini{font-weight:400;color:var(--muted);font-size:11px;margin-left:6px;padding:1px 7px;background:#fbf3e8;border-radius:8px}
 .chips{display:flex;gap:8px;flex-wrap:wrap}
 .chip{cursor:pointer;background:#fff;border:1px solid var(--line);border-radius:18px;padding:7px 14px;font-size:13px;transition:.15s;display:inline-flex;align-items:center;gap:5px;color:var(--ink);font-family:inherit}
 .chip:hover{border-color:var(--accent2);background:#fbf6ee}
@@ -353,9 +361,24 @@ function renderStep(){
 
   if(s.regionMapImg){
     var rm=document.createElement("div"); rm.className="regionmap";
-    rm.innerHTML='<div class="regioncap">📍 舌面分区 ↔ 身体全息图（从上到下：舌根→舌中→舌尖）</div>'+
-      '<img src="'+s.regionMapImg+'" alt="舌面对应身体全息图" loading="lazy">';
+    rm.innerHTML='<div class="rmimg"><img src="'+s.regionMapImg+'" alt="舌面对应身体全息图" loading="lazy"></div>'+
+      '<div class="regioncap">📍 舌面分区 ↔ 身体全息图<span class="sub">从上到下：舌根→舌中→舌尖；8 大区可多选（最多 8 个），选中后下方出现 5 个形态选项</span></div>';
     body.appendChild(rm);
+  }
+
+  // ④ 步：多选进度提示
+  if(s.key==="qu"){
+    var selArr = Array.isArray(selection.qu) ? selection.qu : [];
+    var labels = selArr.map(function(k){
+      var o = (s.options||[]).filter(function(x){ return x.key===k; })[0];
+      if(!o) return k;
+      var lab = o.label || '';
+      return lab.replace(/^[^(（]*/,'').replace(/[（(].*[)）]/,'').trim() || lab;
+    }).join(' · ');
+    var pq = document.createElement("div"); pq.className="quprogress";
+    pq.innerHTML = '<span class="dot"></span>已选 <b style="color:var(--accent)">' + selArr.length + '</b> / 8 个异常分区'
+      + (selArr.length ? '：' + labels : '（点击下方 8 区任选，再点取消）');
+    body.appendChild(pq);
   }
 
   if(s.groups){
@@ -425,6 +448,8 @@ function optCard(s,o){
     if(sub) selBadge = '<span class="selbadge">· '+escapeHtml(sub.label)+'</span>';
   }
   el.innerHTML = (o.normal?'<span class="badge">正常对照</span>':"") +
+    // ④ 大区卡片右上角加勾选圆圈（不显示大图标）
+    (s.key==="qu" && o.noMedia ? '<span class="check">✓</span>' : "") +
     (media?'<div class="media">'+media+'</div>':"") +
     '<div class="nm">'+label+'</div>' +
     (ds?'<div class="ds">'+ds+'</div>':"") +
