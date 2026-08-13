@@ -76,6 +76,13 @@ header.top .home:hover{background:rgba(255,255,255,.3);text-decoration:none}
 .quprogress{margin:0 0 8px;padding:6px 10px;background:#faf6ef;border-radius:8px;font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .quprogress .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent)}
 
+/* ④ 大区卡片内嵌的 5 形态 chip（始终可见） */
+.optchips{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px;padding-top:6px;border-top:1px dashed #e7d8c0}
+.optchip{cursor:pointer;background:#fff;border:1px solid var(--line);border-radius:6px;padding:3px 8px;font-size:11.5px;transition:.12s;color:var(--ink);font-family:inherit;font-weight:600;line-height:1.3;display:inline-flex;align-items:center;gap:3px}
+.optchip:hover{border-color:var(--accent2);background:#fbf6ee;color:var(--accent2)}
+.optchip.sel{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700;box-shadow:0 1px 4px rgba(162,59,59,.28)}
+.optchip .ic{font-size:12px;line-height:1}
+
 /* 侧栏 */
 .sidebar{position:sticky;top:14px;display:flex;flex-direction:column;gap:12px}
 .panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:var(--shadow)}
@@ -287,7 +294,7 @@ var STEPS = [
       {key:"xueyu", label:"瘀血", imgPath:"tongues/舌下淤血.png", desc:"青紫、粗张、迂曲，或有瘀血点/结节", tags:["血瘀","青紫","瘀斑","刺痛","经闭"]},
       {key:"qizhi", label:"气滞", imgPath:"tongues/气滞.png", desc:"青色、略张、欠畅，但无明显瘀点", tags:["气滞","肝郁","胀闷"]}
     ]},
-  { key:"qu", title:"④ 望舌面分区 · 脏腑定位", sub:"结合上方「舌面对应身体全息图」，可多选异常分区（最多 8 个）；每个分区再选 1 个观察到的异常形态（凹/凸/红点/缺陷/裂纹，单选，再点取消）。",
+  { key:"qu", title:"④ 望舌面分区 · 脏腑定位", sub:"8 大区可多选（最多 8 个）；每张卡片下方选 1 个观察到的形态（单选，再点取消）。",
     regionMapImg:"tongues/舌面对应脏腑.jpg",
     options:[
       {key:"xinnao",  label:"心脑区（舌尖·心/脑）",   noMedia:true, desc:"舌尖红/凹陷/缺损 → 心火旺、供血不足、失眠多梦", tags:["心脑","心火","心烦","失眠","舌尖红","口疮"]},
@@ -362,7 +369,7 @@ function renderStep(){
   if(s.regionMapImg){
     var rm=document.createElement("div"); rm.className="regionmap";
     rm.innerHTML='<div class="rmimg"><img src="'+s.regionMapImg+'" alt="舌面对应身体全息图" loading="lazy"></div>'+
-      '<div class="regioncap">📍 舌面分区 ↔ 身体全息图<span class="sub">从上到下：舌根→舌中→舌尖；8 大区可多选（最多 8 个），选中后下方出现 5 个形态选项</span></div>';
+      '<div class="regioncap">📍 舌面分区 ↔ 身体全息图<span class="sub">从上到下：舌根→舌中→舌尖</span></div>';
     body.appendChild(rm);
   }
 
@@ -395,29 +402,6 @@ function renderStep(){
     s.options.forEach(function(o){ grid.appendChild(optCard(s,o)); });
     body.appendChild(grid);
   }
-
-  // 子选项条（仅 ④ 分区步：每个被选中的区都展开一条 chip 条，单选）
-  if(s.subOptions && Array.isArray(selection[s.key]) && selection[s.key].length){
-    var regionOpts = (s.options||[]).filter(function(x){ return selection[s.key].indexOf(optKey(s,x))>=0; });
-    regionOpts.forEach(function(reg){
-      var rKey = optKey(s, reg);
-      var cur = quIssues[rKey];
-      var bar = document.createElement("div"); bar.className="chipsbar";
-      bar.innerHTML='<div class="ql">📍 <b>'+escapeHtml(reg.label||reg.name)+'</b> · 该区域看到什么？<span class="hintmini">单选（再点取消）</span></div>' +
-        '<div class="chips"></div>' +
-        (cur ? '<div class="interp">💡 <b>观察：</b>'+escapeHtml((reg.label||reg.name)+' · '+(s.subOptions.filter(function(x){return x.key===cur;})[0].label))+'</div>' : '');
-      body.appendChild(bar);
-      var box = bar.querySelector(".chips");
-      s.subOptions.forEach(function(o){
-        var c = document.createElement("div");
-        c.className = "chip" + (cur===o.key ? " sel" : "") + (o.imgPath ? " hasimg" : "");
-        c.innerHTML = (o.imgPath ? '<span class="thb"><img src="'+o.imgPath+'" alt="'+escapeHtml(o.label)+'" loading="lazy"></span>' : '<span class="ic">'+o.icon+'</span>') +
-          '<span>'+escapeHtml(o.label)+'</span>';
-        c.onclick = function(){ setQuIssue(rKey, o.key); };
-        box.appendChild(c);
-      });
-    });
-  }
 }
 
 function optCard(s,o){
@@ -447,6 +431,19 @@ function optCard(s,o){
     var sub = (s.subOptions||[]).filter(function(x){return x.key===quIssues[key];})[0];
     if(sub) selBadge = '<span class="selbadge">· '+escapeHtml(sub.label)+'</span>';
   }
+  // ④ 大区：每张卡片内置 5 形态 chip（始终可见，单选）
+  var inCardChips = "";
+  if(s.key==="qu" && o.noMedia && s.subOptions){
+    var curChip = quIssues[key];
+    inCardChips = '<div class="optchips">' +
+      s.subOptions.map(function(sub){
+        return '<span class="optchip'+(curChip===sub.key?' sel':'')+'" data-sub="'+sub.key+'">'+
+          (sub.icon?'<span class="ic">'+sub.icon+'</span>':'')+
+          escapeHtml(sub.label)+'</span>';
+      }).join('') +
+    '</div>';
+  }
+
   el.innerHTML = (o.normal?'<span class="badge">正常对照</span>':"") +
     // ④ 大区卡片右上角加勾选圆圈（不显示大图标）
     (s.key==="qu" && o.noMedia ? '<span class="check">✓</span>' : "") +
@@ -454,8 +451,23 @@ function optCard(s,o){
     '<div class="nm">'+label+'</div>' +
     (ds?'<div class="ds">'+ds+'</div>':"") +
     (zb?'<div class="zb">'+zb+'</div>':"") +
+    inCardChips +
     selBadge;
-  el.onclick=function(){ select(s.key,key); };
+  el.onclick=function(ev){
+    // 点在 chip 上时，由 chip 自己的 onclick 处理；阻止冒泡
+    if(ev && ev.target && ev.target.classList && ev.target.classList.contains('optchip')) return;
+    select(s.key,key);
+  };
+  // 给 chip 绑定点击：单选（再点取消），自动把区域加入 selection.qu
+  if(inCardChips){
+    el.querySelectorAll('.optchip').forEach(function(ch){
+      ch.onclick = function(ev){
+        ev.stopPropagation();
+        var sk = ch.getAttribute('data-sub');
+        setQuIssueAndRegion(key, sk);
+      };
+    });
+  }
   return el;
 }
 
@@ -479,6 +491,26 @@ function setQuIssue(regionKey, subKey){
   if(quIssues[regionKey]===subKey) delete quIssues[regionKey];
   else quIssues[regionKey] = subKey;
   renderStep(); renderRecord();
+}
+
+/* ============ ④ chip 直接驱动：点 chip = 选该区并设形态（再点取消）============ */
+function setQuIssueAndRegion(regionKey, subKey){
+  var arr = selection.qu || [];
+  if(quIssues[regionKey]===subKey){
+    // 再次点同一 chip：取消该区与形态
+    var idx = arr.indexOf(regionKey);
+    if(idx>=0) arr.splice(idx,1);
+    delete quIssues[regionKey];
+  } else {
+    // 设形态，并把该区加入多选（上限 8）
+    quIssues[regionKey] = subKey;
+    if(arr.indexOf(regionKey)<0){
+      if(arr.length>=8){ renderStep(); renderRecord(); return; }
+      arr.push(regionKey);
+    }
+  }
+  selection.qu = arr;
+  renderSteps(); renderStep(); renderRecord();
 }
 
 /* ============ 记录面板 ============ */
