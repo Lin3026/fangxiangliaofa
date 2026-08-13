@@ -98,6 +98,19 @@ header.top .home:hover{background:rgba(255,255,255,.3);text-decoration:none}
 .fcard .oils{font-size:12.5px;color:#5b4a3a}
 .fcard .sym{font-size:11.5px;color:var(--muted)}
 
+.chipsbar{margin-top:14px;padding:12px 14px;background:#fff;border:1px dashed var(--accent2);border-radius:10px}
+.chipsbar .ql{font-size:13.5px;font-weight:700;color:var(--accent2);margin-bottom:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.chipsbar .ql b{color:var(--accent)}
+.chipsbar .hint{font-size:12px;color:var(--muted);margin-bottom:10px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{cursor:pointer;background:#fff;border:1px solid var(--line);border-radius:18px;padding:7px 14px;font-size:13px;transition:.15s;display:inline-flex;align-items:center;gap:5px;color:var(--ink);font-family:inherit}
+.chip:hover{border-color:var(--accent2);background:#fbf6ee}
+.chip.sel{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+.chip .ic{font-size:15px}
+
+.interp{margin-top:10px;padding:8px 12px;background:#fff7ee;border-left:3px solid var(--accent);border-radius:6px;font-size:12.5px;color:#5b4a3a}
+.interp b{color:var(--accent)}
+
 .disclaimer{background:#fff3e6;border:1px solid #f0d3b0;border-radius:10px;padding:10px 14px;font-size:12.5px;color:var(--warn);max-width:1080px;margin:0 auto 30px}
 .disclaimer b{color:var(--accent)}
 </style>
@@ -110,7 +123,7 @@ header.top .home:hover{background:rgba(255,255,255,.3);text-decoration:none}
 </header>
 
 <div class="intro">
-  <div class="box">👅 <b>怎么用：</b>顺着 5 个步骤，每步把你<b>实际看到</b>的舌象点选出来（<b>每步只能选一张图</b>，再点可取消；每个步骤第一张都是「正常」对照）。系统会实时记录，最后点「🔍 判断病情」给出证型候选、点「💊 推荐配方」给出对应芳疗配方。</div>
+  <div class="box">👅 <b>怎么用：</b>顺着 5 个步骤，每步把你<b>实际看到</b>的舌象点选出来（多数步单选、再点取消；<b>④ 望舌面分区</b>需先选一个异常区域，再勾选该区域的异常形态（凹/凸/红点/缺陷/裂纹，<b>可多选</b>））。系统会实时记录，最后点「🔍 判断病情」给出证型候选、点「💊 推荐配方」给出对应芳疗配方。</div>
 </div>
 
 <div class="layout">
@@ -178,19 +191,37 @@ function svgSublingual(variant){
     dots+'</svg>';
 }
 function svgRegions(){
-  return '<svg viewBox="0 0 240 200">'+
-    '<ellipse cx="120" cy="100" rx="92" ry="92" fill="#f3d8d4" stroke="#d9a7a0" stroke-width="2"/>'+
-    '<ellipse cx="120" cy="46" rx="40" ry="34" fill="rgba(162,59,59,.30)"/>'+
-    '<ellipse cx="120" cy="158" rx="42" ry="34" fill="rgba(74,122,155,.30)"/>'+
-    '<ellipse cx="120" cy="102" rx="46" ry="44" fill="rgba(227,196,82,.30)"/>'+
-    '<path d="M28 100 a92 92 0 0 0 0 0" fill="none"/>'+
-    '<ellipse cx="44" cy="100" rx="30" ry="60" fill="rgba(91,138,114,.30)"/>'+
-    '<ellipse cx="196" cy="100" rx="30" ry="60" fill="rgba(91,138,114,.30)"/>'+
-    '<text x="120" y="40" text-anchor="middle" font-size="13" fill="#7a1f1f" font-weight="700">舌尖·心/肺</text>'+
-    '<text x="120" y="106" text-anchor="middle" font-size="13" fill="#7a5b00" font-weight="700">舌中·脾胃</text>'+
-    '<text x="120" y="164" text-anchor="middle" font-size="13" fill="#1f4a66" font-weight="700">舌根·肾</text>'+
-    '<text x="40" y="104" text-anchor="middle" font-size="12" fill="#2f5a3f" font-weight="700">舌边·肝胆</text>'+
-    '<text x="200" y="104" text-anchor="middle" font-size="12" fill="#2f5a3f" font-weight="700">舌边·肝胆</text>'+
+  return '<svg viewBox="0 0 280 240">'+
+    // 舌体
+    '<ellipse cx="140" cy="120" rx="100" ry="100" fill="#f3d8d4" stroke="#d9a7a0" stroke-width="2"/>'+
+    // 心脑区（舌尖）
+    '<ellipse cx="140" cy="40" rx="32" ry="22" fill="rgba(162,59,59,.30)" stroke="rgba(162,59,59,.55)" stroke-width="1"/>'+
+    '<text x="140" y="44" text-anchor="middle" font-size="12" fill="#7a1f1f" font-weight="700">心脑区</text>'+
+    // 颈椎区（舌尖下）
+    '<ellipse cx="140" cy="78" rx="30" ry="14" fill="rgba(91,138,114,.30)" stroke="rgba(91,138,114,.55)" stroke-width="1"/>'+
+    '<text x="140" y="82" text-anchor="middle" font-size="11" fill="#2f5a3f" font-weight="700">颈椎区</text>'+
+    // 肺区（舌前中）
+    '<ellipse cx="140" cy="108" rx="24" ry="14" fill="rgba(74,122,155,.30)" stroke="rgba(74,122,155,.55)" stroke-width="1"/>'+
+    '<text x="140" y="112" text-anchor="middle" font-size="11" fill="#1f4a66" font-weight="700">肺区</text>'+
+    // 肩周区（舌前两侧）
+    '<ellipse cx="48" cy="84" rx="20" ry="14" fill="rgba(227,196,82,.30)" stroke="rgba(180,140,40,.55)" stroke-width="1"/>'+
+    '<ellipse cx="232" cy="84" rx="20" ry="14" fill="rgba(227,196,82,.30)" stroke="rgba(180,140,40,.55)" stroke-width="1"/>'+
+    '<text x="48" y="88" text-anchor="middle" font-size="10" fill="#7a5b00" font-weight="700">肩周区</text>'+
+    '<text x="232" y="88" text-anchor="middle" font-size="10" fill="#7a5b00" font-weight="700">肩周区</text>'+
+    // 乳腺区（舌边前段）
+    '<ellipse cx="40" cy="122" rx="18" ry="14" fill="rgba(180,100,140,.30)" stroke="rgba(140,70,110,.55)" stroke-width="1"/>'+
+    '<ellipse cx="240" cy="122" rx="18" ry="14" fill="rgba(180,100,140,.30)" stroke="rgba(140,70,110,.55)" stroke-width="1"/>'+
+    '<text x="40" y="126" text-anchor="middle" font-size="10" fill="#7a2f5a" font-weight="700">乳腺区</text>'+
+    '<text x="240" y="126" text-anchor="middle" font-size="10" fill="#7a2f5a" font-weight="700">乳腺区</text>'+
+    // 脾胃区（舌中）
+    '<ellipse cx="140" cy="152" rx="36" ry="22" fill="rgba(200,140,40,.35)" stroke="rgba(160,100,20,.55)" stroke-width="1"/>'+
+    '<text x="140" y="156" text-anchor="middle" font-size="12" fill="#5a3300" font-weight="700">脾胃区</text>'+
+    // 肝区（舌边左中）
+    '<ellipse cx="48" cy="162" rx="22" ry="18" fill="rgba(60,150,80,.30)" stroke="rgba(40,110,60,.55)" stroke-width="1"/>'+
+    '<text x="48" y="166" text-anchor="middle" font-size="11" fill="#1f5a2f" font-weight="700">肝区</text>'+
+    // 胆区（舌边右中）
+    '<ellipse cx="232" cy="162" rx="22" ry="18" fill="rgba(220,200,40,.30)" stroke="rgba(180,150,20,.55)" stroke-width="1"/>'+
+    '<text x="232" y="166" text-anchor="middle" font-size="11" fill="#665a00" font-weight="700">胆区</text>'+
     '</svg>';
 }
 function svgMangci(){
@@ -240,14 +271,25 @@ var STEPS = [
       {key:"xueyu", label:"瘀血", imgPath:"tongues/舌下淤血.png", desc:"青紫、粗张、迂曲，或有瘀血点/结节", tags:["血瘀","青紫","瘀斑","刺痛","经闭"]},
       {key:"qizhi", label:"气滞", imgPath:"tongues/气滞.png", desc:"青色、略张、欠畅，但无明显瘀点", tags:["气滞","肝郁","胀闷"]}
     ]},
-  { key:"qu", title:"④ 望舌面分区 · 脏腑定位", sub:"按 舌尖→舌中→舌根、舌边→舌中，对应脏腑；点选异常所在的区域。",
+  { key:"qu", title:"④ 望舌面分区 · 脏腑定位", sub:"先选 1 个出现异常的分区（8 区对应不同脏腑），再勾选该区看到哪些异常形态（凹/凸/红点/缺陷/裂纹，可多选）。",
     regionMap:true,
     options:[
-      {key:"jian", label:"舌尖（心·肺）", desc:"舌尖红/芒刺 → 心火、肺热", tags:["心火","心肺","舌尖红","口疮","心烦"]},
-      {key:"bian", label:"舌边（肝·胆）", desc:"舌边红/紫 → 肝胆湿热、肝郁", tags:["肝胆","肝郁","舌边红","口苦"]},
-      {key:"zhong", label:"舌中（脾·胃）", desc:"舌中厚腻/裂纹 → 脾胃湿滞、胃阴不足", tags:["脾胃","湿","厚腻","裂纹"]},
-      {key:"gen", label:"舌根（肾·命门）", desc:"舌根苔厚/剥 → 下焦、肾", tags:["肾","下焦","命门"]},
-      {key:"normal", label:"分部正常", normal:true, img:2, desc:"各分区未见明显异常", tags:[]}
+      {key:"xinnao",  icon:"🔴", label:"心脑区（舌尖）",     desc:"舌尖红/凹陷/缺损 → 心火旺、供血不足", tags:["心脑","心火","心烦","失眠","舌尖红","口疮"]},
+      {key:"jingzhui",icon:"🦴", label:"颈椎区（舌尖下）",   desc:"舌尖下红/凹陷/凸起 → 咽喉不适、颈椎变形", tags:["颈椎","咽喉","颈椎变形"]},
+      {key:"jianzhou",icon:"💪", label:"肩周区（舌前两侧）", desc:"舌前两侧红点/缺损 → 肩周瘀堵、气机不畅", tags:["肩周","气机不畅","颈肩"]},
+      {key:"ruxian",  icon:"🌸", label:"乳腺区（舌边前段）", desc:"舌边前段红点/凹陷 → 乳腺增生、气血不足", tags:["乳腺","气血不足","胸闷"]},
+      {key:"fei",     icon:"🫁", label:"肺区（舌前中）",     desc:"舌前中发白/红/凹陷/凸起/裂纹 → 肺热、肺气不足、肺阴虚", tags:["肺","肺热","咳嗽","肺阴虚","干咳"]},
+      {key:"piwei",   icon:"🍵", label:"脾胃区（舌中）",     desc:"舌中白/红/凹陷-凸起/白苔/黄苔/黄腻 → 脾胃虚寒、湿热、积食", tags:["脾胃","湿","积食","胃热","厚腻","脾虚"]},
+      {key:"gan",     icon:"🟢", label:"肝区（舌边左中）",   desc:"舌边左中红点/红/凹陷/凸起 → 肝郁、肝火旺、肝血不足", tags:["肝","肝郁","肝火","月经量少"]},
+      {key:"dan",     icon:"🟡", label:"胆区（舌边右中）",   desc:"舌边右中红点/发红/凹陷/凸起 → 胆囊问题、口苦", tags:["胆","胆囊","口苦"]},
+      {key:"normal",  label:"全部分区正常", normal:true, img:2, desc:"8 个分区均未见明显异常", tags:[]}
+    ],
+    subOptions:[
+      {key:"aoxian",  icon:"🕳️", label:"凹（凹陷）", tags:["凹陷","气血不足","虚","供血不足"]},
+      {key:"tuqi",    icon:"⛰️", label:"凸（凸起）", tags:["凸起","气滞","痰湿","瘀"]},
+      {key:"hongdian",icon:"🔴", label:"红点",       tags:["红点","热","红"]},
+      {key:"quexian", icon:"⚠️", label:"缺陷（缺损）", tags:["缺损","气血不足","虚"]},
+      {key:"liewen",  icon:"⚡", label:"裂纹",       tags:["裂纹","阴虚","阴虚火旺"]}
     ]},
   { key:"xing", title:"⑤ 望形态动态 · 老嫩胖瘦裂纹芒刺齿痕强硬痿软", sub:"最后看舌体形态与动态，反映邪正虚实、动静。正常 = 大小适中、柔软灵活。",
     options:[
@@ -279,6 +321,7 @@ var ZHENG = [
 
 /* ============ 状态 ============ */
 var selection = {qi:null, tai:null, mai:null, qu:null, xing:null};
+var quIssues = [];   // ④ 分区选中后，该区域勾选的异常形态（多选）
 var curStep = 0;
 
 function optKey(step, opt){ return opt.key || opt.name || opt.label; }
@@ -319,6 +362,33 @@ function renderStep(){
     s.options.forEach(function(o){ grid.appendChild(optCard(s,o)); });
     body.appendChild(grid);
   }
+
+  // 子选项条（仅 ④ 分区步且选了非"正常"区域时显示）
+  if(s.subOptions && selection[s.key] && selection[s.key]!=="normal"){
+    var regOpt=(s.options||[]).filter(function(x){return optKey(s,x)===selection[s.key];})[0];
+    var regLabel=regOpt?(regOpt.label||regOpt.name):"该区域";
+    var bar=document.createElement("div"); bar.className="chipsbar";
+    bar.innerHTML='<div class="ql">📍 选中区域：<b>'+regLabel+'</b></div>'+
+      '<div class="hint">该区域看到哪些异常形态？<b>可多选</b>，再点取消：</div>'+
+      '<div class="chips" id="quChips"></div>';
+    body.appendChild(bar);
+    var box=document.getElementById("quChips");
+    s.subOptions.forEach(function(o){
+      var c=document.createElement("div");
+      var on=quIssues.indexOf(o.key)>=0;
+      c.className="chip"+(on?" sel":"");
+      c.innerHTML='<span class="ic">'+o.icon+'</span><span>'+o.label+'</span>';
+      c.onclick=function(){ toggleQuIssue(o.key); };
+      box.appendChild(c);
+    });
+    // 实时小结：区域 + 形态 → 推断
+    if(quIssues.length){
+      var subLabels=s.subOptions.filter(function(x){return quIssues.indexOf(x.key)>=0;}).map(function(x){return x.label;}).join(" + ");
+      var interp=document.createElement("div"); interp.className="interp";
+      interp.innerHTML='💡 <b>初步判断：</b>'+regLabel+' 出现 <b>'+subLabels+'</b>。点「下一步」继续，或点上方其他区域重新选择。';
+      bar.appendChild(interp);
+    }
+  }
 }
 
 function optCard(s,o){
@@ -326,9 +396,10 @@ function optCard(s,o){
   var key=optKey(s,o);
   var sel=selection[s.key]===key;
   el.className="opt"+(sel?" sel":"")+(o.normal?" normal":"");
-  // 媒体（按优先级：芒刺SVG > 正常金标准SVG > 舌下脉络SVG > 真实照片）
+  // 媒体（按优先级：emoji图标 > 芒刺SVG > 正常金标准SVG > 舌下脉络SVG > 真实照片）
   var media;
-  if(o.svg==="mangci") media=svgMangci();
+  if(o.icon) media='<div style="font-size:60px;line-height:1;display:flex;align-items:center;justify-content:center;width:100%;height:100%">'+o.icon+'</div>';
+  else if(o.svg==="mangci") media=svgMangci();
   else if(o.svg==="normal") media=svgNormal();
   else if(s.svg && o.key) media=svgSublingual(o.key);
   else media=tongueImgOf(o);
@@ -349,7 +420,16 @@ function optCard(s,o){
 /* ============ 单选：每步同一时刻最多选一张图，再点取消 ============ */
 function select(stepKey,key){
   selection[stepKey] = (selection[stepKey]===key ? null : key);
+  // ④ 分区切换区域时，子选项随之清空
+  if(stepKey==="qu") quIssues=[];
   renderSteps(); renderStep(); renderRecord();
+}
+
+/* ============ ④ 子选项多选（凹/凸/红点/缺陷/裂纹） ============ */
+function toggleQuIssue(key){
+  var i=quIssues.indexOf(key);
+  if(i>=0) quIssues.splice(i,1); else quIssues.push(key);
+  renderStep(); renderRecord();
 }
 
 /* ============ 记录面板 ============ */
@@ -362,6 +442,14 @@ function selectedList(){
     if(!o) return;
     var label=o.label||o.name;
     var tags = o.tags ? o.tags.slice() : ((BY_NAME[o.name]&&BY_NAME[o.name].tags)||[]);
+    // ④ 分区：合并子选项标签与显示文案
+    if(s.key==="qu" && s.subOptions && key!=="normal"){
+      if(quIssues.length){
+        s.subOptions.forEach(function(sub){ if(quIssues.indexOf(sub.key)>=0){ tags = tags.concat(sub.tags||[]); }});
+        var subLabels=s.subOptions.filter(function(x){return quIssues.indexOf(x.key)>=0;}).map(function(x){return x.label;}).join(" + ");
+        label = label + " · " + subLabels;
+      }
+    }
     out.push({step:s.title, label:label, tags:tags});
   });
   return out;
@@ -384,7 +472,11 @@ function removeOne(stepTitle,label){
   var key=null;
   (s.options||[]).forEach(function(o){ if((o.label||o.name)===label) key=optKey(s,o); });
   if(s.groups){ s.groups.forEach(function(g){ g.opts.forEach(function(o){ if((o.label||o.name)===label) key=optKey(s,o); }); }); }
-  if(key && selection[s.key]===key){ selection[s.key]=null; renderSteps(); renderStep(); renderRecord(); }
+  if(key && selection[s.key]===key){
+    selection[s.key]=null;
+    if(s.key==="qu") quIssues=[]; // ④ 同步清空子选项
+    renderSteps(); renderStep(); renderRecord();
+  }
 }
 
 /* ============ 病情判断 ============ */
@@ -458,6 +550,7 @@ function runRecommend(){
 
 function clearAll(){
   selection={qi:null, tai:null, mai:null, qu:null, xing:null};
+  quIssues=[];
   document.getElementById("result").innerHTML='<div class="empty">已清空。重新从 5 步中点选舌象。</div>';
   renderSteps(); renderStep(); renderRecord();
 }
