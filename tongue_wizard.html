@@ -107,6 +107,10 @@ header.top .home:hover{background:rgba(255,255,255,.3);text-decoration:none}
 .chip:hover{border-color:var(--accent2);background:#fbf6ee}
 .chip.sel{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
 .chip .ic{font-size:15px}
+.chip.hasimg{padding:7px 12px 7px 8px}
+.chip .thb{width:30px;height:30px;border-radius:8px;overflow:hidden;flex:0 0 auto;border:1px solid var(--line);background:#f6f1e8}
+.chip .thb img{width:100%;height:100%;object-fit:cover;display:block}
+.chip.sel .thb{border-color:#fff}
 
 .interp{margin-top:10px;padding:8px 12px;background:#fff7ee;border-left:3px solid var(--accent);border-radius:6px;font-size:12.5px;color:#5b4a3a}
 .interp b{color:var(--accent)}
@@ -170,7 +174,7 @@ var MAP_NAME_IMG = {}; TONGUES.forEach(function(t,i){ MAP_NAME_IMG[t.name]=(i+1)
 function photo(idx){ return "tongues/tongue-"+("0"+idx).slice(-2)+".png"; }
 function tongueImgOf(opt){
   var src;
-  if(opt.imgPath) src=opt.imgPath;                              // 直接指定图片路径（如 tongues/正常舌下.png）
+  if(opt.imgPath) src=opt.imgPath;                              // 直接指定图片路径（如 tongues/正常.png / tongues/红点舌.png）
   else { var idx = opt.img!=null ? opt.img : (opt.name ? MAP_NAME_IMG[opt.name] : null); src = idx ? photo(idx) : null; }
   return src ? '<img src="'+src+'" alt="'+(opt.name||opt.label||"")+'" loading="lazy">' : '';
 }
@@ -267,7 +271,7 @@ var STEPS = [
     ]},
   { key:"mai", title:"③ 望舌下脉络 · 翘起舌尖", sub:"翘起舌尖，观察舌下两条青筋的形色，判断瘀血、气滞。",
     options:[
-      {key:"normal", label:"正常脉络", normal:true, imgPath:"tongues/正常舌下.png", desc:"舌下两条淡红/青色细静脉，无迂曲、无瘀点", tags:[]},
+      {key:"normal", label:"正常脉络", normal:true, imgPath:"tongues/正常.png", desc:"舌下两条淡红/青色细静脉，无迂曲、无瘀点", tags:[]},
       {key:"xueyu", label:"瘀血", imgPath:"tongues/舌下淤血.png", desc:"青紫、粗张、迂曲，或有瘀血点/结节", tags:["血瘀","青紫","瘀斑","刺痛","经闭"]},
       {key:"qizhi", label:"气滞", imgPath:"tongues/气滞.png", desc:"青色、略张、欠畅，但无明显瘀点", tags:["气滞","肝郁","胀闷"]}
     ]},
@@ -287,7 +291,7 @@ var STEPS = [
     subOptions:[
       {key:"aoxian",  icon:"🕳️", label:"凹（凹陷）", tags:["凹陷","气血不足","虚","供血不足"]},
       {key:"tuqi",    icon:"⛰️", label:"凸（凸起）", tags:["凸起","气滞","痰湿","瘀"]},
-      {key:"hongdian",icon:"🔴", label:"红点",       tags:["红点","热","红"]},
+      {key:"hongdian",icon:"🔴", label:"红点",       imgPath:"tongues/红点舌.png", tags:["红点","热","红"]},
       {key:"quexian", icon:"⚠️", label:"缺陷（缺损）", tags:["缺损","气血不足","虚"]},
       {key:"liewen",  icon:"⚡", label:"裂纹",       tags:["裂纹","阴虚","阴虚火旺"]}
     ]},
@@ -376,8 +380,8 @@ function renderStep(){
     s.subOptions.forEach(function(o){
       var c=document.createElement("div");
       var on=quIssues.indexOf(o.key)>=0;
-      c.className="chip"+(on?" sel":"");
-      c.innerHTML='<span class="ic">'+o.icon+'</span><span>'+o.label+'</span>';
+      c.className="chip"+(on?" sel":"")+(o.imgPath?" hasimg":"");
+      c.innerHTML=(o.imgPath?'<span class="thb"><img src="'+o.imgPath+'" alt="'+o.label+'" loading="lazy"></span>':'<span class="ic">'+o.icon+'</span>')+'<span>'+o.label+'</span>';
       c.onclick=function(){ toggleQuIssue(o.key); };
       box.appendChild(c);
     });
