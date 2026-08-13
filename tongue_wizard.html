@@ -174,7 +174,7 @@ var MAP_NAME_IMG = {}; TONGUES.forEach(function(t,i){ MAP_NAME_IMG[t.name]=(i+1)
 function photo(idx){ return "tongues/tongue-"+("0"+idx).slice(-2)+".png"; }
 function tongueImgOf(opt){
   var src;
-  if(opt.imgPath) src=opt.imgPath;                              // 直接指定图片路径（如 tongues/正常.png / tongues/红点舌.png）
+  if(opt.imgPath) src=opt.imgPath;                              // 直接指定图片路径（如 tongues/正常.png / tongues/芒刺舌.png）
   else { var idx = opt.img!=null ? opt.img : (opt.name ? MAP_NAME_IMG[opt.name] : null); src = idx ? photo(idx) : null; }
   return src ? '<img src="'+src+'" alt="'+(opt.name||opt.label||"")+'" loading="lazy">' : '';
 }
@@ -291,7 +291,7 @@ var STEPS = [
     subOptions:[
       {key:"aoxian",  icon:"🕳️", label:"凹（凹陷）", tags:["凹陷","气血不足","虚","供血不足"]},
       {key:"tuqi",    icon:"⛰️", label:"凸（凸起）", tags:["凸起","气滞","痰湿","瘀"]},
-      {key:"hongdian",icon:"🔴", label:"红点",       imgPath:"tongues/红点舌.png", tags:["红点","热","红"]},
+      {key:"hongdian",icon:"🔴", label:"红点",       tags:["红点","热","红"]},
       {key:"quexian", icon:"⚠️", label:"缺陷（缺损）", tags:["缺损","气血不足","虚"]},
       {key:"liewen",  icon:"⚡", label:"裂纹",       tags:["裂纹","阴虚","阴虚火旺"]}
     ]},
@@ -303,7 +303,7 @@ var STEPS = [
       {name:"胖大齿痕舌", label:"胖大齿痕舌"},
       {name:"瘦薄舌", label:"瘦薄舌"},
       {name:"裂纹舌", label:"裂纹舌"},
-      {name:"芒刺舌", svg:"mangci", label:"芒刺舌", desc:"舌面红刺（菌状乳头红肿），主热盛——心火、胃热", tags:["热盛","心火","胃热","芒刺","红"]},
+      {name:"芒刺舌", imgPath:"tongues/芒刺舌.png", label:"芒刺舌", desc:"舌面红刺（菌状乳头红肿），主热盛——心火、胃热", tags:["热盛","心火","胃热","芒刺","红"]},
       {name:"强硬舌", label:"强硬舌"},
       {name:"痿软舌", label:"痿软舌"}
     ]}
