@@ -43,6 +43,7 @@ header.top .home:hover{background:rgba(255,255,255,.3);text-decoration:none}
 .stepbtn.done .n{background:var(--accent)}
 
 .step-head{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);margin-bottom:12px}
+.step-head:empty{display:none}
 .step-head h2{margin:0 0 4px;font-size:18px;color:var(--accent)}
 .step-head .guide{font-size:13.5px;color:var(--muted)}
 
@@ -346,6 +347,13 @@ var selection = {qi:null, tai:null, mai:null, qu:[], xing:null};  // qu 为多�
 var quIssues = {};   // ④ 子选项：对象 {regionKey: subKey}，每个区最多选 1 个（单选）
 var curStep = 0;
 
+/* ============ HTML 转义 ============ */
+function escapeHtml(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
 function optKey(step, opt){ return opt.key || opt.name || opt.label; }
 
 /* ============ 渲染步骤导航 ============ */
@@ -363,7 +371,12 @@ function renderSteps(){
 /* ============ 渲染单步 ============ */
 function renderStep(){
   var s=STEPS[curStep];
-  document.getElementById("stepHead").innerHTML='<h2>'+s.title+'</h2><div class="guide">'+s.sub+'</div>';
+  // 步骤头：保留标题，去掉冗长 guide（步骤按钮已显示标题）；只 ④ 步隐藏整个 stepHead
+  if(s.key==="qu"){
+    document.getElementById("stepHead").innerHTML = "";
+  } else {
+    document.getElementById("stepHead").innerHTML='<h2>'+s.title+'</h2><div class="guide">'+s.sub+'</div>';
+  }
   var body=document.getElementById("stepBody"); body.innerHTML="";
 
   if(s.regionMapImg){
