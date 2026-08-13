@@ -14,16 +14,11 @@ if errorlevel 1 (
   git commit -m "sync: auto update %date% %time%"
 )
 
-REM 用 rebase + autostash 拉取（自动暂存任何残留改动，干净接上远程）
-git pull --rebase --autostash origin main
-if errorlevel 1 (
-  echo.
-  echo [!] 拉取时出现冲突，请手动解决后执行： git rebase --continue
-  goto cleanup
-)
-
-REM 推送到 GitHub
-git push -u origin main
+REM 【重要】本仓库由 deploy.js 经 GitHub API 直接建提交，与本地 git 提交 SHA 不同；
+REM   若用 git pull --rebase 会把两端的同名文件误判为 add/add 冲突。
+REM   故不拉取，直接以本地完整历史强制覆盖远端（单人仓库、本地含全部文件，内容不丢；
+REM   覆盖后两端 SHA 一致，日后 git pull 即为干净快进，不会再冲突）。
+git push --force-with-lease origin main
 if errorlevel 1 goto cleanup
 
 :cleanup
