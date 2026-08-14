@@ -67,11 +67,17 @@ header.top .home:hover{background:rgba(255,255,255,.3);text-decoration:none}
 .opt.normal .badge{background:#7a9b6a}
 .opt .selbadge{display:inline-block;background:var(--accent);color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:700;margin-bottom:5px;box-shadow:0 1px 3px rgba(0,0,0,.10);align-self:flex-start}
 
-.regionmap{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px 12px;box-shadow:var(--shadow);margin-bottom:8px}
-.regionmap .rmimg{flex:0 0 auto;background:#fbf6ee;border-radius:6px;padding:3px;line-height:0}
-.regionmap .rmimg img{max-width:100px;max-height:100px;display:block;border-radius:4px}
-.regionmap .regioncap{font-size:12.5px;color:var(--ink);font-weight:600;line-height:1.45;flex:1}
-.regionmap .regioncap .sub{display:block;font-size:11px;color:var(--muted);font-weight:400;margin-top:2px}
+.regionmap{display:grid;grid-template-columns:1fr 1.15fr;gap:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:var(--shadow);margin-bottom:12px;align-items:stretch}
+.regionmap .rmimg{background:#fbf6ee;border-radius:10px;padding:6px;display:flex;align-items:center;justify-content:center;line-height:0;border:1px solid #f1e8d4}
+.regionmap .rmimg img{max-width:100%;max-height:280px;width:auto;height:auto;display:block;border-radius:6px}
+.regionmap .regioncap{font-size:12.5px;color:var(--ink);font-weight:600;line-height:1.6;display:flex;flex-direction:column;gap:4px;padding:2px 4px}
+.regionmap .regioncap .title{font-size:13.5px;color:var(--accent);font-weight:700;display:flex;align-items:center;gap:6px}
+.regionmap .regioncap .lead{font-size:11.5px;color:var(--ink);font-weight:500;margin-top:3px}
+.regionmap .regioncap .sub{font-size:11.5px;color:var(--muted);font-weight:400;line-height:1.55}
+.regionmap .regioncap ol{margin:4px 0 0;padding-left:0;list-style:none;counter-reset:qu;display:grid;grid-template-columns:1fr 1fr;gap:3px 8px}
+.regionmap .regioncap ol li{counter-increment:qu;font-size:11.5px;color:var(--ink);font-weight:500;line-height:1.5;display:flex;gap:5px;align-items:baseline}
+.regionmap .regioncap ol li::before{content:counter(qu);flex:0 0 18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;font-size:10.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.regionmap .regioncap .tip{margin-top:6px;padding:5px 8px;background:#fff5ec;border-left:3px solid var(--accent2);border-radius:0 6px 6px 0;font-size:11px;color:var(--muted);font-weight:400;line-height:1.5}
 .regionmap .count{font-size:11px;color:var(--accent);font-weight:700;background:#fff3e6;padding:1px 8px;border-radius:9px;margin-left:6px}
 
 .quprogress{margin:0 0 8px;padding:6px 10px;background:#faf6ef;border-radius:8px;font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -428,8 +434,22 @@ function renderStep(){
 
   if(s.regionMapImg){
     var rm=document.createElement("div"); rm.className="regionmap";
-    rm.innerHTML='<div class="rmimg"><img src="'+s.regionMapImg+'" alt="舌面对应身体全息图" loading="lazy"></div>'+
-      '<div class="regioncap">📍 舌面分区 ↔ 身体全息图<span class="sub">从上到下：舌根→舌中→舌尖</span></div>';
+    rm.innerHTML='<div class="rmimg"><img src="'+s.regionMapImg+'" alt="舌面对应脏腑全息图" loading="lazy"></div>'+
+      '<div class="regioncap">'+
+        '<div class="title">📍 舌面分区 ↔ 身体全息图</div>'+
+        '<div class="lead">从<b>舌尖</b>开始诊断（舌前 → 舌后，对应身体<span style="color:var(--accent);font-weight:700">上 → 下</span>）：</div>'+
+        '<ol>'+
+          '<li><span>舌尖区 · 心脑</span></li>'+
+          '<li><span>舌尖下区 · 颈椎</span></li>'+
+          '<li><span>舌前两侧 · 肩周</span></li>'+
+          '<li><span>舌边前段 · 乳腺</span></li>'+
+          '<li><span>舌前中 · 肺</span></li>'+
+          '<li><span>舌中区 · 脾胃</span></li>'+
+          '<li><span>舌边左中 · 肝</span></li>'+
+          '<li><span>舌边右中 · 胆</span></li>'+
+        '</ol>'+
+        '<div class="tip">诊断顺序必<span style="color:var(--accent);font-weight:700">舌尖 → 舌根</span>依次排查，配合 ① 望舌色 ② 望舌苔 同参。8 大区最多选 8 个。</div>'+
+      '</div>';
     body.appendChild(rm);
   }
 
