@@ -546,7 +546,7 @@
     var hay=[
       f.name,f.system,f.tcmPattern,f.constitution,(f.symptoms||[]).join(" "),
       (f.oils||[]).map(function(o){return o.name+" "+(o.role||"");}).join(" "),
-      f.rationale||""
+      f.rationale||"",(f.tags||[]).join(" ")
     ].join(" ").toLowerCase();
     var score=0;
     tokens.forEach(function(t){
@@ -637,6 +637,7 @@
         '<div class="meta"><span class="badge">'+escapeHtml(f.system)+'</span>'+(f.tcmPattern?highlight(f.tcmPattern,tokens):"")+'</div>'+
         '<div class="oils-line">精油：'+highlight(oils,tokens)+'</div>'+
         (sym?'<div style="margin-top:6px">'+sym+'</div>':"")+
+        (f.tongue?'<div class="oils-line" style="margin-top:6px;color:#48615a"><b>👅 舌象：</b>'+highlight(f.tongue,tokens)+'</div>':"")+
         '<div style="margin-top:10px"><button class="btn sm" onclick="openDetail(\''+f.id+'\')">查看完整配方 ▸</button></div>';
       box.appendChild(card);
     });
@@ -663,6 +664,7 @@
       '<div class="meta"><span class="badge">'+escapeHtml(f.system)+'</span>'+escapeHtml(f.tcmPattern||"")+'</div>'+
       '<div class="detail" style="margin-top:4px"><b>来源：</b><span class="srcbadge">'+escapeHtml(srcOf(f))+'</span></div>'+
       (f.constitution?'<div class="detail"><b>适用体质：</b>'+escapeHtml(f.constitution)+'</div>':"")+
+      (f.tongue?'<div class="detail"><b>舌象：</b><span style="color:#48615a">'+escapeHtml(f.tongue)+'</span></div>':"")+
       '<div class="detail"><b>辨证思路：</b>'+escapeHtml(f.rationale||"")+'</div>'+
       (sym?'<div style="margin:6px 0">'+sym+'</div>':"")+
       '<div class="detail" style="margin-top:8px"><dl>'+oilsHtml+'</dl></div>'+
