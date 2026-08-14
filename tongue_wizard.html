@@ -83,6 +83,10 @@ header.top .home:hover{background:rgba(255,255,255,.3);text-decoration:none}
 .optchip:hover{border-color:var(--accent2);background:#fbf6ee;color:var(--accent2)}
 .optchip.sel{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700;box-shadow:0 1px 4px rgba(162,59,59,.28)}
 .optchip .ic{font-size:12px;line-height:1}
+.disease{margin-top:7px;padding:7px 9px;background:#fff5ec;border:1px solid #e7d8c0;border-radius:7px;font-size:11.5px;line-height:1.5}
+.disease .dn{display:block;font-weight:700;color:var(--accent);font-size:12.5px;margin-bottom:1px}
+.disease .ds{display:block;color:var(--ink)}
+.disease .extra{display:block;color:var(--muted);font-size:11px;margin-top:2px}
 
 /* 侧栏 */
 .sidebar{position:sticky;top:14px;display:flex;flex-direction:column;gap:12px}
@@ -295,24 +299,65 @@ var STEPS = [
       {key:"xueyu", label:"瘀血", imgPath:"tongues/舌下淤血.png", desc:"青紫、粗张、迂曲，或有瘀血点/结节", tags:["血瘀","青紫","瘀斑","刺痛","经闭"]},
       {key:"qizhi", label:"气滞", imgPath:"tongues/气滞.png", desc:"青色、略张、欠畅，但无明显瘀点", tags:["气滞","肝郁","胀闷"]}
     ]},
-  { key:"qu", title:"④ 望舌面分区 · 脏腑定位", sub:"8 大区可多选（最多 8 个）；每张卡片下方选 1 个观察到的形态（单选，再点取消）。",
+  { key:"qu", title:"④ 望舌面分区 · 脏腑定位", sub:"8 大区可多选（最多 8 个）；每张卡片下方选 1 个观察到的特征（单选，再点取消），选中即显示具体病情与症状。",
     regionMapImg:"tongues/舌面对应脏腑.jpg",
     options:[
-      {key:"xinnao",  label:"心脑区（舌尖·心/脑）",   noMedia:true, desc:"舌尖红/凹陷/缺损 → 心火旺、供血不足、失眠多梦", tags:["心脑","心火","心烦","失眠","舌尖红","口疮"]},
-      {key:"jingzhui",label:"颈椎区（舌尖下·颈椎）", noMedia:true, desc:"舌尖下红/凹陷/凸起 → 咽喉不适、颈椎变形、僵硬", tags:["颈椎","咽喉","颈椎变形"]},
-      {key:"jianzhou",label:"肩周区（舌前两侧·肩/周）", noMedia:true, desc:"舌前两侧红点/缺损 → 肩周瘀堵、气机不畅、颈肩痛", tags:["肩周","气机不畅","颈肩"]},
-      {key:"ruxian",  label:"乳腺区（舌边前段·乳）",  noMedia:true, desc:"舌边前段红点/凹陷 → 乳腺增生、气血不足、胸闷", tags:["乳腺","气血不足","胸闷"]},
-      {key:"fei",     label:"肺区（舌前中·肺）",     noMedia:true, desc:"舌前中发白/红/凹陷/凸起/裂纹 → 肺热、肺气不足、肺阴虚、干咳", tags:["肺","肺热","咳嗽","肺阴虚","干咳"]},
-      {key:"piwei",   label:"脾胃区（舌中·脾/胃）",  noMedia:true, desc:"舌中白/红/凹陷-凸起/白苔/黄苔/黄腻 → 脾胃虚寒、湿热、积食", tags:["脾胃","湿","积食","胃热","厚腻","脾虚"]},
-      {key:"gan",     label:"肝区（舌边左中·肝）",   noMedia:true, desc:"舌边左中红点/红/凹陷/凸起 → 肝郁、肝火旺、肝血不足、月经量少", tags:["肝","肝郁","肝火","月经量少"]},
-      {key:"dan",     label:"胆区（舌边右中·胆）",   noMedia:true, desc:"舌边右中红点/发红/凹陷/凸起 → 胆囊问题、口苦", tags:["胆","胆囊","口苦"]}
-    ],
-    subOptions:[
-      {key:"aoxian",  icon:"🕳️", label:"凹（凹陷）", tags:["凹陷","气血不足","虚","供血不足"]},
-      {key:"tuqi",    icon:"⛰️", label:"凸（凸起）", tags:["凸起","气滞","痰湿","瘀"]},
-      {key:"hongdian",icon:"🔴", label:"红点",       tags:["红点","热","红"]},
-      {key:"quexian", icon:"⚠️", label:"缺陷（缺损）", tags:["缺损","气血不足","虚"]},
-      {key:"liewen",  icon:"⚡", label:"裂纹",       tags:["裂纹","阴虚","阴虚火旺"]}
+      {key:"xinnao",  label:"心脑区（舌尖·心/脑）",   noMedia:true, desc:"舌尖区域 → 心脑；舌质红/舌形凹/舌尖缺损",
+        observations:[
+          {key:"red",     label:"舌质红",    disease:"心火旺",       symptom:"睡眠差、脾气大",     tags:["心火","舌尖红","心烦","脾气大","实热","红"]},
+          {key:"aoxian",  label:"舌形凹",    disease:"供血不足",     symptom:"头晕脑胀、记忆力差", tags:["供血不足","头晕","记忆力","凹陷","气血不足","虚"]},
+          {key:"quexian", label:"舌尖缺损",  disease:"气血不足",     symptom:"胸闷、心慌",         tags:["气血不足","胸闷","心慌","缺损","虚"]}
+        ]},
+      {key:"jingzhui",label:"颈椎区（舌尖下·颈椎）", noMedia:true, desc:"舌尖下 → 颈椎；舌质红/舌形凹/舌形凸",
+        observations:[
+          {key:"red",    label:"舌质红",    disease:"咽喉不适",     symptom:"扁桃体炎",   tags:["咽喉","扁桃体","炎症","热","红"]},
+          {key:"aoxian", label:"舌形凹",    disease:"颈椎变形",     symptom:"",            tags:["颈椎变形","凹陷"]},
+          {key:"tuqi",   label:"舌形凸",    disease:"颈椎变形或富贵包", symptom:"",        tags:["颈椎变形","富贵包","凸起","气滞"]}
+        ]},
+      {key:"jianzhou",label:"肩周区（舌前两侧·肩/周）", noMedia:true, desc:"舌前两侧 → 肩周；舌质红点/舌形缺损",
+        observations:[
+          {key:"hongdian",label:"舌质红点",  disease:"肩周淤堵",     symptom:"发紧",     tags:["肩周","瘀堵","发紧","红点","血瘀"]},
+          {key:"quexian", label:"舌形缺损",  disease:"气机不畅",     symptom:"酸胀",     tags:["气机不畅","酸胀","缺损","气滞"]}
+        ]},
+      {key:"ruxian",  label:"乳腺区（舌边前段·乳）",  noMedia:true, desc:"舌边前段 → 乳腺；舌质红点/舌形凹陷",
+        observations:[
+          {key:"hongdian",label:"舌质红点",  disease:"乳腺增生",     symptom:"",          tags:["乳腺","乳腺增生","红点","血瘀","胀闷"]},
+          {key:"aoxian",  label:"舌形凹陷",  disease:"气血不足",     symptom:"胸下垂",    tags:["气血不足","胸下垂","凹陷","虚"]}
+        ]},
+      {key:"piwei",   label:"脾胃区（舌中·脾/胃）",  noMedia:true, desc:"舌中 → 脾胃；舌色/凹陷/凸起/苔色",
+        observations:[
+          {key:"se_bai",      label:"舌色白",          disease:"舌苔白，肺寒",   symptom:"",            tags:["白","肺寒","苔白","寒"]},
+          {key:"se_hong",     label:"舌色红",          disease:"肺火旺",         symptom:"易咳嗽",      tags:["红","肺火","咳嗽","实热"]},
+          {key:"aoxian_hong", label:"舌形凹陷-舌红",   disease:"胃火旺盛",       symptom:"吃一点就饱",  tags:["胃火","饱满","凹陷","红","实热"]},
+          {key:"aoxian_bai",  label:"舌形凹陷-舌白",   disease:"脾胃虚",         symptom:"吃一点就饱",  tags:["脾胃虚","饱满","凹陷","白","脾虚","虚"]},
+          {key:"tuqi",        label:"舌形凸起",        disease:"胃气滞",         symptom:"积食",        tags:["胃气滞","积食","凸起","气滞"]},
+          {key:"zhi_baitai",  label:"舌质白苔",        disease:"脾胃虚寒",       symptom:"",            tags:["脾胃虚寒","白苔","脾虚","虚寒"]},
+          {key:"zhi_huangtai",label:"舌质黄苔",        disease:"积食",           symptom:"口臭",        tags:["积食","口臭","黄苔","苔黄","厚"]},
+          {key:"zhi_huangni", label:"舌质黄腻苔",      disease:"积食、湿热",     symptom:"痰浊",        tags:["积食","湿热","痰浊","黄腻","厚腻"]}
+        ]},
+      {key:"fei",     label:"肺区（舌前中·肺）",     noMedia:true, desc:"舌前中 → 肺；舌色/凹陷/凸起/裂纹",
+        observations:[
+          {key:"fabai",  label:"舌色发白",   disease:"舌苔白，肺寒",   symptom:"",            tags:["白","肺寒","苔白","寒"]},
+          {key:"fahong", label:"舌色发红",   disease:"肺火旺",         symptom:"易咳嗽",      tags:["红","肺火","咳嗽","实热"]},
+          {key:"aoxian", label:"舌形凹陷",   disease:"肺气不足",       symptom:"免疫力差",    tags:["肺气不足","免疫力","凹陷","虚","气短"]},
+          {key:"tuqi",   label:"舌形凸起",   disease:"肺气滞",         symptom:"胸闷咳嗽",    tags:["肺气滞","胸闷","凸起","气滞"]},
+          {key:"liewen", label:"舌质裂纹",   disease:"肺阴虚",         symptom:"干咳、皮肤干", tags:["肺阴虚","干咳","裂纹","阴虚","口干"]}
+        ]},
+      {key:"gan",     label:"肝区（舌边左中·肝）",   noMedia:true, desc:"舌边左中 → 肝；舌质红点/舌色红/舌形凹/凸",
+        observations:[
+          {key:"hongdian",label:"舌质红点",   disease:"肝胆解毒功能弱", symptom:"",                tags:["肝","解毒","红点","肝胆"]},
+          {key:"hong",    label:"舌色红",     disease:"肝火旺",         symptom:"脾气大",          tags:["肝火","红","脾气大","易怒"]},
+          {key:"aoxian",  label:"舌形凹陷",   disease:"肝血不足",       symptom:"",                extra:"孩子：注意力差；女子：月经量少；男子：阳痿；老人：易抽筋",
+                                                                                                                                          tags:["肝血不足","凹陷","血虚","月经量少","阳痿","抽筋","虚"]},
+          {key:"tuqi",    label:"舌形凸起",   disease:"肝气郁结",       symptom:"情志不畅、两胁胀痛", tags:["肝气郁结","凸起","情志","胀痛","气滞","肝郁"]}
+        ]},
+      {key:"dan",     label:"胆区（舌边右中·胆）",   noMedia:true, desc:"舌边右中 → 胆；舌质红点/舌色红/舌形凹/凸",
+        observations:[
+          {key:"hongdian",label:"舌质红点",   disease:"胆红素偏高",     symptom:"",            tags:["胆红素","偏高","红点","肝胆"]},
+          {key:"fahong",  label:"舌色发红",   disease:"肝胆火旺",       symptom:"口苦",        tags:["肝胆火旺","口苦","红","肝胆","肝火"]},
+          {key:"aoxian",  label:"舌形凹陷",   disease:"胆囊功能差",     symptom:"",            tags:["胆囊","功能差","凹陷","虚"]},
+          {key:"tuqi",    label:"舌形凸起",   disease:"胆汁排泄异常",   symptom:"",            tags:["胆汁","排泄异常","凸起","气滞"]}
+        ]}
     ]},
   { key:"xing", title:"⑤ 望形态动态 · 老嫩胖瘦裂纹芒刺齿痕强硬痿软", sub:"最后看舌体形态与动态，反映邪正虚实、动静。正常 = 大小适中、柔软灵活。",
     options:[
@@ -438,23 +483,33 @@ function optCard(s,o){
   var t=BY_NAME[o.name];
   var ds = o.desc || (t? t.feel : "");
   var zb = (o.tags && o.tags.length) ? "" : (t? ("主病："+t.zhubing) : "");
-  // ④ 大区且已选中：右下角显示「✓ 已选 形态」小标
+  // ④ 大区且已选中：右下角显示「✓ 病情」小标
   var selBadge = "";
   if(sel && s.key==="qu" && quIssues[key]){
-    var sub = (s.subOptions||[]).filter(function(x){return x.key===quIssues[key];})[0];
-    if(sub) selBadge = '<span class="selbadge">· '+escapeHtml(sub.label)+'</span>';
+    var sub = (o.observations||[]).filter(function(x){return x.key===quIssues[key];})[0];
+    if(sub) selBadge = '<span class="selbadge">💊 '+escapeHtml(sub.disease||sub.label)+'</span>';
   }
-  // ④ 大区：每张卡片内置 5 形态 chip（始终可见，单选）
+  // ④ 大区：每张卡片内置观察 chip（始终可见，单选）+ 选中后显示病情
   var inCardChips = "";
-  if(s.key==="qu" && o.noMedia && s.subOptions){
+  var inDisease = "";
+  if(s.key==="qu" && o.noMedia && o.observations){
     var curChip = quIssues[key];
     inCardChips = '<div class="optchips">' +
-      s.subOptions.map(function(sub){
+      o.observations.map(function(sub){
         return '<span class="optchip'+(curChip===sub.key?' sel':'')+'" data-sub="'+sub.key+'">'+
-          (sub.icon?'<span class="ic">'+sub.icon+'</span>':'')+
           escapeHtml(sub.label)+'</span>';
       }).join('') +
     '</div>';
+    if(curChip){
+      var curObs = (o.observations||[]).filter(function(x){return x.key===curChip;})[0];
+      if(curObs){
+        inDisease = '<div class="disease">'+
+          '<span class="dn">💊 '+escapeHtml(curObs.disease)+'</span>'+
+          (curObs.symptom ? '<span class="ds">症状：'+escapeHtml(curObs.symptom)+'</span>' : '')+
+          (curObs.extra   ? '<span class="extra">'+escapeHtml(curObs.extra)+'</span>' : '')+
+        '</div>';
+      }
+    }
   }
 
   el.innerHTML = (o.normal?'<span class="badge">正常对照</span>':"") +
@@ -465,6 +520,7 @@ function optCard(s,o){
     (ds?'<div class="ds">'+ds+'</div>':"") +
     (zb?'<div class="zb">'+zb+'</div>':"") +
     inCardChips +
+    inDisease +
     selBadge;
   el.onclick=function(ev){
     // 点在 chip 上时，由 chip 自己的 onclick 处理；阻止冒泡
@@ -539,8 +595,8 @@ function selectedList(){
         var label = o.label||o.name;
         var tags  = (o.tags||[]).slice();
         if(s.key==="qu" && quIssues[key]){
-          var sub = (s.subOptions||[]).filter(function(x){return x.key===quIssues[key];})[0];
-          if(sub){ tags = tags.concat(sub.tags||[]); label = label + " · " + sub.label; }
+          var sub = (o.observations||[]).filter(function(x){return x.key===quIssues[key];})[0];
+          if(sub){ tags = tags.concat(sub.tags||[]); label = label + " · 💊" + (sub.disease||sub.label); }
         }
         out.push({step:s.title, label:label, tags:tags, regionKey:key});
       });
@@ -580,8 +636,8 @@ function removeOne(stepTitle,label){
       if(!regOpt) return;
       var rLabel = regOpt.label||regOpt.name;
       var sub = quIssues[rkey];
-      var subLabel = sub ? ((s.subOptions||[]).filter(function(x){return x.key===sub;})[0].label) : "";
-      var fullLabel = subLabel ? (rLabel + " · " + subLabel) : rLabel;
+      var subLabel = sub ? (((regOpt.observations||[]).filter(function(x){return x.key===sub;})[0]||{}).disease||"") : "";
+      var fullLabel = subLabel ? (rLabel + " · 💊" + subLabel) : rLabel;
       if(fullLabel===label || rLabel===label) matchedKey = rkey;
     });
     if(matchedKey){
