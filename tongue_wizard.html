@@ -65,7 +65,7 @@ header.top .home:hover{background:rgba(255,255,255,.3);text-decoration:none}
 .opt .zb{font-size:11.5px;color:var(--accent);margin-top:4px}
 .opt .badge{position:absolute;top:6px;left:6px;background:var(--accent2);color:#fff;font-size:11px;padding:2px 8px;border-radius:10px}
 .opt.normal .badge{background:#7a9b6a}
-.opt .selbadge{position:absolute;bottom:6px;right:6px;background:var(--accent);color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.opt .selbadge{display:inline-block;background:var(--accent);color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:700;margin-bottom:5px;box-shadow:0 1px 3px rgba(0,0,0,.10);align-self:flex-start}
 
 .regionmap{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px 12px;box-shadow:var(--shadow);margin-bottom:8px}
 .regionmap .rmimg{flex:0 0 auto;background:#fbf6ee;border-radius:6px;padding:3px;line-height:0}
@@ -83,10 +83,11 @@ header.top .home:hover{background:rgba(255,255,255,.3);text-decoration:none}
 .optchip:hover{border-color:var(--accent2);background:#fbf6ee;color:var(--accent2)}
 .optchip.sel{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700;box-shadow:0 1px 4px rgba(162,59,59,.28)}
 .optchip .ic{font-size:12px;line-height:1}
-.disease{margin-top:7px;padding:7px 9px;background:#fff5ec;border:1px solid #e7d8c0;border-radius:7px;font-size:11.5px;line-height:1.5}
-.disease .dn{display:block;font-weight:700;color:var(--accent);font-size:12.5px;margin-bottom:1px}
-.disease .ds{display:block;color:var(--ink)}
-.disease .extra{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.disease{margin-top:6px;padding:8px 10px;background:#fff5ec;border:1px solid #e7d8c0;border-radius:8px;font-size:11.5px;line-height:1.55}
+.disease .dn{display:block;font-weight:700;color:var(--accent);font-size:13px;margin-bottom:2px}
+.disease .ds{display:block;color:var(--ink);font-size:11.5px}
+.disease .ds b{color:var(--accent2);font-weight:600}
+.disease .extra{display:block;color:var(--muted);font-size:10.5px;margin-top:3px;line-height:1.45;background:#fbf3e8;padding:3px 6px;border-radius:4px}
 
 /* 侧栏 */
 .sidebar{position:sticky;top:14px;display:flex;flex-direction:column;gap:12px}
@@ -299,64 +300,65 @@ var STEPS = [
       {key:"xueyu", label:"瘀血", imgPath:"tongues/舌下淤血.png", desc:"青紫、粗张、迂曲，或有瘀血点/结节", tags:["血瘀","青紫","瘀斑","刺痛","经闭"]},
       {key:"qizhi", label:"气滞", imgPath:"tongues/气滞.png", desc:"青色、略张、欠畅，但无明显瘀点", tags:["气滞","肝郁","胀闷"]}
     ]},
-  { key:"qu", title:"④ 望舌面分区 · 脏腑定位", sub:"8 大区可多选（最多 8 个）；每张卡片下方选 1 个观察到的特征（单选，再点取消），选中即显示具体病情与症状。",
+  { key:"qu", title:"④ 望舌面分区 · 脏腑定位", sub:"8 大区可多选（最多 8 个）；每张卡片下方选 1 个观察到的特征（单选，再点取消），选中即显示具体病情与常见症状。",
     regionMapImg:"tongues/舌面对应脏腑.jpg",
     options:[
       {key:"xinnao",  label:"心脑区（舌尖·心/脑）",   noMedia:true, desc:"舌尖区域 → 心脑；舌质红/舌形凹/舌尖缺损",
         observations:[
-          {key:"red",     label:"舌质红",    disease:"心火旺",       symptom:"睡眠差、脾气大",     tags:["心火","舌尖红","心烦","脾气大","实热","红"]},
-          {key:"aoxian",  label:"舌形凹",    disease:"供血不足",     symptom:"头晕脑胀、记忆力差", tags:["供血不足","头晕","记忆力","凹陷","气血不足","虚"]},
-          {key:"quexian", label:"舌尖缺损",  disease:"气血不足",     symptom:"胸闷、心慌",         tags:["气血不足","胸闷","心慌","缺损","虚"]}
+          {key:"red",     label:"舌质红",    disease:"心火旺",   symptom:"主症：睡眠差、脾气大、易怒；兼症：入睡难、多梦、心烦、口舌生疮、舌尖痛、口腔溃疡、口苦、尿黄、便秘、面红出汗", tags:["心火","舌尖红","心烦","脾气大","实热","红"]},
+          {key:"aoxian",  label:"舌形凹",    disease:"供血不足", symptom:"主症：头晕脑胀、记忆力差；兼症：注意力不集中、面色苍白、心悸、气短、乏力、月经量少、指甲色淡、易疲劳", tags:["供血不足","头晕","记忆力","凹陷","气血不足","虚"]},
+          {key:"quexian", label:"舌尖缺损",  disease:"气血不足", symptom:"主症：胸闷、心慌；兼症：气短、乏力、面色无华、头晕目眩、月经量少、易感冒、失眠多梦", tags:["气血不足","胸闷","心慌","缺损","虚"]}
         ]},
       {key:"jingzhui",label:"颈椎区（舌尖下·颈椎）", noMedia:true, desc:"舌尖下 → 颈椎；舌质红/舌形凹/舌形凸",
         observations:[
-          {key:"red",    label:"舌质红",    disease:"咽喉不适",     symptom:"扁桃体炎",   tags:["咽喉","扁桃体","炎症","热","红"]},
-          {key:"aoxian", label:"舌形凹",    disease:"颈椎变形",     symptom:"",            tags:["颈椎变形","凹陷"]},
-          {key:"tuqi",   label:"舌形凸",    disease:"颈椎变形或富贵包", symptom:"",        tags:["颈椎变形","富贵包","凸起","气滞"]}
+          {key:"red",    label:"舌质红",     disease:"咽喉不适",         symptom:"主症：扁桃体炎、咽喉肿痛；兼症：口干、慢性咽炎、吞咽不适、声音嘶哑、咳嗽、咽部异物感", tags:["咽喉","扁桃体","炎症","热","红"]},
+          {key:"aoxian", label:"舌形凹",     disease:"颈椎变形",         symptom:"主症：颈椎僵硬、颈部不适；兼症：抬头困难、上肢麻木、头晕、头痛、肩颈酸痛、富贵包、手指发麻", tags:["颈椎变形","凹陷"]},
+          {key:"tuqi",   label:"舌形凸",     disease:"颈椎变形或富贵包", symptom:"主症：颈后凸起、富贵包；兼症：颈椎前倾、头晕、头痛、上肢麻木、肩颈沉重、头晕目眩", tags:["颈椎变形","富贵包","凸起","气滞"]}
         ]},
       {key:"jianzhou",label:"肩周区（舌前两侧·肩/周）", noMedia:true, desc:"舌前两侧 → 肩周；舌质红点/舌形缺损",
         observations:[
-          {key:"hongdian",label:"舌质红点",  disease:"肩周淤堵",     symptom:"发紧",     tags:["肩周","瘀堵","发紧","红点","血瘀"]},
-          {key:"quexian", label:"舌形缺损",  disease:"气机不畅",     symptom:"酸胀",     tags:["气机不畅","酸胀","缺损","气滞"]}
+          {key:"hongdian",label:"舌质红点",   disease:"肩周淤堵", symptom:"主症：发紧、疼痛、活动受限；兼症：上肢麻木、夜间加重、肩部怕冷、抬举困难、肩部沉重", tags:["肩周","瘀堵","发紧","红点","血瘀"]},
+          {key:"quexian", label:"舌形缺损",   disease:"气机不畅", symptom:"主症：酸胀、活动无力；兼症：抬举困难、肩部怕风、情绪抑郁、胸闷叹气", tags:["气机不畅","酸胀","缺损","气滞"]}
         ]},
       {key:"ruxian",  label:"乳腺区（舌边前段·乳）",  noMedia:true, desc:"舌边前段 → 乳腺；舌质红点/舌形凹陷",
         observations:[
-          {key:"hongdian",label:"舌质红点",  disease:"乳腺增生",     symptom:"",          tags:["乳腺","乳腺增生","红点","血瘀","胀闷"]},
-          {key:"aoxian",  label:"舌形凹陷",  disease:"气血不足",     symptom:"胸下垂",    tags:["气血不足","胸下垂","凹陷","虚"]}
+          {key:"hongdian",label:"舌质红点",   disease:"乳腺增生", symptom:"主症：胀痛、经前加重、乳房肿块；兼症：胸闷、月经不调、易怒、情绪抑郁、乳头溢液", tags:["乳腺","乳腺增生","红点","血瘀","胀闷"]},
+          {key:"aoxian",  label:"舌形凹陷",   disease:"气血不足", symptom:"主症：胸下垂、乳房松弛；兼症：月经量少、面色无华、易疲劳、指甲色淡、头晕眼花", tags:["气血不足","胸下垂","凹陷","虚"]}
         ]},
       {key:"piwei",   label:"脾胃区（舌中·脾/胃）",  noMedia:true, desc:"舌中 → 脾胃；舌色/凹陷/凸起/苔色",
         observations:[
-          {key:"se_bai",      label:"舌色白",          disease:"舌苔白，肺寒",   symptom:"",            tags:["白","肺寒","苔白","寒"]},
-          {key:"se_hong",     label:"舌色红",          disease:"肺火旺",         symptom:"易咳嗽",      tags:["红","肺火","咳嗽","实热"]},
-          {key:"aoxian_hong", label:"舌形凹陷-舌红",   disease:"胃火旺盛",       symptom:"吃一点就饱",  tags:["胃火","饱满","凹陷","红","实热"]},
-          {key:"aoxian_bai",  label:"舌形凹陷-舌白",   disease:"脾胃虚",         symptom:"吃一点就饱",  tags:["脾胃虚","饱满","凹陷","白","脾虚","虚"]},
-          {key:"tuqi",        label:"舌形凸起",        disease:"胃气滞",         symptom:"积食",        tags:["胃气滞","积食","凸起","气滞"]},
-          {key:"zhi_baitai",  label:"舌质白苔",        disease:"脾胃虚寒",       symptom:"",            tags:["脾胃虚寒","白苔","脾虚","虚寒"]},
-          {key:"zhi_huangtai",label:"舌质黄苔",        disease:"积食",           symptom:"口臭",        tags:["积食","口臭","黄苔","苔黄","厚"]},
-          {key:"zhi_huangni", label:"舌质黄腻苔",      disease:"积食、湿热",     symptom:"痰浊",        tags:["积食","湿热","痰浊","黄腻","厚腻"]}
+          {key:"se_bai",      label:"舌色白",          disease:"舌苔白，肺寒", symptom:"主症：怕冷、手脚凉、咳嗽白痰；兼症：容易感冒、面色白、喜温饮、气短乏力、痰液清稀", tags:["白","肺寒","苔白","寒"]},
+          {key:"se_hong",     label:"舌色红",          disease:"肺火旺",       symptom:"主症：易咳嗽、咽干、咳嗽黄痰；兼症：口渴、便秘、面红、胸闷、夜间咳重", tags:["红","肺火","咳嗽","实热"]},
+          {key:"aoxian_hong", label:"舌形凹陷-舌红",   disease:"胃火旺盛",     symptom:"主症：吃一点就饱、口臭、口干；兼症：烧心、反酸、胃部灼热、消谷善饥、便秘、牙龈肿痛", tags:["胃火","饱满","凹陷","红","实热"]},
+          {key:"aoxian_bai",  label:"舌形凹陷-舌白",   disease:"脾胃虚",       symptom:"主症：吃一点就饱、食欲差、腹胀；兼症：乏力、面色黄、消瘦、大便溏、容易疲倦", tags:["脾胃虚","饱满","凹陷","白","脾虚","虚"]},
+          {key:"tuqi",        label:"舌形凸起",        disease:"胃气滞",       symptom:"主症：积食、腹胀、打嗝；兼症：嗳气、胃部窜痛、反酸、恶心、饭后加重", tags:["胃气滞","积食","凸起","气滞"]},
+          {key:"zhi_baitai",  label:"舌质白苔",        disease:"脾胃虚寒",     symptom:"主症：怕冷、腹部冷痛、喜温喜按；兼症：大便溏、四肢凉、面色白、完谷不化", tags:["脾胃虚寒","白苔","脾虚","虚寒"]},
+          {key:"zhi_huangtai",label:"舌质黄苔",        disease:"积食",         symptom:"主症：口臭、腹胀、食欲差；兼症：嗳气、大便臭、舌苔厚腻、夜间磨牙、放屁多", tags:["积食","口臭","黄苔","苔黄","厚"]},
+          {key:"zhi_huangni", label:"舌质黄腻苔",      disease:"积食、湿热",   symptom:"主症：痰浊、口苦、口臭、腹胀；兼症：大便黏、舌苔厚腻、恶心呕吐、食欲不振、身体困重", tags:["积食","湿热","痰浊","黄腻","厚腻"]}
         ]},
       {key:"fei",     label:"肺区（舌前中·肺）",     noMedia:true, desc:"舌前中 → 肺；舌色/凹陷/凸起/裂纹",
         observations:[
-          {key:"fabai",  label:"舌色发白",   disease:"舌苔白，肺寒",   symptom:"",            tags:["白","肺寒","苔白","寒"]},
-          {key:"fahong", label:"舌色发红",   disease:"肺火旺",         symptom:"易咳嗽",      tags:["红","肺火","咳嗽","实热"]},
-          {key:"aoxian", label:"舌形凹陷",   disease:"肺气不足",       symptom:"免疫力差",    tags:["肺气不足","免疫力","凹陷","虚","气短"]},
-          {key:"tuqi",   label:"舌形凸起",   disease:"肺气滞",         symptom:"胸闷咳嗽",    tags:["肺气滞","胸闷","凸起","气滞"]},
-          {key:"liewen", label:"舌质裂纹",   disease:"肺阴虚",         symptom:"干咳、皮肤干", tags:["肺阴虚","干咳","裂纹","阴虚","口干"]}
+          {key:"fabai",  label:"舌色发白",   disease:"舌苔白，肺寒", symptom:"主症：咳嗽白痰、怕冷、易感冒；兼症：气短、面色白、容易疲倦、痰液清稀、夜间咳重", tags:["白","肺寒","苔白","寒"]},
+          {key:"fahong", label:"舌色发红",   disease:"肺火旺",       symptom:"主症：易咳嗽、咽干、咳嗽黄痰；兼症：口渴、胸闷、便秘、面红、咽喉肿痛", tags:["红","肺火","咳嗽","实热"]},
+          {key:"aoxian", label:"舌形凹陷",   disease:"肺气不足",     symptom:"主症：免疫力差、易感冒、气短；兼症：乏力、自汗、说话无力、容易疲倦、容易过敏", tags:["肺气不足","免疫力","凹陷","虚","气短"]},
+          {key:"tuqi",   label:"舌形凸起",   disease:"肺气滞",       symptom:"主症：胸闷咳嗽、呼吸不畅；兼症：胸部胀满、情绪抑郁、叹气、咽部异物感", tags:["肺气滞","胸闷","凸起","气滞"]},
+          {key:"liewen", label:"舌质裂纹",   disease:"肺阴虚",       symptom:"主症：干咳、皮肤干、口干咽燥；兼症：夜间盗汗、手足心热、声音嘶哑、午后潮热", tags:["肺阴虚","干咳","裂纹","阴虚","口干"]}
         ]},
       {key:"gan",     label:"肝区（舌边左中·肝）",   noMedia:true, desc:"舌边左中 → 肝；舌质红点/舌色红/舌形凹/凸",
         observations:[
-          {key:"hongdian",label:"舌质红点",   disease:"肝胆解毒功能弱", symptom:"",                tags:["肝","解毒","红点","肝胆"]},
-          {key:"hong",    label:"舌色红",     disease:"肝火旺",         symptom:"脾气大",          tags:["肝火","红","脾气大","易怒"]},
-          {key:"aoxian",  label:"舌形凹陷",   disease:"肝血不足",       symptom:"",                extra:"孩子：注意力差；女子：月经量少；男子：阳痿；老人：易抽筋",
+          {key:"hongdian",label:"舌质红点",   disease:"肝胆解毒功能弱", symptom:"主症：易怒、口苦、长斑；兼症：皮肤暗沉、易疲倦、乳腺增生、月经不调、眼睛干涩", tags:["肝","解毒","红点","肝胆"]},
+          {key:"hong",    label:"舌色红",     disease:"肝火旺",         symptom:"主症：脾气大、易怒、面红目赤；兼症：头晕胀痛、口苦口干、耳鸣、烦躁、便秘、尿黄", tags:["肝火","红","脾气大","易怒"]},
+          {key:"aoxian",  label:"舌形凹陷",   disease:"肝血不足",       symptom:"主症：头晕眼花、面色萎黄、指甲色淡；兼症：肢体麻木、视物模糊、月经量少、易抽筋",
+                                                                                                                                          extra:"孩子：注意力差、不长个；女子：月经量少、闭经；男子：阳痿、早泄；老人：易抽筋、肢体麻木",
                                                                                                                                           tags:["肝血不足","凹陷","血虚","月经量少","阳痿","抽筋","虚"]},
-          {key:"tuqi",    label:"舌形凸起",   disease:"肝气郁结",       symptom:"情志不畅、两胁胀痛", tags:["肝气郁结","凸起","情志","胀痛","气滞","肝郁"]}
+          {key:"tuqi",    label:"舌形凸起",   disease:"肝气郁结",       symptom:"主症：情志不畅、两胁胀痛；兼症：胸闷、叹气、烦躁、月经不调、经前乳房胀痛、咽部异物感", tags:["肝气郁结","凸起","情志","胀痛","气滞","肝郁"]}
         ]},
       {key:"dan",     label:"胆区（舌边右中·胆）",   noMedia:true, desc:"舌边右中 → 胆；舌质红点/舌色红/舌形凹/凸",
         observations:[
-          {key:"hongdian",label:"舌质红点",   disease:"胆红素偏高",     symptom:"",            tags:["胆红素","偏高","红点","肝胆"]},
-          {key:"fahong",  label:"舌色发红",   disease:"肝胆火旺",       symptom:"口苦",        tags:["肝胆火旺","口苦","红","肝胆","肝火"]},
-          {key:"aoxian",  label:"舌形凹陷",   disease:"胆囊功能差",     symptom:"",            tags:["胆囊","功能差","凹陷","虚"]},
-          {key:"tuqi",    label:"舌形凸起",   disease:"胆汁排泄异常",   symptom:"",            tags:["胆汁","排泄异常","凸起","气滞"]}
+          {key:"hongdian",label:"舌质红点",   disease:"胆红素偏高",     symptom:"主症：眼白发黄、皮肤发黄、尿黄；兼症：口苦、消化差、易疲倦、皮肤瘙痒、大便灰白", tags:["胆红素","偏高","红点","肝胆"]},
+          {key:"fahong",  label:"舌色发红",   disease:"肝胆火旺",       symptom:"主症：口苦、消化差、易疲倦；兼症：烦躁、恶心、肋痛、嗳气、便秘、面红目赤", tags:["肝胆火旺","口苦","红","肝胆","肝火"]},
+          {key:"aoxian",  label:"舌形凹陷",   disease:"胆囊功能差",     symptom:"主症：消化油腻差、腹胀、口苦；兼症：嗳气、便溏、面色萎黄、恶心、右上腹不适", tags:["胆囊","功能差","凹陷","虚"]},
+          {key:"tuqi",    label:"舌形凸起",   disease:"胆汁排泄异常",   symptom:"主症：右胁胀痛、嗳气、口苦；兼症：消化差、皮肤发黄、烦躁、恶心呕吐、大便不畅", tags:["胆汁","排泄异常","凸起","气滞"]}
         ]}
     ]},
   { key:"xing", title:"⑤ 望形态动态 · 老嫩胖瘦裂纹芒刺齿痕强硬痿软", sub:"最后看舌体形态与动态，反映邪正虚实、动静。正常 = 大小适中、柔软灵活。",
@@ -503,10 +505,25 @@ function optCard(s,o){
     if(curChip){
       var curObs = (o.observations||[]).filter(function(x){return x.key===curChip;})[0];
       if(curObs){
+        // 症状可能含「：」分组（如「主症：a、b；兼症：c、d」），否则直接「、」分段
+        var symHtml = '';
+        if(curObs.symptom){
+          if(curObs.symptom.indexOf('：')>=0){
+            symHtml = curObs.symptom.split(/[；;]/).map(function(part){
+              var i = part.indexOf('：');
+              if(i<0) return escapeHtml(part);
+              return '<b>'+escapeHtml(part.slice(0,i))+'：</b>'+escapeHtml(part.slice(i+1));
+            }).join('；');
+          } else {
+            // 多症状：把第一组当主症加粗，剩下的弱化
+            var arr = curObs.symptom.split(/[、，]/);
+            symHtml = arr.map(function(s,i){ return (i===0?'<b>'+escapeHtml(s)+'</b>':escapeHtml(s)); }).join('、');
+          }
+        }
         inDisease = '<div class="disease">'+
           '<span class="dn">💊 '+escapeHtml(curObs.disease)+'</span>'+
-          (curObs.symptom ? '<span class="ds">症状：'+escapeHtml(curObs.symptom)+'</span>' : '')+
-          (curObs.extra   ? '<span class="extra">'+escapeHtml(curObs.extra)+'</span>' : '')+
+          (symHtml ? '<span class="ds">常见症状：'+symHtml+'</span>' : '')+
+          (curObs.extra   ? '<span class="extra">⚠️ '+escapeHtml(curObs.extra)+'</span>' : '')+
         '</div>';
       }
     }
