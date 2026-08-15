@@ -176,11 +176,11 @@
   .dz-optcard.sel{background:var(--accent-soft);border-color:var(--accent);box-shadow:var(--shadow);font-weight:600;}
   .dz-optcard .dz-oc-note{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.45;}
   .dz-optcard .dz-oc-tags{font-size:10.5px;color:#6a86b8;margin-top:4px;}
-  .dz-photo{display:block;width:100%;height:auto;max-height:130px;object-fit:cover;border-radius:8px;margin-top:8px;cursor:zoom-in;border:1px solid var(--line);background:#fff;}
+  .dz-photo{display:block;width:100%;height:124px;object-fit:contain;background:#f3f3f3;border-radius:8px;margin-top:8px;cursor:zoom-in;border:1px solid var(--line);}
   .dz-photo:hover{border-color:var(--accent);box-shadow:0 2px 6px rgba(0,0,0,.08);}
   .dz-photo-none{font-size:11px;color:var(--muted);margin-top:6px;font-style:italic;}
   .dz-organ-img{margin-bottom:12px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px;}
-  .dz-organ-img img{display:block;width:100%;height:auto;border-radius:8px;cursor:zoom-in;}
+  .dz-organ-img img{display:block;width:100%;max-height:300px;object-fit:contain;background:#f3f3f3;border-radius:8px;cursor:zoom-in;}
   .dz-organ-cap{font-size:11px;color:var(--muted);margin-top:5px;text-align:center;}
   .dz-detail{display:flex;flex-direction:column;gap:12px;min-height:120px;}
   .dz-empty{color:var(--muted);font-size:13px;background:#fff;border:1px dashed var(--line);border-radius:10px;padding:24px;text-align:center;}
@@ -1670,6 +1670,7 @@
   window.dzRenderSteps=dzRenderSteps; window.dzSwitchStep=dzSwitchStep;
   window.dzRenderPick=dzRenderPick; window.dzSelectPick=dzSelectPick;
   window.dzCollectAllTags=dzCollectAllTags; window.dzCollectTags=dzCollectTags;
+  window.openTongueBig=openTongueBig;
 
   // 三诊合参：症状(上方框) + 脉象(左右手) + 舌象(可多选) 三者共同出方（AND 命中）
   function renderCombinedRecommend(summaryEl, resultsEl, countEl){
