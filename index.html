@@ -176,6 +176,12 @@
   .dz-optcard.sel{background:var(--accent-soft);border-color:var(--accent);box-shadow:var(--shadow);font-weight:600;}
   .dz-optcard .dz-oc-note{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.45;}
   .dz-optcard .dz-oc-tags{font-size:10.5px;color:#6a86b8;margin-top:4px;}
+  .dz-photo{display:block;width:100%;height:auto;max-height:130px;object-fit:cover;border-radius:8px;margin-top:8px;cursor:zoom-in;border:1px solid var(--line);background:#fff;}
+  .dz-photo:hover{border-color:var(--accent);box-shadow:0 2px 6px rgba(0,0,0,.08);}
+  .dz-photo-none{font-size:11px;color:var(--muted);margin-top:6px;font-style:italic;}
+  .dz-organ-img{margin-bottom:12px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px;}
+  .dz-organ-img img{display:block;width:100%;height:auto;border-radius:8px;cursor:zoom-in;}
+  .dz-organ-cap{font-size:11px;color:var(--muted);margin-top:5px;text-align:center;}
   .dz-detail{display:flex;flex-direction:column;gap:12px;min-height:120px;}
   .dz-empty{color:var(--muted);font-size:13px;background:#fff;border:1px dashed var(--line);border-radius:10px;padding:24px;text-align:center;}
   .dz-region{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);}
@@ -485,6 +491,7 @@
       <button class="btn" onclick="dzRecommend()">🔎 综合辨证推荐配方</button>
       <button class="btn ghost sm" onclick="dzClear()">清空选择</button>
       <span id="dzCount" class="count"></span>
+      <label class="imgswitch" style="margin-left:auto;" title="显示 / 隐藏舌象真实照片（参考图谱）"><input type="checkbox" id="dzPhotoToggle" checked onchange="toggleDzPhoto(this.checked)"><span class="track"></span><span class="lbl">显示舌象照片</span></label>
     </div>
 
     <div id="dzQuBody">
@@ -1448,6 +1455,21 @@
   ];
   var dzPick={qi:null, tai:null, mai:null, xing:null};  // 各步骤单选（qu 用 dzSel/dzObs）
   var dzStep="qu";  // 当前步骤（默认舌面分区，保持用户现有视图）
+  var showDzPhoto=true;  // 分布舌诊是否显示真实舌象照片（开关）
+
+  // 各步骤选项对应的真实舌象照片（tongues/ 目录已裁剪图片；缺的填 null）
+  var DZ_PHOTO_MAP={
+    qi:{ danbai:"tongues/tongue-01.png", dan_hong:"tongues/tongue-02.png", hong:"tongues/tongue-03.png", jiang:"tongues/tongue-04.png", qingzi:"tongues/tongue-05.png" },
+    tai:{ normal:"tongues/tongue-14.png", hou:"tongues/tongue-15.png", zao:null, huang:"tongues/tongue-12.png", huihei:"tongues/tongue-13.png", ni:"tongues/tongue-16.png", bo:null },
+    mai:{ normal:"tongues/正常.png", xueyu:"tongues/舌下淤血.png", qizhi:"tongues/气滞.png" },
+    xing:{ lao:"tongues/tongue-06.png", nen:"tongues/tongue-07.png", pangda:"tongues/tongue-08.png", shoubao:"tongues/tongue-09.png", liewen:"tongues/tongue-10.png", mangci:"tongues/芒刺舌.png", qiangying:"tongues/tongue-19.png", weiruan:"tongues/tongue-20.png", suoduan:"tongues/缩短舌.png" }
+  };
+  var DZ_ORGAN_IMG="tongues/舌面对应脏腑.jpg";  // 舌面分区与脏腑对应全息图（qu 步骤参考）
+  function toggleDzPhoto(v){ showDzPhoto=!!v; dzRenderCurrent(); }
+  function dzRenderCurrent(){
+    if(dzStep==="qu"){ dzRenderMap(); dzRenderDetail(); }
+    else { dzRenderPick(dzStep); }
+  }
 
   function dzSvg(){
     var s='<svg viewBox="0 0 280 240">';
@@ -1492,6 +1514,10 @@
     var keys=Object.keys(dzSel);
     if(!keys.length){ box.innerHTML='<div class="dz-empty">← 在左侧点选舌区，这里会列出该区的脏腑定位与可观察特征；选中特征即显示具体病情。</div>'; return; }
     var html="";
+    if(dzStep==="qu" && showDzPhoto){
+      var oi=escapeAttr(DZ_ORGAN_IMG);
+      html+='<div class="dz-organ-img"><img src="'+oi+'" alt="舌面对应脏腑全息图" loading="lazy" title="点击放大" onclick="openTongueBig(\''+oi+'\',\'舌面对应脏腑全息图\')"><div class="dz-organ-cap">舌面分区与脏腑对应全息图（参考图谱，点击放大）</div></div>';
+    }
     keys.forEach(function(k){
       var r=TONGUE_REGIONS.filter(function(x){return x.key===k;})[0]; if(!r) return;
       html+='<div class="dz-region">';
@@ -1551,11 +1577,21 @@
       html+='<div class="dz-optcard'+(sel?" sel":"")+'" onclick="dzSelectPick(\''+key+'\',\''+o.key+'\')">'+
             '<div>'+escapeHtml(o.label)+(o.normal?' <span class="dz-oc-tags">（正常）</span>':'')+'</div>';
       if(o.tags&&o.tags.length) html+='<div class="dz-oc-tags">'+escapeHtml(o.tags.join("、"))+'</div>';
+      if(showDzPhoto){
+        var p=DZ_PHOTO_MAP[key]?DZ_PHOTO_MAP[key][o.key]:null;
+        if(p){
+          var sp=escapeAttr(p), sn=escapeAttr(o.label);
+          html+='<img class="dz-photo" src="'+sp+'" alt="'+escapeHtml(o.label)+' 参考图" loading="lazy" title="点击放大" onclick="event.stopPropagation();openTongueBig(\''+sp+'\',\''+sn+'\')">';
+        } else {
+          html+='<div class="dz-photo-none">暂无对应图谱</div>';
+        }
+      }
       html+='</div>';
     });
     html+='</div>';
     box.innerHTML=html;
   }
+  window.toggleDzPhoto=toggleDzPhoto;
   function dzSelectPick(stepKey, optKey){
     if(dzPick[stepKey]===optKey) delete dzPick[stepKey];
     else dzPick[stepKey]=optKey;
