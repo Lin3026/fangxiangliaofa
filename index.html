@@ -144,6 +144,44 @@
   .tonguelabel{font-size:10px;color:#9aa;text-align:center;margin-bottom:2px;}
   .tonguekey{font-size:11px;color:#22325a;background:#eef3ff;border:1px solid #d6e0ff;border-radius:6px;padding:2px 6px;margin:1px 0 4px;text-align:center;line-height:1.45;font-weight:600;white-space:normal;}
 
+  /* 分布舌诊（舌面分区定位·交互） */
+  .dz-wrap{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start;margin:6px 0 4px;}
+  @media(max-width:760px){.dz-wrap{grid-template-columns:1fr}}
+  .dz-map{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:var(--shadow);position:sticky;top:14px;}
+  @media(max-width:760px){.dz-map{position:static}}
+  .dz-mapbox{background:#fbf6ee;border:1px solid #f1e8d4;border-radius:10px;padding:6px;display:flex;align-items:center;justify-content:center;line-height:0;}
+  .dz-mapbox svg{width:100%;height:auto;display:block;}
+  .dz-zone{cursor:pointer;transition:.15s;}
+  .dz-zone:hover .dz-fill{opacity:.55;}
+  .dz-zone.sel .dz-fill{opacity:.7;stroke-width:2.5;}
+  .dz-zone .dz-fill{transition:.15s;}
+  .dz-chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 2px;}
+  .dz-chip{padding:4px 10px;border-radius:16px;background:var(--chip,#f3ece0);border:1px solid var(--line);font-size:12px;color:var(--muted);cursor:pointer;font-weight:600;transition:.15s;white-space:nowrap;}
+  .dz-chip:hover{border-color:var(--accent);color:var(--accent);}
+  .dz-chip.sel{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .dz-tip{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:8px;border-left:3px solid var(--accent2);padding-left:8px;background:#f3f8f4;border-radius:0 6px 6px 0;}
+  .dz-detail{display:flex;flex-direction:column;gap:12px;min-height:120px;}
+  .dz-empty{color:var(--muted);font-size:13px;background:#fff;border:1px dashed var(--line);border-radius:10px;padding:24px;text-align:center;}
+  .dz-region{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);}
+  .dz-region .dr-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;}
+  .dz-region .dr-title{font-size:15px;font-weight:700;color:var(--accent);}
+  .dz-region .dr-organ{font-size:11.5px;color:#fff;background:var(--accent2);border-radius:10px;padding:1px 9px;}
+  .dz-region .dr-zone{font-size:11.5px;color:var(--muted);}
+  .dz-region .dr-desc{font-size:12px;color:var(--ink);margin:2px 0 8px;}
+  .dz-obs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:6px;}
+  .dz-ob{cursor:pointer;background:#fdfaf4;border:1px solid var(--line);border-radius:9px;padding:7px 9px;position:relative;transition:.15s;}
+  .dz-ob:hover{border-color:var(--accent2);background:#fdf8f1;}
+  .dz-ob.sel{background:#fff3e6;border-color:var(--accent);box-shadow:0 0 0 2px rgba(162,59,59,.18);}
+  .dz-ob .ob-check{position:absolute;top:6px;right:6px;width:16px;height:16px;border-radius:50%;border:2px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;color:transparent;font-weight:700;}
+  .dz-ob.sel .ob-check{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .dz-ob .ob-label{font-size:13px;font-weight:600;color:var(--ink);padding-right:18px;}
+  .dz-ob .ob-disease{font-size:11.5px;color:#a23b3b;margin-top:3px;font-weight:600;}
+  .dz-ob .ob-symptom{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5;max-height:0;overflow:hidden;transition:.2s;}
+  .dz-ob.sel .ob-symptom{max-height:240px;}
+  .dz-region .dr-clear{font-size:11px;color:var(--muted);cursor:pointer;margin-left:auto;border:1px solid var(--line);border-radius:10px;padding:1px 8px;}
+  .dz-region .dr-clear:hover{color:var(--accent);border-color:var(--accent);}
+  .dz-actions{margin:8px 0 4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+
   /* 精油剂量计算器 */
   .dose-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:10px 0;}
   .quick-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
@@ -421,45 +459,28 @@
     </section>
 
   <!-- 舌诊辨证（舌脉合参） -->
+  <!-- 分布舌诊（舌面分区定位脏腑·交互） -->
   <section id="tab-tongue" style="display:none;">
-    <div class="hint" style="margin-bottom:8px;">本页为<b>舌脉合参</b>：上方选脉象（左手红框 / 右手绿框）、填症状/证型、勾选舌象，点推荐需<b>同时</b>命中「症状＋脉象＋舌象」（按综合相关度排序），与『智能配方』的「三诊合参」同理。系统按中医「舌 + 脉 → 证 → 方」推断并推荐配方。外部项目可调用 <code>AROMA_tongueRecommend(['胖大齿痕舌','白苔'])</code> 直接取得舌象推荐配方。</div>
-    <div class="toolbar" style="background:#fbf3e8;border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin-bottom:10px;">
-      <a class="btn" href="tongue_teach.html" target="_blank" style="background:linear-gradient(135deg,#a23b3b,#c8553d);color:#fff;">📖 进入舌诊教学</a>
-      <a class="btn" href="tongue_wizard.html" target="_blank" style="background:linear-gradient(135deg,#5b8a72,#3f6f57);color:#fff;">🩺 分步舌诊向导（自诊）</a>
-      <span class="hint" style="margin:0;font-size:12.5px;">系统教学 · 望舌顺序 / 舌体分区 / 舌色形态苔 / 各区辨证详解 / 速查表</span>
-    </div>
+    <div class="hint" style="margin-bottom:10px;">👅 <b>分布舌诊</b>：按舌面分区定位脏腑——点选你观察到的<b>区域</b>（舌尖→心肺、舌中→脾胃、舌根→肾、舌边→肝胆），并勾选该区的<b>特征</b>，右侧即时显示脏腑定位与具体病情；点「推荐配方」按所选舌象特征匹配精油配方。<b>去掉了脉象，更直观</b>。</div>
 
-    <!-- 脉诊（与舌象合参；选择状态与『智能配方』『脉诊辨证』三处同步） -->
-    <div class="card" style="background:#fdeef0;border-color:#f0c0c8;">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
-        <strong style="color:#b5485a">💓 脉诊（与下方舌象合参）</strong>
-        <label class="imgswitch" title="显示 / 隐藏脉象示意图"><input type="checkbox" id="tonguePulseImgToggle" onchange="togglePulseImg(this.checked)"><span class="track"></span><span class="lbl">显示脉象图</span></label>
-        <span class="hint" style="margin:0">分左右手勾选脉象（红=左手 / 绿=右手）；<b>每只手仅选一种</b>，再次点同一个可取消；<b>只选一侧即视为双手同脉</b>。下方与舌象一并「舌脉合参」出方。</span>
+    <div class="dz-wrap">
+      <div class="dz-map">
+        <div class="dz-mapbox" id="dzMap"></div>
+        <div class="dz-chips" id="dzChips"></div>
+        <div class="dz-tip">💡 舌边属肝胆，舌中属脾胃，舌尖属心肺，舌根属肾膀胱。点区域可多选（最多 8 个）。</div>
       </div>
-      <div class="pulsesites" id="tonguePulseSites"></div>
-      <div class="pulse-hands">
-        <div class="hand-box hand-left">
-          <div class="hand-title">✋ 左手（红框）<span class="hand-sub">寸·心(小肠)｜关·肝(胆)｜尺·肾(膀胱)</span></div>
-          <div class="pulsecards" id="tonguePulseCardsL" style="margin:6px 0 0"></div>
-        </div>
-        <div class="hand-box hand-right">
-          <div class="hand-title">🤚 右手（绿框）<span class="hand-sub">寸·肺(大肠)｜关·脾(胃)｜尺·肾(命门·三焦)</span></div>
-          <div class="pulsecards" id="tonguePulseCardsR" style="margin:6px 0 0"></div>
-        </div>
+      <div class="dz-detail" id="dzDetail">
+        <div class="dz-empty">← 在左侧点选舌区，这里会列出该区的脏腑定位与可观察特征；选中特征即显示具体病情。</div>
       </div>
     </div>
 
-    <div class="toolbar">
-      <input type="text" id="tongueSym" class="search" placeholder="症状 / 证型（必填，与『智能配方』顶部症状框同步）" oninput="document.getElementById('q').value=this.value;" />
+    <div class="dz-actions toolbar">
+      <button class="btn" onclick="dzRecommend()">🔎 分布舌诊推荐配方</button>
+      <button class="btn ghost sm" onclick="dzClear()">清空选择</button>
+      <span id="dzCount" class="count"></span>
     </div>
-    <div class="tongue-groups" id="tongueGroups"></div>
-    <div class="toolbar">
-      <button class="btn" onclick="runTongue()">🔎 舌脉合参推荐配方</button>
-      <button class="btn ghost sm" onclick="clearTongueSelection(); clearPulseSelection();">清空选择</button>
-    </div>
-    <div class="pulse-summary" id="tongueSummary" style="display:none;"></div>
-    <div class="count" id="tongueCount"></div>
-    <div id="tongueResults"></div>
+    <div class="pulse-summary" id="dzSummary" style="display:none;"></div>
+    <div id="dzResults"></div>
   </section>
   </div>
 
@@ -1285,6 +1306,191 @@
       .map(function(x){ return x.formula; });
   };
 
+  /* ============ 分布舌诊：舌面分区定位脏腑（交互） ============ */
+  var TONGUE_REGIONS=[
+    {key:"xinnao", label:"心脑区", organ:"心、脑", zone:"舌尖", desc:"舌尖区域 → 心脑；舌质红 / 舌形凹 / 舌尖缺损",
+     observations:[
+       {key:"red",     label:"舌质红",   disease:"心火旺",   symptom:"主症：睡眠差、脾气大、易怒；兼症：入睡难、多梦、心烦、口舌生疮、舌尖痛、口腔溃疡、口苦、尿黄、便秘、面红出汗", tags:["心火","舌尖红","心烦","脾气大","实热","红"]},
+       {key:"aoxian",  label:"舌形凹",   disease:"供血不足", symptom:"主症：头晕脑胀、记忆力差；兼症：注意力不集中、面色苍白、心悸、气短、乏力、月经量少、指甲色淡、易疲劳", tags:["供血不足","头晕","记忆力","凹陷","气血不足","虚"]},
+       {key:"quexian", label:"舌尖缺损", disease:"气血不足", symptom:"主症：胸闷、心慌；兼症：气短、乏力、面色无华、头晕目眩、月经量少、易感冒、失眠多梦", tags:["气血不足","胸闷","心慌","缺损","虚"]}
+     ]},
+    {key:"jingzhui", label:"颈椎区", organ:"颈椎", zone:"舌尖下", desc:"舌尖下 → 颈椎；舌质红 / 舌形凹 / 舌形凸",
+     observations:[
+       {key:"red",    label:"舌质红",   disease:"咽喉不适",         symptom:"主症：扁桃体炎、咽喉肿痛；兼症：口干、慢性咽炎、吞咽不适、声音嘶哑、咳嗽、咽部异物感", tags:["咽喉","扁桃体","炎症","热","红"]},
+       {key:"aoxian", label:"舌形凹",   disease:"颈椎变形",         symptom:"主症：颈椎僵硬、颈部不适；兼症：抬头困难、上肢麻木、头晕、头痛、肩颈酸痛、富贵包、手指发麻", tags:["颈椎变形","凹陷"]},
+       {key:"tuqi",   label:"舌形凸",   disease:"颈椎变形或富贵包", symptom:"主症：颈后凸起、富贵包；兼症：颈椎前倾、头晕、头痛、上肢麻木、肩颈沉重、头晕目眩", tags:["颈椎变形","富贵包","凸起","气滞"]}
+     ]},
+    {key:"jianzhou", label:"肩周区", organ:"肩、周", zone:"舌前两侧", desc:"舌前两侧 → 肩周；舌质红点 / 舌形缺损",
+     observations:[
+       {key:"hongdian",label:"舌质红点", disease:"肩周淤堵", symptom:"主症：发紧、疼痛、活动受限；兼症：上肢麻木、夜间加重、肩部怕冷、抬举困难、肩部沉重", tags:["肩周","瘀堵","发紧","红点","血瘀"]},
+       {key:"quexian", label:"舌形缺损", disease:"气机不畅", symptom:"主症：酸胀、活动无力；兼症：抬举困难、肩部怕风、情绪抑郁、胸闷叹气", tags:["气机不畅","酸胀","缺损","气滞"]}
+     ]},
+    {key:"ruxian",  label:"乳腺区", organ:"乳", zone:"舌边前段", desc:"舌边前段 → 乳腺；舌质红点 / 舌形凹陷",
+     observations:[
+       {key:"hongdian",label:"舌质红点", disease:"乳腺增生", symptom:"主症：胀痛、经前加重、乳房肿块；兼症：胸闷、月经不调、易怒、情绪抑郁、乳头溢液", tags:["乳腺","乳腺增生","红点","血瘀","胀闷"]},
+       {key:"aoxian",  label:"舌形凹陷", disease:"气血不足", symptom:"主症：胸下垂、乳房松弛；兼症：月经量少、面色无华、易疲劳、指甲色淡、头晕眼花", tags:["气血不足","胸下垂","凹陷","虚"]}
+     ]},
+    {key:"piwei",   label:"脾胃区", organ:"脾、胃", zone:"舌中", desc:"舌中 → 脾胃；舌色 / 凹陷 / 凸起 / 苔色",
+     observations:[
+       {key:"se_bai",      label:"舌色白",          disease:"舌苔白，肺寒",   symptom:"主症：怕冷、手脚凉、咳嗽白痰；兼症：容易感冒、面色白、喜温饮、气短乏力、痰液清稀", tags:["白","肺寒","苔白","寒"]},
+       {key:"se_hong",     label:"舌色红",          disease:"肺火旺",         symptom:"主症：易咳嗽、咽干、咳嗽黄痰；兼症：口渴、便秘、面红、胸闷、夜间咳重", tags:["红","肺火","咳嗽","实热"]},
+       {key:"aoxian_hong", label:"舌形凹陷-舌红",   disease:"胃火旺盛",       symptom:"主症：吃一点就饱、口臭、口干；兼症：烧心、反酸、胃部灼热、消谷善饥、便秘、牙龈肿痛", tags:["胃火","饱满","凹陷","红","实热"]},
+       {key:"aoxian_bai",  label:"舌形凹陷-舌白",   disease:"脾胃虚",         symptom:"主症：吃一点就饱、食欲差、腹胀；兼症：乏力、面色黄、消瘦、大便溏、容易疲倦", tags:["脾胃虚","饱满","凹陷","白","脾虚","虚"]},
+       {key:"tuqi",        label:"舌形凸起",        disease:"胃气滞",         symptom:"主症：积食、腹胀、打嗝；兼症：嗳气、胃部窜痛、反酸、恶心、饭后加重", tags:["胃气滞","积食","凸起","气滞"]},
+       {key:"zhi_baitai",  label:"舌质白苔",        disease:"脾胃虚寒",       symptom:"主症：怕冷、腹部冷痛、喜温喜按；兼症：大便溏、四肢凉、面色白、完谷不化", tags:["脾胃虚寒","白苔","脾虚","虚寒"]},
+       {key:"zhi_huangtai",label:"舌质黄苔",        disease:"积食",           symptom:"主症：口臭、腹胀、食欲差；兼症：嗳气、大便臭、舌苔厚腻、夜间磨牙、放屁多", tags:["积食","口臭","黄苔","苔黄","厚"]},
+       {key:"zhi_huangni", label:"舌质黄腻苔",      disease:"积食、湿热",     symptom:"主症：痰浊、口苦、口臭、腹胀；兼症：大便黏、舌苔厚腻、恶心呕吐、食欲不振、身体困重", tags:["积食","湿热","痰浊","黄腻","厚腻"]}
+     ]},
+    {key:"fei",     label:"肺区", organ:"肺", zone:"舌前中", desc:"舌前中 → 肺；舌色 / 凹陷 / 凸起 / 裂纹",
+     observations:[
+       {key:"fabai",  label:"舌色发白", disease:"舌苔白，肺寒", symptom:"主症：咳嗽白痰、怕冷、易感冒；兼症：气短、面色白、容易疲倦、痰液清稀、夜间咳重", tags:["白","肺寒","苔白","寒"]},
+       {key:"fahong", label:"舌色发红", disease:"肺火旺",       symptom:"主症：易咳嗽、咽干、咳嗽黄痰；兼症：口渴、胸闷、便秘、面红、咽喉肿痛", tags:["红","肺火","咳嗽","实热"]},
+       {key:"aoxian", label:"舌形凹陷", disease:"肺气不足",     symptom:"主症：免疫力差、易感冒、气短；兼症：乏力、自汗、说话无力、容易疲倦、容易过敏", tags:["肺气不足","免疫力","凹陷","虚","气短"]},
+       {key:"tuqi",   label:"舌形凸起", disease:"肺气滞",       symptom:"主症：胸闷咳嗽、呼吸不畅；兼症：胸部胀满、情绪抑郁、叹气、咽部异物感", tags:["肺气滞","胸闷","凸起","气滞"]},
+       {key:"liewen", label:"舌质裂纹", disease:"肺阴虚",       symptom:"主症：干咳、皮肤干、口干咽燥；兼症：夜间盗汗、手足心热、声音嘶哑、午后潮热", tags:["肺阴虚","干咳","裂纹","阴虚","口干"]}
+     ]},
+    {key:"gan",     label:"肝区", organ:"肝", zone:"舌边左中", desc:"舌边左中 → 肝；舌质红点 / 舌色红 / 舌形凹 / 凸",
+     observations:[
+       {key:"hongdian",label:"舌质红点", disease:"肝胆解毒功能弱", symptom:"主症：易怒、口苦、长斑；兼症：皮肤暗沉、易疲倦、乳腺增生、月经不调、眼睛干涩", tags:["肝","解毒","红点","肝胆"]},
+       {key:"hong",    label:"舌色红",   disease:"肝火旺",       symptom:"主症：脾气大、易怒、面红目赤；兼症：头晕胀痛、口苦口干、耳鸣、烦躁、便秘、尿黄", tags:["肝火","红","脾气大","易怒"]},
+       {key:"aoxian",  label:"舌形凹陷", disease:"肝血不足",     symptom:"主症：头晕眼花、面色萎黄、指甲色淡；兼症：肢体麻木、视物模糊、月经量少、易抽筋", tags:["肝血不足","凹陷","血虚","月经量少","阳痿","抽筋","虚"]},
+       {key:"tuqi",    label:"舌形凸起", disease:"肝气郁结",     symptom:"主症：情志不畅、两胁胀痛；兼症：胸闷、叹气、烦躁、月经不调、经前乳房胀痛、咽部异物感", tags:["肝气郁结","凸起","情志","胀痛","气滞","肝郁"]}
+     ]},
+    {key:"dan",     label:"胆区", organ:"胆", zone:"舌边右中", desc:"舌边右中 → 胆；舌质红点 / 舌色红 / 舌形凹 / 凸",
+     observations:[
+       {key:"hongdian",label:"舌质红点", disease:"胆红素偏高",   symptom:"主症：眼白发黄、皮肤发黄、尿黄；兼症：口苦、消化差、易疲倦、皮肤瘙痒、大便灰白", tags:["胆红素","偏高","红点","肝胆"]},
+       {key:"fahong",  label:"舌色发红", disease:"肝胆火旺",     symptom:"主症：口苦、消化差、易疲倦；兼症：烦躁、恶心、肋痛、嗳气、便秘、面红目赤", tags:["肝胆火旺","口苦","红","肝胆","肝火"]},
+       {key:"aoxian",  label:"舌形凹陷", disease:"胆囊功能差",   symptom:"主症：消化油腻差、腹胀、口苦；兼症：嗳气、便溏、面色萎黄、恶心、右上腹不适", tags:["胆囊","功能差","凹陷","虚"]},
+       {key:"tuqi",    label:"舌形凸起", disease:"胆汁排泄异常", symptom:"主症：右胁胀痛、嗳气、口苦；兼症：消化差、皮肤发黄、烦躁、恶心呕吐、大便不畅", tags:["胆汁","排泄异常","凸起","气滞"]}
+     ]}
+  ];
+  var DZ_ZONES=[
+    {key:"xinnao",  cx:140, cy:40,  rx:32, ry:22, fill:"rgba(162,59,59,.30)",  stroke:"rgba(162,59,59,.55)",  label:"心脑区", lx:140, ly:44,  fc:"#7a1f1f"},
+    {key:"jingzhui",cx:140, cy:78,  rx:30, ry:14, fill:"rgba(91,138,114,.30)", stroke:"rgba(91,138,114,.55)", label:"颈椎区", lx:140, ly:82,  fc:"#2f5a3f"},
+    {key:"fei",     cx:140, cy:108, rx:24, ry:14, fill:"rgba(74,122,155,.30)", stroke:"rgba(74,122,155,.55)", label:"肺区",   lx:140, ly:112, fc:"#1f4a66"},
+    {key:"jianzhou",cx:48,  cy:84,  rx:20, ry:14, fill:"rgba(227,196,82,.30)", stroke:"rgba(180,140,40,.55)", label:"肩周区", lx:48,  ly:88,  fc:"#7a5b00"},
+    {key:"jianzhou",cx:232, cy:84,  rx:20, ry:14, fill:"rgba(227,196,82,.30)", stroke:"rgba(180,140,40,.55)", label:"肩周区", lx:232, ly:88,  fc:"#7a5b00"},
+    {key:"ruxian",  cx:40,  cy:122, rx:18, ry:14, fill:"rgba(180,100,140,.30)",stroke:"rgba(140,70,110,.55)", label:"乳腺区", lx:40,  ly:126, fc:"#7a2f5a"},
+    {key:"ruxian",  cx:240, cy:122, rx:18, ry:14, fill:"rgba(180,100,140,.30)",stroke:"rgba(140,70,110,.55)", label:"乳腺区", lx:240, ly:126, fc:"#7a2f5a"},
+    {key:"piwei",   cx:140, cy:152, rx:36, ry:22, fill:"rgba(200,140,40,.35)", stroke:"rgba(160,100,20,.55)", label:"脾胃区", lx:140, ly:156, fc:"#5a3300"},
+    {key:"gan",     cx:48,  cy:162, rx:22, ry:18, fill:"rgba(60,150,80,.30)",  stroke:"rgba(40,110,60,.55)",  label:"肝区",   lx:48,  ly:166, fc:"#1f5a2f"},
+    {key:"dan",     cx:232, cy:162, rx:22, ry:18, fill:"rgba(220,200,40,.30)", stroke:"rgba(180,150,20,.55)", label:"胆区",   lx:232, ly:166, fc:"#665a00"}
+  ];
+  var dzSel={};   // 区域 key -> true（可多选）
+  var dzObs={};   // 区域 key -> 该区选中的 observation key（单区单选）
+
+  function dzSvg(){
+    var s='<svg viewBox="0 0 280 240">';
+    s+='<ellipse cx="140" cy="120" rx="100" ry="100" fill="#f3d8d4" stroke="#d9a7a0" stroke-width="2"/>';
+    DZ_ZONES.forEach(function(z){
+      s+='<g class="dz-zone'+(dzSel[z.key]?" sel":"")+'" data-key="'+z.key+'">'+
+         '<ellipse class="dz-fill" cx="'+z.cx+'" cy="'+z.cy+'" rx="'+z.rx+'" ry="'+z.ry+'" fill="'+z.fill+'" stroke="'+z.stroke+'" stroke-width="1"/>'+
+         '<text x="'+z.lx+'" y="'+z.ly+'" text-anchor="middle" font-size="11" fill="'+z.fc+'" font-weight="700">'+z.label+'</text>'+
+         '</g>';
+    });
+    s+='</svg>';
+    return s;
+  }
+  function dzRenderMap(){
+    var map=document.getElementById("dzMap"); if(!map) return;
+    map.innerHTML=dzSvg();
+    Array.prototype.forEach.call(map.querySelectorAll(".dz-zone"), function(g){
+      g.onclick=function(){ dzToggleRegion(g.getAttribute("data-key")); };
+    });
+    var chips=document.getElementById("dzChips"); if(!chips) return;
+    chips.innerHTML="";
+    TONGUE_REGIONS.forEach(function(r){
+      var el=document.createElement("span");
+      el.className="dz-chip"+(dzSel[r.key]?" sel":"");
+      el.textContent=r.label+"（"+r.zone+"）";
+      el.onclick=function(){ dzToggleRegion(r.key); };
+      chips.appendChild(el);
+    });
+  }
+  function dzToggleRegion(key){
+    if(dzSel[key]){ delete dzSel[key]; delete dzObs[key]; }
+    else { dzSel[key]=true; }
+    dzRenderMap(); dzRenderDetail();
+  }
+  function dzToggleObs(regionKey, obsKey){
+    if(dzObs[regionKey]===obsKey) delete dzObs[regionKey];
+    else dzObs[regionKey]=obsKey;
+    dzRenderDetail();
+  }
+  function dzRenderDetail(){
+    var box=document.getElementById("dzDetail"); if(!box) return;
+    var keys=Object.keys(dzSel);
+    if(!keys.length){ box.innerHTML='<div class="dz-empty">← 在左侧点选舌区，这里会列出该区的脏腑定位与可观察特征；选中特征即显示具体病情。</div>'; return; }
+    var html="";
+    keys.forEach(function(k){
+      var r=TONGUE_REGIONS.filter(function(x){return x.key===k;})[0]; if(!r) return;
+      html+='<div class="dz-region">';
+      html+='<div class="dr-head"><span class="dr-title">'+escapeHtml(r.label)+'</span>'+
+            '<span class="dr-organ">'+escapeHtml(r.organ)+'</span>'+
+            '<span class="dr-zone">'+escapeHtml(r.zone)+'</span>'+
+            '<span class="dr-clear" onclick="dzToggleRegion(\''+r.key+'\')">移除</span></div>';
+      html+='<div class="dr-desc">'+escapeHtml(r.desc)+'</div>';
+      html+='<div class="dz-obs">';
+      r.observations.forEach(function(o){
+        var sel=dzObs[r.key]===o.key;
+        html+='<div class="dz-ob'+(sel?" sel":"")+'" onclick="dzToggleObs(\''+r.key+'\',\''+o.key+'\')">'+
+              '<span class="ob-check">✓</span>'+
+              '<div class="ob-label">'+escapeHtml(o.label)+'</div>'+
+              '<div class="ob-disease">'+escapeHtml(o.disease)+'</div>'+
+              '<div class="ob-symptom">'+escapeHtml(o.symptom)+'</div>'+
+              '</div>';
+      });
+      html+='</div></div>';
+    });
+    box.innerHTML=html;
+  }
+  function dzCollectTags(){
+    var toks=[];
+    Object.keys(dzObs).forEach(function(rk){
+      var r=TONGUE_REGIONS.filter(function(x){return x.key===rk;})[0]; if(!r) return;
+      var o=r.observations.filter(function(x){return x.key===dzObs[rk];})[0]; if(!o) return;
+      (o.tags||[]).forEach(function(t){ if(toks.indexOf(t)<0) toks.push(t); });
+    });
+    return toks;
+  }
+  function dzRecommend(){
+    var summaryEl=document.getElementById("dzSummary");
+    var resultsEl=document.getElementById("dzResults");
+    var countEl=document.getElementById("dzCount");
+    if(!summaryEl||!resultsEl) return;
+    var toks=dzCollectTags();
+    if(!Object.keys(dzObs).length){
+      summaryEl.style.display="block";
+      summaryEl.innerHTML='<span class="hint">⚠ 请先点选左侧舌区，并在右侧勾选至少 1 个<b>特征</b>（如「舌质红」「舌形凹陷」），再点「推荐配方」。</span>';
+      resultsEl.innerHTML=""; if(countEl) countEl.textContent=""; return;
+    }
+    var picked=[];
+    Object.keys(dzObs).forEach(function(rk){
+      var r=TONGUE_REGIONS.filter(function(x){return x.key===rk;})[0]; if(!r) return;
+      var o=r.observations.filter(function(x){return x.key===dzObs[rk];})[0]; if(!o) return;
+      picked.push(r.label+" → "+o.disease);
+    });
+    summaryEl.style.display="block";
+    summaryEl.innerHTML='<b>所选舌区特征：</b>'+picked.join("； ")+'<br><b>推断可能涉及：</b>'+toks.join("、")+'<br><span class="hint">（下方按所选舌象特征 tags 匹配精油配方，按综合相关度排序）</span>';
+    var scored=db.formulas.map(function(f){ return {f:f, s:scoreFormula(f, toks)}; })
+      .filter(function(x){ return x.s>0; })
+      .sort(function(a,b){ return b.s-a.s; });
+    resultsEl.innerHTML="";
+    if(!scored.length){ resultsEl.innerHTML='<div class="empty">没有命中所选舌象特征的配方，可调整所选区域/特征，或到「我的库」补充。</div>'; if(countEl) countEl.textContent=""; return; }
+    if(countEl) countEl.textContent="共推荐 "+scored.length+" 条配方（显示前 12 条）";
+    scored.slice(0,12).forEach(function(x){ resultsEl.appendChild(makeResultCard(x.f, toks)); });
+  }
+  function dzClear(){
+    dzSel={}; dzObs={};
+    dzRenderMap(); dzRenderDetail();
+    var s=document.getElementById("dzSummary"), r=document.getElementById("dzResults"), c=document.getElementById("dzCount");
+    if(s) s.style.display="none";
+    if(r) r.innerHTML="";
+    if(c) c.textContent="";
+  }
+  window.dzRecommend=dzRecommend; window.dzClear=dzClear; window.dzRenderMap=dzRenderMap;
+  window.dzToggleRegion=dzToggleRegion; window.dzToggleObs=dzToggleObs;
+
   // 三诊合参：症状(上方框) + 脉象(左右手) + 舌象(可多选) 三者共同出方（AND 命中）
   function renderCombinedRecommend(summaryEl, resultsEl, countEl){
     var q=document.getElementById("q").value.trim();
@@ -1608,7 +1814,7 @@
       if(tab==="hydro") renderHydro();
       if(tab==="lib") renderLib();
       if(tab==="pulse") renderPulse();
-      if(tab==="tongue"){ renderTongueGroups(); renderPulseGrids(); renderPulseSites(); }
+      if(tab==="tongue"){ dzRenderMap(); renderTongueGroups(); renderPulseGrids(); renderPulseSites(); }
       if(tab==="dose") renderDose();
     };
   });
