@@ -286,17 +286,34 @@
       </div>
     </div>
 
-    <!-- 选舌象（与下方三诊合参联动） -->
+    <!-- 选舌象（与下方三诊合参联动）· 分步辨证 -->
     <div class="card" style="background:var(--accent-soft);border-color:#bfe3d4;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
-        <strong style="color:var(--accent)">👅 第二步：选舌象（可多选，分舌色/舌形/苔色/苔质/舌态）</strong>
-        <label class="imgswitch" title="显示 / 隐藏舌象示意图"><input type="checkbox" id="tongueImgToggle" checked onchange="toggleTongueImg(this.checked)"><span class="track"></span><span class="lbl">显示舌象图</span></label>
-        <span class="hint" style="margin:0">勾选舌象要素（中医舌诊综合观察）。选好后到下方「🔬 三诊合参」与症状、脉象一并出方。</span>
+        <strong style="color:var(--accent)">👅 第二步：选舌象（分步辨证，可只选你实际看到的部分）</strong>
+        <label class="imgswitch" title="显示 / 隐藏各辨证步骤的舌象真实参考照片（图名已按课本截图核对）"><input type="checkbox" id="szPhotoToggle" checked onchange="toggleSzPhoto(this.checked)"><span class="track"></span><span class="lbl">显示舌象照片</span></label>
       </div>
-      <div class="tonguephoto-disclaimer">⚠ 舌象图为参考图谱（含 AI 示意），<b>非临床真实照片</b>，仅供辨识练习，不能作为诊断依据。辨证请结合全身症状，由执业中医师面诊为准。</div>
-      <div class="tongue-groups" id="searchTongueGroups"></div>
-      <div class="toolbar">
-        <button class="btn ghost sm" onclick="clearTongueSelection()">清空舌象选择</button>
+      <div class="hint" style="margin:4px 0 2px;">按中医辨证顺序逐步点选你<b>实际看到的</b>舌象：<b>①望舌质（舌色）→②望舌苔（苔色苔质）→③舌下脉络→④舌面分区（脏腑定位）→⑤舌态（形态动态）</b>。顶部可切换步骤，每步单选（舌面分区可多选区域、每区选一特征）。选好后到下方「🔬 三诊合参」与症状、脉象一并出方。</div>
+      <div class="tonguephoto-disclaimer">⚠ 舌象照片为临床参考图谱（已按课本截图核对图名），<b>非诊断依据</b>；辨证请结合全身症状，由执业中医师面诊为准。</div>
+
+      <div class="dz-steps" id="szSteps"></div>
+
+      <div id="szQuBody" style="display:none;">
+        <div class="dz-wrap">
+          <div class="dz-map">
+            <div class="dz-mapbox" id="szMap"></div>
+            <div class="dz-chips" id="szChips"></div>
+            <div class="dz-tip">💡 舌边属肝胆，舌中属脾胃，舌尖属心肺，舌根属肾膀胱。点区域可多选（最多 8 个）。</div>
+          </div>
+          <div class="dz-detail" id="szDetail">
+            <div class="dz-empty">← 在左侧点选舌区，这里会列出该区的脏腑定位与可观察特征；选中特征即显示具体病情。</div>
+          </div>
+        </div>
+      </div>
+      <div id="szPickBody"></div>
+
+      <div class="dz-pickbar">
+        <button class="btn ghost sm" onclick="szClear()">清空舌象选择</button>
+        <span class="hint" style="margin:0">已选 <b id="szSelCount">0</b> 项（步骤选择 + 舌区特征）</span>
       </div>
     </div>
 
@@ -1672,14 +1689,219 @@
   window.dzCollectAllTags=dzCollectAllTags; window.dzCollectTags=dzCollectTags;
   window.openTongueBig=openTongueBig;
 
+  /* ============ 智能配方·分步舌诊（与舌诊辨证页同款五步，独立状态 sz*） ============ */
+  // 与分布舌诊（dz*）共用 TONGUE_STEPS / DZ_PHOTO_MAP / TONGUE_REGIONS / DZ_ZONES / DZ_ORGAN_IMG 数据，
+  // 但拥有独立选择状态，两个标签页互不干扰。
+  var szStep="qu";                       // 当前步骤（默认舌面分区）
+  var szPick={qi:null, tai:null, mai:null, xing:null};  // 各步骤单选（qu 用 szSel/szObs）
+  var szSel={};                          // 区域 key -> true（可多选）
+  var szObs={};                          // 区域 key -> 该区选中的 observation key（单区单选）
+  var showSzPhoto=true;                  // 是否显示真实舌象照片（默认开）
+
+  function szHasSelection(){
+    return !!(szPick.qi||szPick.tai||szPick.mai||szPick.xing) || Object.keys(szObs).length>0;
+  }
+  function szRenderSteps(){
+    var box=document.getElementById("szSteps"); if(!box) return;
+    box.innerHTML="";
+    TONGUE_STEPS.forEach(function(s){
+      var el=document.createElement("button");
+      el.className="dz-step-btn"+(szStep===s.key?" active":"");
+      el.innerHTML=escapeHtml(s.short)+(s.qu?'<span class="dz-step-sub">脏腑定位</span>':'');
+      el.onclick=function(){ szSwitchStep(s.key); };
+      box.appendChild(el);
+    });
+  }
+  function szSwitchStep(key){
+    szStep=key;
+    szRenderSteps();
+    var quBody=document.getElementById("szQuBody");
+    var pickBody=document.getElementById("szPickBody");
+    if(key==="qu"){
+      if(quBody) quBody.style.display="block";
+      if(pickBody) pickBody.style.display="none";
+      szRenderMap(); szRenderDetail();
+    } else {
+      if(quBody) quBody.style.display="none";
+      if(pickBody) pickBody.style.display="block";
+      szRenderPick(key);
+    }
+  }
+  function szSvg(){
+    var s='<svg viewBox="0 0 280 240">';
+    s+='<ellipse cx="140" cy="120" rx="100" ry="100" fill="#f3d8d4" stroke="#d9a7a0" stroke-width="2"/>';
+    DZ_ZONES.forEach(function(z){
+      s+='<g class="dz-zone'+(szSel[z.key]?" sel":"")+'" data-key="'+z.key+'">'+
+         '<ellipse class="dz-fill" cx="'+z.cx+'" cy="'+z.cy+'" rx="'+z.rx+'" ry="'+z.ry+'" fill="'+z.fill+'" stroke="'+z.stroke+'" stroke-width="1"/>'+
+         '<text x="'+z.lx+'" y="'+z.ly+'" text-anchor="middle" font-size="11" fill="'+z.fc+'" font-weight="700">'+z.label+'</text>'+
+         '</g>';
+    });
+    s+='</svg>';
+    return s;
+  }
+  function szRenderMap(){
+    var map=document.getElementById("szMap"); if(!map) return;
+    map.innerHTML=szSvg();
+    Array.prototype.forEach.call(map.querySelectorAll(".dz-zone"), function(g){
+      g.onclick=function(){ szToggleRegion(g.getAttribute("data-key")); };
+    });
+    var chips=document.getElementById("szChips"); if(!chips) return;
+    chips.innerHTML="";
+    TONGUE_REGIONS.forEach(function(r){
+      var el=document.createElement("span");
+      el.className="dz-chip"+(szSel[r.key]?" sel":"");
+      el.textContent=r.label+"（"+r.zone+"）";
+      el.onclick=function(){ szToggleRegion(r.key); };
+      chips.appendChild(el);
+    });
+  }
+  function szToggleRegion(key){
+    if(szSel[key]){ delete szSel[key]; delete szObs[key]; }
+    else { szSel[key]=true; }
+    szRenderMap(); szRenderDetail(); szUpdateCount();
+  }
+  function szToggleObs(regionKey, obsKey){
+    if(szObs[regionKey]===obsKey) delete szObs[regionKey];
+    else szObs[regionKey]=obsKey;
+    szRenderDetail(); szUpdateCount();
+  }
+  function szRenderDetail(){
+    var box=document.getElementById("szDetail"); if(!box) return;
+    var keys=Object.keys(szSel);
+    if(!keys.length){ box.innerHTML='<div class="dz-empty">← 在左侧点选舌区，这里会列出该区的脏腑定位与可观察特征；选中特征即显示具体病情。</div>'; return; }
+    var html="";
+    if(szStep==="qu" && showSzPhoto){
+      var oi=escapeAttr(DZ_ORGAN_IMG);
+      html+='<div class="dz-organ-img"><img src="'+oi+'" alt="舌面对应脏腑全息图" loading="lazy" onerror="this.parentNode.outerHTML=\'<div class=&quot;dz-photo-none&quot;>图未找到：'+oi+'</div>\'"><div class="dz-organ-cap">舌面分区与脏腑对应全息图（参考图谱）</div></div>';
+    }
+    keys.forEach(function(k){
+      var r=TONGUE_REGIONS.filter(function(x){return x.key===k;})[0]; if(!r) return;
+      html+='<div class="dz-region">';
+      html+='<div class="dr-head"><span class="dr-title">'+escapeHtml(r.label)+'</span>'+
+            '<span class="dr-organ">'+escapeHtml(r.organ)+'</span>'+
+            '<span class="dr-zone">'+escapeHtml(r.zone)+'</span>'+
+            '<span class="dr-clear" onclick="szToggleRegion(\''+r.key+'\')">移除</span></div>';
+      html+='<div class="dr-desc">'+escapeHtml(r.desc)+'</div>';
+      html+='<div class="dz-obs">';
+      r.observations.forEach(function(o){
+        var sel=szObs[r.key]===o.key;
+        html+='<div class="dz-ob'+(sel?" sel":"")+'" onclick="szToggleObs(\''+r.key+'\',\''+o.key+'\')">'+
+              '<span class="ob-check">✓</span>'+
+              '<div class="ob-label">'+escapeHtml(o.label)+'</div>'+
+              '<div class="ob-disease">'+escapeHtml(o.disease)+'</div>'+
+              '<div class="ob-symptom">'+escapeHtml(o.symptom)+'</div>'+
+              '</div>';
+      });
+      html+='</div></div>';
+    });
+    box.innerHTML=html;
+  }
+  function szRenderPick(key){
+    var box=document.getElementById("szPickBody"); if(!box) return;
+    var step=TONGUE_STEPS.filter(function(s){return s.key===key;})[0]; if(!step) return;
+    var selKey=szPick[key];
+    var html='<div class="hint" style="margin-bottom:8px;">'+escapeHtml(step.title)+' — '+escapeHtml(step.desc)+'（单选，再点取消）</div>';
+    html+='<div class="dz-opts">';
+    step.options.forEach(function(o){
+      var sel=selKey===o.key;
+      html+='<div class="dz-optcard'+(sel?" sel":"")+'" onclick="szSelectPick(\''+key+'\',\''+o.key+'\')">'+
+            '<div>'+escapeHtml(o.label)+(o.normal?' <span class="dz-oc-tags">（正常）</span>':'')+'</div>';
+      if(o.tags&&o.tags.length) html+='<div class="dz-oc-tags">'+escapeHtml(o.tags.join("、"))+'</div>';
+      if(showSzPhoto){
+        var p=DZ_PHOTO_MAP[key]?DZ_PHOTO_MAP[key][o.key]:null;
+        if(p){
+          var sp=escapeAttr(p), sn=escapeAttr(o.label);
+          html+='<img class="dz-photo" src="'+sp+'" alt="'+escapeHtml(o.label)+' 参考图" loading="lazy" onerror="this.outerHTML=\'<div class=&quot;dz-photo-none&quot;>图未找到：'+sp+'</div>\'">';
+        } else {
+          html+='<div class="dz-photo-none">暂无对应图谱</div>';
+        }
+      }
+      html+='</div>';
+    });
+    html+='</div>';
+    box.innerHTML=html;
+  }
+  function toggleSzPhoto(v){ showSzPhoto=!!v; szRenderCurrent(); }
+  function szRenderCurrent(){
+    if(szStep==="qu"){ szRenderMap(); szRenderDetail(); }
+    else { szRenderPick(szStep); }
+  }
+  function szSelectPick(stepKey, optKey){
+    if(szPick[stepKey]===optKey) delete szPick[stepKey];
+    else szPick[stepKey]=optKey;
+    szRenderPick(stepKey); szUpdateCount();
+  }
+  function szUpdateCount(){
+    var n=0;
+    ["qi","tai","mai","xing"].forEach(function(k){ if(szPick[k]) n++; });
+    n+=Object.keys(szObs).length;
+    var el=document.getElementById("szSelCount"); if(el) el.textContent=n;
+  }
+  function szCollectAllTags(){
+    var toks=[];
+    TONGUE_STEPS.forEach(function(s){
+      if(s.key==="qu") return;
+      var k=szPick[s.key]; if(!k) return;
+      var o=s.options.filter(function(x){return x.key===k;})[0]; if(!o) return;
+      (o.tags||[]).forEach(function(t){ if(toks.indexOf(t)<0) toks.push(t); });
+    });
+    Object.keys(szObs).forEach(function(rk){
+      var r=TONGUE_REGIONS.filter(function(x){return x.key===rk;})[0]; if(!r) return;
+      var o=r.observations.filter(function(x){return x.key===szObs[rk];})[0]; if(!o) return;
+      (o.tags||[]).forEach(function(t){ if(toks.indexOf(t)<0) toks.push(t); });
+    });
+    return toks;
+  }
+  function szCollectAllNames(){
+    var names=[];
+    TONGUE_STEPS.forEach(function(s){
+      if(s.key==="qu") return;
+      var k=szPick[s.key]; if(!k) return;
+      var o=s.options.filter(function(x){return x.key===k;})[0]; if(!o) return;
+      names.push(s.short+" → "+o.label);
+    });
+    Object.keys(szObs).forEach(function(rk){
+      var r=TONGUE_REGIONS.filter(function(x){return x.key===rk;})[0]; if(!r) return;
+      var o=r.observations.filter(function(x){return x.key===szObs[rk];})[0]; if(o) names.push("舌面·"+r.label+" → "+o.disease);
+    });
+    return names;
+  }
+  function szCollectAllDiseases(){
+    var arr=[];
+    TONGUE_STEPS.forEach(function(s){
+      if(s.key==="qu") return;
+      var k=szPick[s.key]; if(!k) return;
+      var o=s.options.filter(function(x){return x.key===k;})[0]; if(o) arr.push(o.label);
+    });
+    Object.keys(szObs).forEach(function(rk){
+      var r=TONGUE_REGIONS.filter(function(x){return x.key===rk;})[0]; if(!r) return;
+      var o=r.observations.filter(function(x){return x.key===szObs[rk];})[0]; if(o) arr.push(o.disease);
+    });
+    return arr;
+  }
+  function szClear(){
+    szSel={}; szObs={};
+    szPick={qi:null, tai:null, mai:null, xing:null};
+    szRenderSteps();
+    if(szStep==="qu"){ szRenderMap(); szRenderDetail(); }
+    else { szRenderPick(szStep); }
+    szUpdateCount();
+  }
+  window.toggleSzPhoto=toggleSzPhoto;
+  window.szRenderSteps=szRenderSteps; window.szSwitchStep=szSwitchStep;
+  window.szToggleRegion=szToggleRegion; window.szToggleObs=szToggleObs;
+  window.szSelectPick=szSelectPick; window.szClear=szClear;
+  window.szCollectAllTags=szCollectAllTags; window.szCollectAllNames=szCollectAllNames;
+  window.szCollectAllDiseases=szCollectAllDiseases; window.szHasSelection=szHasSelection;
+
   // 三诊合参：症状(上方框) + 脉象(左右手) + 舌象(可多选) 三者共同出方（AND 命中）
   function renderCombinedRecommend(summaryEl, resultsEl, countEl){
     var q=document.getElementById("q").value.trim();
     var symToks=tokenize(q);
     var pulseNames=selectedPulseNames();
     var ptoks=pulseTokens();
-    var tnames=selectedTongueNames();
-    var ttoks=tongueTokens();
+    var tnames=szCollectAllNames();
+    var ttoks=szCollectAllTags();
     // 三者缺一不可
     if(!q){
       summaryEl.style.display="block";
@@ -1693,7 +1915,7 @@
     }
     if(!tnames.length){
       summaryEl.style.display="block";
-      summaryEl.innerHTML='<span class="hint">⚠ 请至少勾选一种舌象要素（舌色/舌形/苔色/苔质/舌态）。</span>';
+      summaryEl.innerHTML='<span class="hint">⚠ 请在上方「第二步：选舌象」按步骤点选至少一项舌象（望舌质 / 望舌苔 / 舌下脉络 / 舌面分区 / 舌态）。</span>';
       resultsEl.innerHTML=""; countEl.textContent=""; return;
     }
     // 双手同脉提示
@@ -1703,7 +1925,7 @@
     else if(rk.length && !lk.length) handNote="（仅选右手 → 视为双手同脉："+rk.join("、")+"）";
     else if(lk.length && rk.length) handNote="（左手："+lk.join("、")+"；右手："+rk.join("、")+"）";
     var pZhu=pulseNames.map(function(k){ return (selectedLeft[k]||selectedRight[k]).zhubing||k; });
-    var tZhu=tnames.map(function(k){ return (selectedTongues[k].zhubing||k); });
+    var tZhu=szCollectAllDiseases();
     summaryEl.style.display="block";
     summaryEl.innerHTML='<b>症状/证型：</b>'+escapeHtml(q)+'<br><b>所选脉象：</b>'+pulseNames.join("、")+handNote+'<br><b>所选舌象：</b>'+tnames.join("、")+'<br><b>推断可能涉及：</b>'+(pZhu.concat(tZhu)).join("；")+'<br><span class="hint">（下方配方需<b>同时</b>命中「症状 + 脉象 + 舌象」三类关键词，按综合相关度排序）</span>';
     var toks=symToks.concat(ptoks).concat(ttoks);
@@ -1726,7 +1948,7 @@
   window.runSearchCombined=runSearchCombined;
   function clearDiagnosis(){
     selectedLeft={}; selectedRight={}; renderPulseGrids();
-    selectedTongues={}; renderTongueGroups();
+    szClear();
     ["searchCombinedSummary","searchCombinedResults","searchCombinedCount"].forEach(function(id){
       var el=document.getElementById(id); if(!el) return;
       if(id.indexOf("Summary")>=0) el.style.display="none";
@@ -1995,7 +2217,7 @@
       if(tab==="hydro") renderHydro();
       if(tab==="lib") renderLib();
       if(tab==="pulse") renderPulse();
-      if(tab==="tongue"){ dzRenderSteps(); dzRenderMap(); dzRenderDetail(); renderTongueGroups(); renderPulseGrids(); renderPulseSites(); }
+      if(tab==="tongue"){ dzRenderSteps(); dzRenderMap(); dzRenderDetail(); renderPulseGrids(); renderPulseSites(); }
       if(tab==="dose") renderDose();
     };
   });
@@ -2014,7 +2236,7 @@
   renderSysChips(); renderCloud(); runSearch(); renderSrcBox();
   renderPulseGrids();
   renderPulseSites();
-  renderTongueGroups();
+  szRenderSteps(); szSwitchStep("qu");
   renderDose();
 
   // 暴露给控制台调试
