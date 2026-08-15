@@ -160,6 +160,9 @@
   .dz-chip:hover{border-color:var(--accent);color:var(--accent);}
   .dz-chip.sel{background:var(--accent);border-color:var(--accent);color:#fff;}
   .dz-tip{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:8px;border-left:3px solid var(--accent2);padding-left:8px;background:#f3f8f4;border-radius:0 6px 6px 0;}
+  .dz-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px dashed var(--line);}
+  .dz-actions .count{font-size:12px;color:var(--muted);}
+  .dz-links{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);}
   .dz-detail{display:flex;flex-direction:column;gap:12px;min-height:120px;}
   .dz-empty{color:var(--muted);font-size:13px;background:#fff;border:1px dashed var(--line);border-radius:10px;padding:24px;text-align:center;}
   .dz-region{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);}
@@ -468,17 +471,21 @@
         <div class="dz-mapbox" id="dzMap"></div>
         <div class="dz-chips" id="dzChips"></div>
         <div class="dz-tip">💡 舌边属肝胆，舌中属脾胃，舌尖属心肺，舌根属肾膀胱。点区域可多选（最多 8 个）。</div>
+        <div class="dz-actions">
+          <button class="btn" onclick="dzRecommend()">🔎 分布舌诊推荐配方</button>
+          <button class="btn ghost sm" onclick="dzClear()">清空选择</button>
+          <span id="dzCount" class="count" style="margin-left:auto"></span>
+        </div>
+        <div class="dz-links">
+          <a class="btn ghost sm" href="tongue_teach.html" target="_blank">📖 舌诊教学</a>
+          <a class="btn ghost sm" href="tongue_wizard.html" target="_blank">🩺 分步舌诊向导</a>
+        </div>
       </div>
       <div class="dz-detail" id="dzDetail">
         <div class="dz-empty">← 在左侧点选舌区，这里会列出该区的脏腑定位与可观察特征；选中特征即显示具体病情。</div>
       </div>
     </div>
 
-    <div class="dz-actions toolbar">
-      <button class="btn" onclick="dzRecommend()">🔎 分布舌诊推荐配方</button>
-      <button class="btn ghost sm" onclick="dzClear()">清空选择</button>
-      <span id="dzCount" class="count"></span>
-    </div>
     <div class="pulse-summary" id="dzSummary" style="display:none;"></div>
     <div id="dzResults"></div>
   </section>
