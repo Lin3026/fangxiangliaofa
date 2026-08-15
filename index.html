@@ -176,11 +176,11 @@
   .dz-optcard.sel{background:var(--accent-soft);border-color:var(--accent);box-shadow:var(--shadow);font-weight:600;}
   .dz-optcard .dz-oc-note{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.45;}
   .dz-optcard .dz-oc-tags{font-size:10.5px;color:#6a86b8;margin-top:4px;}
-  .dz-photo{display:block;width:100%;height:124px;object-fit:contain;background:#f3f3f3;border-radius:8px;margin-top:8px;cursor:zoom-in;border:1px solid var(--line);}
+  .dz-photo{display:block;width:100%;height:124px;object-fit:contain;background:#f3f3f3;border-radius:8px;margin-top:8px;border:1px solid var(--line);}
   .dz-photo:hover{border-color:var(--accent);box-shadow:0 2px 6px rgba(0,0,0,.08);}
   .dz-photo-none{font-size:11px;color:var(--muted);margin-top:6px;font-style:italic;background:#f8faf8;border:1px dashed var(--line);border-radius:6px;padding:6px 8px;text-align:center;}
   .dz-organ-img{margin-bottom:12px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px;display:flex;flex-direction:column;align-items:center;}
-  .dz-organ-img img{display:block;max-height:160px;max-width:240px;width:auto;object-fit:contain;background:#f3f3f3;border-radius:6px;cursor:zoom-in;}
+  .dz-organ-img img{display:block;max-height:160px;max-width:240px;width:auto;object-fit:contain;background:#f3f3f3;border-radius:6px;}
   .dz-organ-cap{font-size:10.5px;color:var(--muted);margin-top:4px;text-align:center;}
   .dz-detail{display:flex;flex-direction:column;gap:12px;min-height:120px;}
   .dz-empty{color:var(--muted);font-size:13px;background:#fff;border:1px dashed var(--line);border-radius:10px;padding:24px;text-align:center;}
@@ -491,7 +491,7 @@
       <button class="btn" onclick="dzRecommend()">🔎 综合辨证推荐配方</button>
       <button class="btn ghost sm" onclick="dzClear()">清空选择</button>
       <span id="dzCount" class="count"></span>
-      <label class="imgswitch" style="margin-left:auto;" title="默认关闭：tongues/ 编号图未按中医命名排序，开了会显示与名称不匹配的临床照。"><input type="checkbox" id="dzPhotoToggle" onchange="toggleDzPhoto(this.checked)"><span class="track"></span><span class="lbl">显示舌象照片（未核对图名）</span></label>
+      <label class="imgswitch" style="margin-left:auto;" title="显示 / 隐藏各辨证步骤的舌象真实参考照片（图名已与课本截图核对）"><input type="checkbox" id="dzPhotoToggle" checked onchange="toggleDzPhoto(this.checked)"><span class="track"></span><span class="lbl">显示舌象照片</span></label>
     </div>
 
     <div id="dzQuBody">
@@ -1455,16 +1455,14 @@
   ];
   var dzPick={qi:null, tai:null, mai:null, xing:null};  // 各步骤单选（qu 用 dzSel/dzObs）
   var dzStep="qu";  // 当前步骤（默认舌面分区，保持用户现有视图）
-  var showDzPhoto=false;  // 分布舌诊是否显示真实舌象照片（开关，默认关：tongues/ 编号图未按命名排序，避免误导）
+  var showDzPhoto=true;  // 分布舌诊是否显示真实舌象照片（默认开；图名已按课本截图核对）
 
-  // 各步骤选项对应的真实舌象照片（只配确认真实存在的图：tongues/ 目录下 .png 带中文名的那几张；
-  // 编号图（tongue-01..20）实为临床图谱、未按中医命名顺序排，避免误导故不默认配。
-  // 缺图时显示「暂无对应图谱」文字，绝不出破图标。）
+  // 各步骤选项对应的真实舌象照片（按课本截图与舌头教学/向导页核对：tongue-01~05=望舌质，tongue-06~10+19~20=舌态，tongue-11=燥苔，tongue-12~16=望舌苔，tongue-18=剥苔；带中文名的为专题图。缺图显示「暂无对应图谱」，绝不出破图标）
   var DZ_PHOTO_MAP={
-    qi:{},
-    tai:{},
+    qi:{ danbai:"tongues/tongue-01.png", dan_hong:"tongues/tongue-02.png", hong:"tongues/tongue-03.png", jiang:"tongues/tongue-04.png", qingzi:"tongues/tongue-05.png" },
+    tai:{ normal:"tongues/tongue-14.png", hou:"tongues/tongue-15.png", ni:"tongues/tongue-16.png", huang:"tongues/tongue-12.png", huihei:"tongues/tongue-13.png", zao:"tongues/tongue-11.png", bo:"tongues/tongue-18.png" },
     mai:{ normal:"tongues/正常.png", xueyu:"tongues/舌下淤血.png", qizhi:"tongues/气滞.png" },
-    xing:{ mangci:"tongues/芒刺舌.png", suoduan:"tongues/缩短舌.png" }
+    xing:{ lao:"tongues/tongue-06.png", nen:"tongues/tongue-07.png", pangda:"tongues/tongue-08.png", shoubao:"tongues/tongue-09.png", liewen:"tongues/tongue-10.png", qiangying:"tongues/tongue-19.png", weiruan:"tongues/tongue-20.png", mangci:"tongues/芒刺舌.png", suoduan:"tongues/缩短舌.png" }
   };
   var DZ_ORGAN_IMG="tongues/舌面对应脏腑.jpg";  // 舌面分区与脏腑对应全息图（qu 步骤参考）
   function toggleDzPhoto(v){ showDzPhoto=!!v; dzRenderCurrent(); }
@@ -1518,7 +1516,7 @@
     var html="";
     if(dzStep==="qu" && showDzPhoto){
       var oi=escapeAttr(DZ_ORGAN_IMG);
-      html+='<div class="dz-organ-img"><img src="'+oi+'" alt="舌面对应脏腑全息图" loading="lazy" title="点击放大" onclick="openTongueBig(\''+oi+'\',\'舌面对应脏腑全息图\')" onerror="this.parentNode.outerHTML=\'<div class=&quot;dz-photo-none&quot;>图未找到：'+oi+'</div>\'"><div class="dz-organ-cap">舌面分区与脏腑对应全息图（参考图谱，点击放大）</div></div>';
+      html+='<div class="dz-organ-img"><img src="'+oi+'" alt="舌面对应脏腑全息图" loading="lazy" onerror="this.parentNode.outerHTML=\'<div class=&quot;dz-photo-none&quot;>图未找到：'+oi+'</div>\'"><div class="dz-organ-cap">舌面分区与脏腑对应全息图（参考图谱）</div></div>';
     }
     keys.forEach(function(k){
       var r=TONGUE_REGIONS.filter(function(x){return x.key===k;})[0]; if(!r) return;
@@ -1583,7 +1581,7 @@
         var p=DZ_PHOTO_MAP[key]?DZ_PHOTO_MAP[key][o.key]:null;
         if(p){
           var sp=escapeAttr(p), sn=escapeAttr(o.label);
-          html+='<img class="dz-photo" src="'+sp+'" alt="'+escapeHtml(o.label)+' 参考图" loading="lazy" title="点击放大" onclick="event.stopPropagation();openTongueBig(\''+sp+'\',\''+sn+'\')" onerror="this.outerHTML=\'<div class=&quot;dz-photo-none&quot;>图未找到：'+sp+'</div>\'">';
+          html+='<img class="dz-photo" src="'+sp+'" alt="'+escapeHtml(o.label)+' 参考图" loading="lazy" onerror="this.outerHTML=\'<div class=&quot;dz-photo-none&quot;>图未找到：'+sp+'</div>\'">';
         } else {
           html+='<div class="dz-photo-none">暂无对应图谱</div>';
         }
