@@ -163,6 +163,19 @@
   .dz-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px dashed var(--line);}
   .dz-actions .count{font-size:12px;color:var(--muted);}
   .dz-links{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);}
+  /* 五步切换器 + 单选项卡片 */
+  .dz-steps{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 12px;}
+  .dz-step-btn{padding:7px 15px;border-radius:18px;background:#fff;border:1px solid var(--line);font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s;white-space:nowrap;}
+  .dz-step-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .dz-step-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:var(--shadow);}
+  .dz-step-btn .dz-step-sub{font-size:10.5px;font-weight:400;opacity:.8;margin-left:4px;}
+  .dz-pickbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px;}
+  .dz-opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px;}
+  .dz-optcard{border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;background:#fff;transition:.15s;font-size:13.5px;line-height:1.45;}
+  .dz-optcard:hover{border-color:var(--accent);}
+  .dz-optcard.sel{background:var(--accent-soft);border-color:var(--accent);box-shadow:var(--shadow);font-weight:600;}
+  .dz-optcard .dz-oc-note{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.45;}
+  .dz-optcard .dz-oc-tags{font-size:10.5px;color:#6a86b8;margin-top:4px;}
   .dz-detail{display:flex;flex-direction:column;gap:12px;min-height:120px;}
   .dz-empty{color:var(--muted);font-size:13px;background:#fff;border:1px dashed var(--line);border-radius:10px;padding:24px;text-align:center;}
   .dz-region{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);}
@@ -464,27 +477,33 @@
   <!-- 舌诊辨证（舌脉合参） -->
   <!-- 分布舌诊（舌面分区定位脏腑·交互） -->
   <section id="tab-tongue" style="display:none;">
-    <div class="hint" style="margin-bottom:10px;">👅 <b>分布舌诊</b>：按舌面分区定位脏腑——点选你观察到的<b>区域</b>（舌尖→心肺、舌中→脾胃、舌根→肾、舌边→肝胆），并勾选该区的<b>特征</b>，右侧即时显示脏腑定位与具体病情；点「推荐配方」按所选舌象特征匹配精油配方。<b>去掉了脉象，更直观</b>。</div>
+    <div class="hint" style="margin-bottom:10px;">👅 <b>分步舌诊辨证</b>：按中医辨证顺序——<b>①望舌质（舌色）→②望舌苔（苔色苔质）→③望舌下脉络→④望舌面分区（脏腑定位）→⑤望舌态（形态动态）</b>。顶部可切换步骤，每步把你<b>实际看到的</b>舌象点选出来（可只选其中几步），系统累积所有步骤，最后「综合推荐配方」按全部所选舌象匹配精油配方。<b>去掉了脉象，更直观准确</b>。</div>
 
-    <div class="dz-wrap">
-      <div class="dz-map">
-        <div class="dz-mapbox" id="dzMap"></div>
-        <div class="dz-chips" id="dzChips"></div>
-        <div class="dz-tip">💡 舌边属肝胆，舌中属脾胃，舌尖属心肺，舌根属肾膀胱。点区域可多选（最多 8 个）。</div>
-        <div class="dz-actions">
-          <button class="btn" onclick="dzRecommend()">🔎 分布舌诊推荐配方</button>
-          <button class="btn ghost sm" onclick="dzClear()">清空选择</button>
-          <span id="dzCount" class="count" style="margin-left:auto"></span>
+    <div class="dz-steps" id="dzSteps"></div>
+
+    <div class="dz-pickbar">
+      <button class="btn" onclick="dzRecommend()">🔎 综合辨证推荐配方</button>
+      <button class="btn ghost sm" onclick="dzClear()">清空选择</button>
+      <span id="dzCount" class="count"></span>
+    </div>
+
+    <div id="dzQuBody">
+      <div class="dz-wrap">
+        <div class="dz-map">
+          <div class="dz-mapbox" id="dzMap"></div>
+          <div class="dz-chips" id="dzChips"></div>
+          <div class="dz-tip">💡 舌边属肝胆，舌中属脾胃，舌尖属心肺，舌根属肾膀胱。点区域可多选（最多 8 个）。</div>
+          <div class="dz-links">
+            <a class="btn ghost sm" href="tongue_teach.html" target="_blank">📖 舌诊教学</a>
+            <a class="btn ghost sm" href="tongue_wizard.html" target="_blank">🩺 分步舌诊向导</a>
+          </div>
         </div>
-        <div class="dz-links">
-          <a class="btn ghost sm" href="tongue_teach.html" target="_blank">📖 舌诊教学</a>
-          <a class="btn ghost sm" href="tongue_wizard.html" target="_blank">🩺 分步舌诊向导</a>
+        <div class="dz-detail" id="dzDetail">
+          <div class="dz-empty">← 在左侧点选舌区，这里会列出该区的脏腑定位与可观察特征；选中特征即显示具体病情。</div>
         </div>
-      </div>
-      <div class="dz-detail" id="dzDetail">
-        <div class="dz-empty">← 在左侧点选舌区，这里会列出该区的脏腑定位与可观察特征；选中特征即显示具体病情。</div>
       </div>
     </div>
+    <div id="dzPickBody" style="display:none;"></div>
 
     <div class="pulse-summary" id="dzSummary" style="display:none;"></div>
     <div id="dzResults"></div>
@@ -1386,6 +1405,50 @@
   var dzSel={};   // 区域 key -> true（可多选）
   var dzObs={};   // 区域 key -> 该区选中的 observation key（单区单选）
 
+  // 五步辨证步骤定义：qi/tai/mai/xing 自带 tags；qu 复用 TONGUE_REGIONS（舌面分区）
+  var TONGUE_STEPS=[
+    {key:"qi",   title:"① 望舌质 · 舌体颜色", short:"望舌质", desc:"先看舌体本身的颜色，反映气血阴阳盛衰（淡白→淡红→红→绛→青紫）。正常 = 淡红舌。",
+      options:[
+        {key:"danbai",   label:"淡白舌",        tags:["淡白","虚寒","阳虚","血虚","虚","寒"]},
+        {key:"dan_hong", label:"淡红舌（正常）", normal:true, tags:["正常","淡红","健康"]},
+        {key:"hong",     label:"红舌",          tags:["红","实热","热","里热"]},
+        {key:"jiang",    label:"绛舌",          tags:["绛","热盛","营血热","阴虚火旺"]},
+        {key:"qingzi",   label:"青紫舌",        tags:["青紫","血瘀","寒凝血瘀","气滞"]}
+      ]},
+    {key:"tai",  title:"② 望舌苔 · 苔色苔质", short:"望舌苔", desc:"看舌面苔的颜色、厚薄、润燥与质地。正常 = 薄白苔。",
+      options:[
+        {key:"normal", label:"薄白苔（正常）", normal:true, tags:["正常","薄白","胃气","健康"]},
+        {key:"hou",    label:"厚苔",          tags:["厚","厚腻","积食","痰湿"]},
+        {key:"zao",    label:"燥苔",          tags:["燥","伤津","阴虚","口干"]},
+        {key:"huang",  label:"黄苔",          tags:["黄苔","苔黄","热","湿热"]},
+        {key:"huihei", label:"灰黑苔",        tags:["灰黑","热极","寒极"]},
+        {key:"ni",     label:"腻苔",          tags:["腻","厚腻","痰湿","湿"]},
+        {key:"bo",     label:"剥苔（花剥）",   tags:["剥苔","少苔","阴虚","胃阴不足"]}
+      ]},
+    {key:"mai",  title:"③ 望舌下脉络", short:"舌下脉络", desc:"翘起舌尖，观察舌下两条青筋的形色，判断瘀血、气滞。",
+      options:[
+        {key:"normal", label:"正常脉络", normal:true, tags:["正常"]},
+        {key:"xueyu",  label:"瘀血",     tags:["血瘀","青紫","瘀斑","刺痛","经闭"]},
+        {key:"qizhi",  label:"气滞",     tags:["气滞","肝郁","胀闷"]}
+      ]},
+    {key:"qu",   title:"④ 望舌面分区 · 脏腑定位", short:"舌面分区", desc:"8 大区可多选；每区选 1 个特征，右侧显示病情。", qu:true},
+    {key:"xing", title:"⑤ 望形态动态", short:"舌态", desc:"看舌体形态与动态，反映邪正虚实、动静。正常 = 大小适中、柔软灵活。",
+      options:[
+        {key:"normal",  label:"正常舌形",     normal:true, tags:["正常"]},
+        {key:"lao",     label:"老舌",        tags:["老舌","实热","邪盛"]},
+        {key:"nen",     label:"嫩舌",        tags:["嫩舌","虚","阳虚"]},
+        {key:"pangda",  label:"胖大齿痕舌",   tags:["胖大","齿痕","痰湿","脾虚","虚"]},
+        {key:"shoubao", label:"瘦薄舌",      tags:["瘦薄","血虚","阴虚"]},
+        {key:"liewen",  label:"裂纹舌",      tags:["裂纹","阴虚","伤津"]},
+        {key:"mangci",  label:"芒刺舌",      tags:["热盛","心火","胃热","芒刺","红"]},
+        {key:"qiangying",label:"强硬舌",     tags:["强硬","热闭","风动"]},
+        {key:"weiruan", label:"痿软舌",      tags:["痿软","阴虚","气血两虚"]},
+        {key:"suoduan", label:"缩短舌",      tags:["缩短","紧缩","重症","痿软","虚","实"]}
+      ]}
+  ];
+  var dzPick={qi:null, tai:null, mai:null, xing:null};  // 各步骤单选（qu 用 dzSel/dzObs）
+  var dzStep="qu";  // 当前步骤（默认舌面分区，保持用户现有视图）
+
   function dzSvg(){
     var s='<svg viewBox="0 0 280 240">';
     s+='<ellipse cx="140" cy="120" rx="100" ry="100" fill="#f3d8d4" stroke="#d9a7a0" stroke-width="2"/>';
@@ -1451,6 +1514,68 @@
     });
     box.innerHTML=html;
   }
+  function dzRenderSteps(){
+    var box=document.getElementById("dzSteps"); if(!box) return;
+    box.innerHTML="";
+    TONGUE_STEPS.forEach(function(s){
+      var el=document.createElement("button");
+      el.className="dz-step-btn"+(dzStep===s.key?" active":"");
+      el.innerHTML=escapeHtml(s.short)+(s.qu?'<span class="dz-step-sub">脏腑定位</span>':'');
+      el.onclick=function(){ dzSwitchStep(s.key); };
+      box.appendChild(el);
+    });
+  }
+  function dzSwitchStep(key){
+    dzStep=key;
+    dzRenderSteps();
+    var quBody=document.getElementById("dzQuBody");
+    var pickBody=document.getElementById("dzPickBody");
+    if(key==="qu"){
+      if(quBody) quBody.style.display="block";
+      if(pickBody) pickBody.style.display="none";
+      dzRenderMap(); dzRenderDetail();
+    } else {
+      if(quBody) quBody.style.display="none";
+      if(pickBody) pickBody.style.display="block";
+      dzRenderPick(key);
+    }
+  }
+  function dzRenderPick(key){
+    var box=document.getElementById("dzPickBody"); if(!box) return;
+    var step=TONGUE_STEPS.filter(function(s){return s.key===key;})[0]; if(!step) return;
+    var selKey=dzPick[key];
+    var html='<div class="hint" style="margin-bottom:8px;">'+escapeHtml(step.title)+' — '+escapeHtml(step.desc)+'（单选，再点取消）</div>';
+    html+='<div class="dz-opts">';
+    step.options.forEach(function(o){
+      var sel=selKey===o.key;
+      html+='<div class="dz-optcard'+(sel?" sel":"")+'" onclick="dzSelectPick(\''+key+'\',\''+o.key+'\')">'+
+            '<div>'+escapeHtml(o.label)+(o.normal?' <span class="dz-oc-tags">（正常）</span>':'')+'</div>';
+      if(o.tags&&o.tags.length) html+='<div class="dz-oc-tags">'+escapeHtml(o.tags.join("、"))+'</div>';
+      html+='</div>';
+    });
+    html+='</div>';
+    box.innerHTML=html;
+  }
+  function dzSelectPick(stepKey, optKey){
+    if(dzPick[stepKey]===optKey) delete dzPick[stepKey];
+    else dzPick[stepKey]=optKey;
+    dzRenderPick(stepKey);
+  }
+  function dzCollectAllTags(){
+    var toks=[];
+    TONGUE_STEPS.forEach(function(s){
+      if(s.key==="qu") return;
+      var k=dzPick[s.key]; if(!k) return;
+      var o=s.options.filter(function(x){return x.key===k;})[0]; if(!o) return;
+      (o.tags||[]).forEach(function(t){ if(toks.indexOf(t)<0) toks.push(t); });
+    });
+    Object.keys(dzObs).forEach(function(rk){
+      var r=TONGUE_REGIONS.filter(function(x){return x.key===rk;})[0]; if(!r) return;
+      var o=r.observations.filter(function(x){return x.key===dzObs[rk];})[0]; if(!o) return;
+      (o.tags||[]).forEach(function(t){ if(toks.indexOf(t)<0) toks.push(t); });
+    });
+    return toks;
+  }
   function dzCollectTags(){
     var toks=[];
     Object.keys(dzObs).forEach(function(rk){
@@ -1465,31 +1590,40 @@
     var resultsEl=document.getElementById("dzResults");
     var countEl=document.getElementById("dzCount");
     if(!summaryEl||!resultsEl) return;
-    var toks=dzCollectTags();
-    if(!Object.keys(dzObs).length){
+    var toks=dzCollectAllTags();
+    var anyPick=dzPick.qi||dzPick.tai||dzPick.mai||dzPick.xing;
+    if(!anyPick && !Object.keys(dzObs).length){
       summaryEl.style.display="block";
-      summaryEl.innerHTML='<span class="hint">⚠ 请先点选左侧舌区，并在右侧勾选至少 1 个<b>特征</b>（如「舌质红」「舌形凹陷」），再点「推荐配方」。</span>';
+      summaryEl.innerHTML='<span class="hint">⚠ 请先按步骤点选舌象：顶部切换「望舌质 / 望舌苔 / 舌下脉络 / 舌面分区 / 舌态」，选择你实际看到的舌象（可只选部分步骤），再点「综合推荐配方」。</span>';
       resultsEl.innerHTML=""; if(countEl) countEl.textContent=""; return;
     }
     var picked=[];
+    TONGUE_STEPS.forEach(function(s){
+      if(s.key==="qu") return;
+      var k=dzPick[s.key]; if(!k) return;
+      var o=s.options.filter(function(x){return x.key===k;})[0]; if(!o) return;
+      picked.push(s.short+" → "+o.label);
+    });
     Object.keys(dzObs).forEach(function(rk){
       var r=TONGUE_REGIONS.filter(function(x){return x.key===rk;})[0]; if(!r) return;
       var o=r.observations.filter(function(x){return x.key===dzObs[rk];})[0]; if(!o) return;
-      picked.push(r.label+" → "+o.disease);
+      picked.push("舌面·"+r.label+" → "+o.disease);
     });
     summaryEl.style.display="block";
-    summaryEl.innerHTML='<b>所选舌区特征：</b>'+picked.join("； ")+'<br><b>推断可能涉及：</b>'+toks.join("、")+'<br><span class="hint">（下方按所选舌象特征 tags 匹配精油配方，按综合相关度排序）</span>';
+    summaryEl.innerHTML='<b>所选舌象：</b>'+picked.join("； ")+'<br><b>推断可能涉及：</b>'+toks.join("、")+'<br><span class="hint">（下方按全部所选舌象 tags 匹配精油配方，按综合相关度排序）</span>';
     var scored=db.formulas.map(function(f){ return {f:f, s:scoreFormula(f, toks)}; })
       .filter(function(x){ return x.s>0; })
       .sort(function(a,b){ return b.s-a.s; });
     resultsEl.innerHTML="";
-    if(!scored.length){ resultsEl.innerHTML='<div class="empty">没有命中所选舌象特征的配方，可调整所选区域/特征，或到「我的库」补充。</div>'; if(countEl) countEl.textContent=""; return; }
+    if(!scored.length){ resultsEl.innerHTML='<div class="empty">没有命中所选舌象特征的配方，可调整所选步骤/特征，或到「我的库」补充。</div>'; if(countEl) countEl.textContent=""; return; }
     if(countEl) countEl.textContent="共推荐 "+scored.length+" 条配方（显示前 12 条）";
     scored.slice(0,12).forEach(function(x){ resultsEl.appendChild(makeResultCard(x.f, toks)); });
   }
   function dzClear(){
     dzSel={}; dzObs={};
-    dzRenderMap(); dzRenderDetail();
+    dzPick={qi:null, tai:null, mai:null, xing:null};
+    dzRenderMap(); dzRenderDetail(); dzRenderSteps();
+    if(dzStep!=="qu") dzRenderPick(dzStep);
     var s=document.getElementById("dzSummary"), r=document.getElementById("dzResults"), c=document.getElementById("dzCount");
     if(s) s.style.display="none";
     if(r) r.innerHTML="";
@@ -1497,6 +1631,9 @@
   }
   window.dzRecommend=dzRecommend; window.dzClear=dzClear; window.dzRenderMap=dzRenderMap;
   window.dzToggleRegion=dzToggleRegion; window.dzToggleObs=dzToggleObs;
+  window.dzRenderSteps=dzRenderSteps; window.dzSwitchStep=dzSwitchStep;
+  window.dzRenderPick=dzRenderPick; window.dzSelectPick=dzSelectPick;
+  window.dzCollectAllTags=dzCollectAllTags; window.dzCollectTags=dzCollectTags;
 
   // 三诊合参：症状(上方框) + 脉象(左右手) + 舌象(可多选) 三者共同出方（AND 命中）
   function renderCombinedRecommend(summaryEl, resultsEl, countEl){
@@ -1821,7 +1958,7 @@
       if(tab==="hydro") renderHydro();
       if(tab==="lib") renderLib();
       if(tab==="pulse") renderPulse();
-      if(tab==="tongue"){ dzRenderMap(); renderTongueGroups(); renderPulseGrids(); renderPulseSites(); }
+      if(tab==="tongue"){ dzRenderSteps(); dzRenderMap(); dzRenderDetail(); renderTongueGroups(); renderPulseGrids(); renderPulseSites(); }
       if(tab==="dose") renderDose();
     };
   });
