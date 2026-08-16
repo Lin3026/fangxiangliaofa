@@ -204,6 +204,36 @@
   .dz-region .dr-clear:hover{color:var(--accent);border-color:var(--accent);}
   .dz-actions{margin:8px 0 4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 
+  /* 体质辨证模块（王琦九种体质） */
+  .tizhi-wrap{display:grid;grid-template-columns:330px 1fr;gap:16px;align-items:start;margin:6px 0 4px;}
+  @media(max-width:760px){.tizhi-wrap{grid-template-columns:1fr}}
+  .tizhi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;}
+  .tizhi-card{border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;background:#fff;transition:.15s;text-align:left;font-family:inherit;color:inherit;}
+  .tizhi-card:hover{border-color:var(--accent);}
+  .tizhi-card.sel{background:var(--accent-soft);border-color:var(--accent);box-shadow:var(--shadow);}
+  .tizhi-card .tc-icon{font-size:20px;line-height:1;}
+  .tizhi-card h4{margin:3px 0 3px;font-size:14px;display:flex;align-items:center;gap:6px;}
+  .tizhi-card .tc-short{font-size:11px;color:var(--muted);}
+  .tizhi-card .tc-des{font-size:11px;color:#48615a;margin-top:4px;line-height:1.45;}
+  .tizhi-detail{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);min-height:200px;}
+  .tizhi-detail h3{margin:0 0 6px;font-size:17px;}
+  .tizhi-fields{display:grid;grid-template-columns:auto 1fr;gap:5px 10px;margin:8px 0;font-size:12.5px;}
+  .tizhi-fields dt{font-weight:700;color:var(--accent);white-space:nowrap;}
+  .tizhi-fields dd{margin:0;color:var(--ink);line-height:1.55;}
+  .tizhi-sub{font-weight:700;font-size:13px;color:var(--accent);margin:14px 0 6px;border-top:1px dashed var(--line);padding-top:10px;}
+  .tizhi-oils{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 2px;}
+  .tizhi-oil{background:#eef4f1;border:1px solid var(--line);border-radius:6px;padding:3px 8px;font-size:12px;}
+  .tizhi-oil b{color:#22325a;}
+  .tizhi-blend{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:8px 0;background:#fbfdff;}
+  .tizhi-blend h4{margin:0 0 4px;font-size:13.5px;color:var(--ink);}
+  .tizhi-blend .tb-carrier{font-size:11.5px;color:var(--muted);margin-bottom:4px;}
+  .tizhi-blend .tb-drops{font-size:12px;color:#22325a;line-height:1.7;}
+  .tizhi-blend .tb-effect{font-size:12px;color:#48615a;margin-top:5px;background:#f3f8f4;border-radius:6px;padding:4px 8px;line-height:1.5;}
+  .tizhi-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+  .tizhi-empty{color:var(--muted);font-size:13px;text-align:center;padding:40px 10px;border:1px dashed var(--line);border-radius:10px;line-height:1.6;}
+  .tizhi-selbar{font-size:12px;color:var(--muted);}
+  .tizhi-selbar b{color:var(--accent);}
+
   /* 精油剂量计算器 */
   .dose-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:10px 0;}
   .quick-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
@@ -289,6 +319,7 @@
     <div class="tab" data-tab="dose">💊 剂量计算</div>
     <div class="tab" data-tab="pulse">💓 脉诊辨证</div>
     <div class="tab" data-tab="tongue">👅 舌诊辨证</div>
+    <div class="tab" data-tab="tizhi">🌿 体质辨证</div>
     <div class="tab" data-tab="oils">🧪 精油档案</div>
     <div class="tab" data-tab="hydro">💧 纯露档案</div>
     <div class="tab" data-tab="lib">📚 我的库</div>
@@ -304,6 +335,19 @@
     <div class="syschips" id="syschips"></div>
     <div class="hint" style="margin:-8px 0 10px;">快捷症状（按所选系统筛选，点击填入搜索）：</div>
     <div class="cloud" id="cloud"></div>
+
+    <!-- 第零步：选体质（与下方四诊合参联动） -->
+    <div class="card" style="background:#f3f0ff;border-color:#c9b8ff;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+        <strong style="color:#6b4fcf">🌿 第零步：选体质（王琦九种体质，可多选）</strong>
+        <span class="hint" style="margin:0">在『智能配方』正式辨证前，先确定你的<b>中医体质</b>（可多选，兼夹体质一般 2 种）。选好后与症状、脉象、舌象一并进入下方「四诊合参」出方。<b>未选体质则不参与筛选</b>。</span>
+      </div>
+      <div class="tizhi-grid" id="searchTizhiGrid" style="margin-top:10px;"></div>
+      <div class="toolbar" style="margin-top:8px;align-items:center;">
+        <span class="tizhi-selbar" id="searchTizhiSel">已选 0 种体质</span>
+        <button class="btn ghost sm" onclick="clearTizhiSelection()">清空体质选择</button>
+      </div>
+    </div>
 
     <!-- 选脉象（与下方三诊合参联动） -->
     <div class="card" style="background:var(--accent-soft);border-color:#bfe3d4;">
@@ -361,8 +405,8 @@
     <!-- 三诊合参：症状 + 脉象 + 舌象 一次性出方 -->
     <div class="card" style="background:#eef6ff;border-color:#9cc8ff;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
-        <strong style="color:#2266cc">🔬 三诊合参：症状 + 脉象 + 舌象 → 智能出配方</strong>
-        <span class="hint" style="margin:0">已在上方填症状/证型、选好左右手脉象、勾选舌象后，点下方按钮一次性综合推荐。<b>三者需同时命中配方</b>（症状＋脉象＋舌象均相关，按综合相关度排序）。</span>
+        <strong style="color:#2266cc">🔬 四诊合参：体质(第零步) + 症状 + 脉象 + 舌象 → 智能出配方</strong>
+        <span class="hint" style="margin:0">已在上方填症状/证型、选好<b>第零步体质</b>、左右手脉象、勾选舌象后，点下方按钮一次性综合推荐。<b>体质为可选</b>：若已选体质，则配方需<b>同时</b>命中体质＋症状＋脉象＋舌象；未选体质则按症状＋脉象＋舌象推荐。</span>
       </div>
       <div class="toolbar">
         <button class="btn" onclick="runSearchCombined()">🔎 三诊合参推荐配方</button>
@@ -572,6 +616,20 @@
 
     <div class="pulse-summary" id="dzSummary" style="display:none;"></div>
     <div id="dzResults"></div>
+  </section>
+
+  <!-- 体质辨证（王琦九种体质） -->
+  <section id="tab-tizhi" style="display:none;">
+    <div class="hint" style="margin-bottom:8px;">🌿 <b>体质辨证</b>：基于王琦九种中医体质。点选下方体质卡片（可多选，中医常言「兼夹体质」，一般 2 种）查看其特征、推荐单方精油与复方按摩油；勾选后会在『智能配方』第零步同步，并联动「四诊合参」出方。外部项目可调用 <code>AROMA_tizhiRecommend(['平和质','气虚质'])</code> 取得推荐配方。</div>
+    <div class="tizhi-wrap">
+      <div>
+        <div class="tizhi-grid" id="tizhiGrid"></div>
+        <div class="tizhi-selbar" id="tizhiSel" style="margin-top:10px;"></div>
+      </div>
+      <div class="tizhi-detail" id="tizhiDetail">
+        <div class="tizhi-empty">← 在左侧点选体质卡片，这里展示该体质的总体特征、形体/心理特征、发病倾向、常见表现，以及推荐单方精油与复方按摩油配方。</div>
+      </div>
+    </div>
   </section>
   </div>
 
@@ -1943,6 +2001,8 @@
     var ptoks=pulseTokens();
     var tnames=szCollectAllNames();
     var ttoks=szCollectAllTags();
+    var tizhiNamesList=tizhiNames();
+    var tizhiToks=tizhiTokens();
     // 三者缺一不可
     if(!q){
       summaryEl.style.display="block";
@@ -1968,27 +2028,29 @@
     var pZhu=pulseNames.map(function(k){ return (selectedLeft[k]||selectedRight[k]).zhubing||k; });
     var tZhu=szCollectAllDiseases();
     summaryEl.style.display="block";
-    summaryEl.innerHTML='<b>症状/证型：</b>'+escapeHtml(q)+'<br><b>所选脉象：</b>'+pulseNames.join("、")+handNote+'<br><b>所选舌象：</b>'+tnames.join("、")+'<br><b>推断可能涉及：</b>'+(pZhu.concat(tZhu)).join("；")+'<br><span class="hint">（下方配方需<b>同时</b>命中「症状 + 脉象 + 舌象」三类关键词，按综合相关度排序）</span>';
-    var toks=symToks.concat(ptoks).concat(ttoks);
+    summaryEl.innerHTML='<b>症状/证型：</b>'+escapeHtml(q)+'<br><b>所选体质：</b>'+tizhiNamesList.join("、")+'<br><b>所选脉象：</b>'+pulseNames.join("、")+handNote+'<br><b>所选舌象：</b>'+tnames.join("、")+'<br><b>推断可能涉及：</b>'+(pZhu.concat(tZhu)).join("；")+'<br><span class="hint">（下方配方需<b>同时</b>命中「'+(tizhiNamesList.length?'体质 + ':'')+'症状 + 脉象 + 舌象」'+(tizhiNamesList.length?'四类':'三类')+'关键词'+(tizhiNamesList.length?'':'；未选体质时仅按症状+脉象+舌象')+'，按综合相关度排序）</span>';
+    var toks=symToks.concat(ptoks).concat(ttoks).concat(tizhiToks);
     var scored=db.formulas.map(function(f){
       var sSym=scoreFormula(f, symToks);
       var sPulse=scoreFormula(f, ptoks);
       var sT=scoreFormula(f, ttoks);
-      return {f:f, sSym:sSym, sPulse:sPulse, sT:sT, s:sSym+sPulse+sT};
-    }).filter(function(x){ return x.sSym>0 && x.sPulse>0 && x.sT>0; })
+      var sTz=scoreFormula(f, tizhiToks);
+      return {f:f, sSym:sSym, sPulse:sPulse, sT:sT, sTz:sTz, s:sSym+sPulse+sT+sTz};
+    }).filter(function(x){ return x.sSym>0 && x.sPulse>0 && x.sT>0 && (tizhiToks.length? x.sTz>0 : true); })
       .sort(function(a,b){ return b.s-a.s; });
     resultsEl.innerHTML="";
     if(!scored.length){
       resultsEl.innerHTML='<div class="empty">没有同时命中「症状 + 脉象 + 舌象」三者的配方。可尝试：①放宽症状词（如用「失眠」而非「入睡困难」）；②减少舌象/脉象种类，保留主证；③到「我的库」补充对应配方。</div>';
       countEl.textContent=""; return;
     }
-    countEl.textContent="共推荐 "+scored.length+" 条配方（症状+脉象+舌象三者同中，显示前 12 条）";
+    countEl.textContent="共推荐 "+scored.length+" 条配方（"+(tizhiNamesList.length?"体质+":"")+"症状+脉象+舌象同中，显示前 12 条）";
     scored.slice(0,12).forEach(function(x){ resultsEl.appendChild(makeResultCard(x.f,toks)); });
   }
   function runSearchCombined(){ renderCombinedRecommend(document.getElementById("searchCombinedSummary"), document.getElementById("searchCombinedResults"), document.getElementById("searchCombinedCount")); }
   window.runSearchCombined=runSearchCombined;
   function clearDiagnosis(){
     selectedLeft={}; selectedRight={}; renderPulseGrids();
+    selectedTizhi.clear(); renderTizhiGrids();
     szClear();
     ["searchCombinedSummary","searchCombinedResults","searchCombinedCount"].forEach(function(id){
       var el=document.getElementById(id); if(!el) return;
@@ -1998,6 +2060,90 @@
     });
   }
   window.clearDiagnosis=clearDiagnosis;
+  // ===== 体质辨证（王琦九种体质） =====
+  var selectedTizhi=new Set();
+  function tizhiAll(){ return (db.constitutions||[]).slice().sort(function(a,b){return a.order-b.order;}); }
+  function tizhiById(id){ return (db.constitutions||[]).find(function(c){return c.id===id;}); }
+  function tizhiByAny(n){ if(!n) return null; n=(""+n).trim(); return (db.constitutions||[]).find(function(c){return c.id===n||c.name===n;})||null; }
+  function tizhiNames(){ return Array.from(selectedTizhi).map(function(id){ var c=tizhiById(id); return c?c.name:id; }); }
+  function tizhiTokens(){
+    var toks=[];
+    selectedTizhi.forEach(function(id){ var c=tizhiById(id); if(c)(c.tags||[]).forEach(function(t){ if(toks.indexOf(t)<0) toks.push(t); }); });
+    return toks;
+  }
+  function renderTizhiCards(target){
+    if(!target) return;
+    target.innerHTML="";
+    tizhiAll().forEach(function(c){
+      var el=document.createElement("button");
+      el.type="button";
+      el.className="tizhi-card"+(selectedTizhi.has(c.id)?" sel":"");
+      el.innerHTML='<div class="tc-icon">'+c.icon+'</div><h4>'+escapeHtml(c.name)+'</h4><div class="tc-short">'+escapeHtml(c.short)+'</div><div class="tc-des">'+escapeHtml(c.descShort)+'</div>';
+      el.onclick=function(){ toggleTizhi(c.id, target.id==="tizhiGrid"); };
+      target.appendChild(el);
+    });
+  }
+  function renderTizhiGrids(){ renderTizhiCards(document.getElementById("tizhiGrid")); renderTizhiCards(document.getElementById("searchTizhiGrid")); updateTizhiSelbar(); }
+  function toggleTizhi(id, showDetail){
+    if(selectedTizhi.has(id)) selectedTizhi.delete(id); else selectedTizhi.add(id);
+    renderTizhiGrids();
+    if(showDetail) renderTizhiDetail(id);
+  }
+  function updateTizhiSelbar(){
+    var n=selectedTizhi.size, names=tizhiNames().join("、");
+    var a=document.getElementById("tizhiSel"); if(a) a.innerHTML = n? ('已选 <b>'+n+'</b> 种体质：'+escapeHtml(names)) : '尚未选择体质（可多选）';
+    var b=document.getElementById("searchTizhiSel"); if(b) b.textContent = '已选 '+n+' 种体质'+(n?('：'+names):'');
+  }
+  function renderTizhiDetail(id){
+    var c=tizhiById(id), box=document.getElementById("tizhiDetail");
+    if(!box) return;
+    if(!c){ box.innerHTML='<div class="tizhi-empty">← 在左侧点选体质卡片，这里展示该体质的总体特征、形体/心理特征、发病倾向、常见表现，以及推荐单方精油与复方按摩油配方。</div>'; return; }
+    var fields=[["总体特征",c.overall],["形体特征",c.xingti],["心理特征",c.xinli],["发病倾向",c.fabing],["适应能力",c.shiying],["常见表现",c.biaoxian]];
+    var fl=fields.map(function(p){return '<dt>'+escapeHtml(p[0])+'</dt><dd>'+escapeHtml(p[1]||"")+'</dd>';}).join("");
+    var singles=(c.singleOils||[]).map(function(o){return '<span class="tizhi-oil"><b>'+escapeHtml(o.name)+'</b> '+escapeHtml(o.note||"")+'</span>';}).join("");
+    var blends=(c.compound||[]).map(function(cp){
+      var drops=(cp.blend||[]).map(function(b){return escapeHtml(b.oil)+' '+b.drops+'滴';}).join(' ＋ ');
+      return '<div class="tizhi-blend"><h4>'+escapeHtml(cp.name||"复方按摩油")+'</h4>'+
+        '<div class="tb-carrier">基底油：'+escapeHtml(cp.carrier||"")+'</div>'+
+        '<div class="tb-drops">'+drops+'</div>'+
+        (cp.effect?'<div class="tb-effect">功效：'+escapeHtml(cp.effect)+'</div>':'')+'</div>';
+    }).join("");
+    box.innerHTML=
+      '<h3>'+c.icon+' '+escapeHtml(c.name)+' <span class="hint">('+escapeHtml(c.short)+')</span></h3>'+
+      '<div class="tizhi-fields">'+fl+'</div>'+
+      '<div class="tizhi-sub">推荐单方精油（芳香调理）</div>'+
+      '<div class="tizhi-oils">'+singles+'</div>'+
+      '<div class="tizhi-sub">复方按摩油配方</div>'+ blends+
+      '<div class="tizhi-actions">'+
+        '<button class="btn sm" onclick="tizhiAddToSearch(\''+c.id+'\')">＋ 加入症状搜索框</button>'+
+        '<button class="btn sm ghost" onclick="tizhiLinkCombined(\''+c.id+'\')">🔗 联动四诊合参</button>'+
+        '<button class="btn sm ghost" onclick="tizhiClearOne(\''+c.id+'\')">取消选择</button>'+
+      '</div>';
+  }
+  function tizhiAddToSearch(id){
+    var c=tizhiById(id); if(!c) return;
+    var inp=document.getElementById("q"), v=(inp.value||"").trim();
+    var add=c.name+" "+(c.tags||[]).slice(0,3).join(" ");
+    inp.value=v? (v+" "+add) : add;
+    goTab("search"); runSearch();
+  }
+  function tizhiLinkCombined(id){
+    if(!selectedTizhi.has(id)){ selectedTizhi.add(id); renderTizhiGrids(); }
+    goTab("search"); runSearchCombined();
+  }
+  function tizhiClearOne(id){ if(selectedTizhi.has(id)) selectedTizhi.delete(id); renderTizhiGrids(); if(document.getElementById("tizhiGrid")) renderTizhiDetail(id); }
+  function clearTizhiSelection(){ selectedTizhi.clear(); renderTizhiGrids(); }
+  window.tizhiAddToSearch=tizhiAddToSearch;
+  window.tizhiLinkCombined=tizhiLinkCombined;
+  window.tizhiClearOne=tizhiClearOne;
+  window.clearTizhiSelection=clearTizhiSelection;
+  window.AROMA_tizhiRecommend=function(names){
+    var toks=[];
+    (names||[]).forEach(function(n){ var c=tizhiByAny(n); if(c)(c.tags||[]).forEach(function(t){ if(toks.indexOf(t)<0) toks.push(t); }); });
+    if(!toks.length) return [];
+    return db.formulas.map(function(f){ return {formula:f, score:scoreFormula(f,toks)}; })
+      .filter(function(x){ return x.score>0; }).sort(function(a,b){ return b.score-a.score; }).slice(0,12);
+  };
   // 供外部「把脉项目 / 舌诊项目」调用：症状文本 + 脉象名数组 + 舌象名数组，三者共同返回推荐配方
   window.AROMA_combinedRecommend=function(symptomsText, pulseNames, tongueNames){
     var pmap={}; (db.pulses||[]).forEach(function(p){ pmap[p.name]=p; });
@@ -2242,26 +2388,21 @@
   window.renderDose=renderDose;
 
   /* ---- tab 切换 ---- */
-  document.querySelectorAll(".tab").forEach(function(t){
-    t.onclick=function(){
-      document.querySelectorAll(".tab").forEach(function(x){x.classList.remove("active");});
-      t.classList.add("active");
-      var tab=t.getAttribute("data-tab");
-      document.getElementById("tab-search").style.display=tab==="search"?"block":"none";
-      document.getElementById("tab-pulse").style.display=tab==="pulse"?"block":"none";
-      document.getElementById("tab-oils").style.display=tab==="oils"?"block":"none";
-      document.getElementById("tab-hydro").style.display=tab==="hydro"?"block":"none";
-      document.getElementById("tab-lib").style.display=tab==="lib"?"block":"none";
-      document.getElementById("tab-tongue").style.display=tab==="tongue"?"block":"none";
-      document.getElementById("tab-dose").style.display=tab==="dose"?"block":"none";
-      if(tab==="oils") renderOils();
-      if(tab==="hydro") renderHydro();
-      if(tab==="lib") renderLib();
-      if(tab==="pulse") renderPulse();
-      if(tab==="tongue"){ dzRenderSteps(); dzRenderMap(); dzRenderDetail(); renderPulseGrids(); renderPulseSites(); }
-      if(tab==="dose") renderDose();
-    };
-  });
+  function goTab(tab){
+    document.querySelectorAll(".tab").forEach(function(x){ x.classList.remove("active"); if(x.getAttribute("data-tab")===tab) x.classList.add("active"); });
+    ["search","dose","pulse","tongue","tizhi","oils","hydro","lib"].forEach(function(t){
+      var el=document.getElementById("tab-"+t); if(el) el.style.display=(t===tab)?"block":"none";
+    });
+    if(tab==="oils") renderOils();
+    if(tab==="hydro") renderHydro();
+    if(tab==="lib") renderLib();
+    if(tab==="pulse") renderPulse();
+    if(tab==="tongue"){ dzRenderSteps(); dzRenderMap(); dzRenderDetail(); renderPulseGrids(); renderPulseSites(); }
+    if(tab==="dose") renderDose();
+    if(tab==="tizhi") renderTizhiGrids();
+  }
+  window.goTab=goTab;
+  document.querySelectorAll(".tab").forEach(function(t){ t.onclick=function(){ goTab(t.getAttribute("data-tab")); }; });
 
   // 点击弹窗外区域关闭
   [["modal"],["formModal"]].forEach(function(m){
@@ -2291,6 +2432,7 @@
   renderSysChips(); renderCloud(); runSearch(); renderSrcBox();
   renderPulseGrids();
   renderPulseSites();
+  renderTizhiGrids();
   szRenderSteps(); szSwitchStep("qu");
   renderDose();
   showEntryModal();   // 每次进入网站弹出须知
