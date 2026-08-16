@@ -336,48 +336,13 @@
     <div class="hint" style="margin:-8px 0 10px;">快捷症状（按所选系统筛选，点击填入搜索）：</div>
     <div class="cloud" id="cloud"></div>
 
-    <!-- 第零步：选体质（与下方四诊合参联动） -->
-    <div class="card" style="background:#f3f0ff;border-color:#c9b8ff;">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
-        <strong style="color:#6b4fcf">🌿 第零步：选体质（王琦九种体质，可多选）</strong>
-        <span class="hint" style="margin:0">在『智能配方』正式辨证前，先确定你的<b>中医体质</b>（可多选，兼夹体质一般 2 种）。选好后与症状、脉象、舌象一并进入下方「四诊合参」出方。<b>未选体质则不参与筛选</b>。</span>
-      </div>
-      <div class="tizhi-grid" id="searchTizhiGrid" style="margin-top:10px;"></div>
-      <div class="toolbar" style="margin-top:8px;align-items:center;">
-        <span class="tizhi-selbar" id="searchTizhiSel">已选 0 种体质</span>
-        <button class="btn ghost sm" onclick="clearTizhiSelection()">清空体质选择</button>
-      </div>
-    </div>
-
-    <!-- 选脉象（与下方三诊合参联动） -->
+    <!-- 第一步：选舌象（与下方四诊合参联动）· 分步辨证 -->
     <div class="card" style="background:var(--accent-soft);border-color:#bfe3d4;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
-        <strong style="color:var(--accent)">💓 第一步：选脉象（左手红框 / 右手绿框）</strong>
-        <label class="imgswitch" title="显示 / 隐藏脉象示意图"><input type="checkbox" id="pulseImgToggle" onchange="togglePulseImg(this.checked)"><span class="track"></span><span class="lbl">显示脉象图</span></label>
-        <span class="hint" style="margin:0">分左右手勾选脉象；<b>每只手仅选一种</b>（再次点同一个可取消）。<b>只选一侧即视为双手同脉</b>。选好后到下方「🔬 三诊合参」与症状、舌象一并出方。</span>
-      </div>
-      <div class="pulse-hands">
-        <div class="hand-box hand-left">
-          <div class="hand-title">✋ 左手（红框）<span class="hand-sub">寸·心(小肠)｜关·肝(胆)｜尺·肾(膀胱)</span></div>
-          <div class="pulsecards" id="searchPulseCardsL" style="margin:6px 0 0"></div>
-        </div>
-        <div class="hand-box hand-right">
-          <div class="hand-title">🤚 右手（绿框）<span class="hand-sub">寸·肺(大肠)｜关·脾(胃)｜尺·肾(命门·三焦)</span></div>
-          <div class="pulsecards" id="searchPulseCardsR" style="margin:6px 0 0"></div>
-        </div>
-      </div>
-      <div class="toolbar">
-        <button class="btn ghost sm" onclick="clearPulseSelection()">清空脉象选择</button>
-      </div>
-    </div>
-
-    <!-- 选舌象（与下方三诊合参联动）· 分步辨证 -->
-    <div class="card" style="background:var(--accent-soft);border-color:#bfe3d4;">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
-        <strong style="color:var(--accent)">👅 第二步：选舌象（分步辨证，可只选你实际看到的部分）</strong>
+        <strong style="color:var(--accent)">👅 第一步：选舌象（分步辨证，可只选你实际看到的部分）</strong>
         <label class="imgswitch" title="显示 / 隐藏各辨证步骤的舌象真实参考照片（图名已按课本截图核对）"><input type="checkbox" id="szPhotoToggle" checked onchange="toggleSzPhoto(this.checked)"><span class="track"></span><span class="lbl">显示舌象照片</span></label>
       </div>
-      <div class="hint" style="margin:4px 0 2px;">按中医辨证顺序逐步点选你<b>实际看到的</b>舌象：<b>①望舌质（舌色）→②望舌苔（苔色苔质）→③舌下脉络→④舌面分区（脏腑定位）→⑤舌态（形态动态）</b>。顶部可切换步骤，每步单选（舌面分区可多选区域、每区选一特征）。选好后到下方「🔬 三诊合参」与症状、脉象一并出方。</div>
+      <div class="hint" style="margin:4px 0 2px;">按中医辨证顺序逐步点选你<b>实际看到的</b>舌象：<b>①望舌质（舌色）→②望舌苔（苔色苔质）→③舌下脉络→④舌面分区（脏腑定位）→⑤舌态（形态动态）</b>。顶部可切换步骤，每步单选（舌面分区可多选区域、每区选一特征）。选好后到下方「🔬 四诊合参」与症状、脉象、体质一并出方。</div>
       <div class="tonguephoto-disclaimer">⚠ 舌象照片为临床参考图谱（已按课本截图核对图名），<b>非诊断依据</b>；辨证请结合全身症状，由执业中医师面诊为准。</div>
 
       <div class="dz-steps" id="szSteps"></div>
@@ -402,15 +367,50 @@
       </div>
     </div>
 
-    <!-- 三诊合参：症状 + 脉象 + 舌象 一次性出方 -->
-    <div class="card" style="background:#eef6ff;border-color:#9cc8ff;">
+    <!-- 第二步：选脉象（与下方四诊合参联动） -->
+    <div class="card" style="background:var(--accent-soft);border-color:#bfe3d4;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
-        <strong style="color:#2266cc">🔬 四诊合参：体质(第零步) + 症状 + 脉象 + 舌象 → 智能出配方</strong>
-        <span class="hint" style="margin:0">已在上方填症状/证型、选好<b>第零步体质</b>、左右手脉象、勾选舌象后，点下方按钮一次性综合推荐。<b>体质为可选</b>：若已选体质，则配方需<b>同时</b>命中体质＋症状＋脉象＋舌象；未选体质则按症状＋脉象＋舌象推荐。</span>
+        <strong style="color:var(--accent)">💓 第二步：选脉象（左手红框 / 右手绿框）</strong>
+        <label class="imgswitch" title="显示 / 隐藏脉象示意图"><input type="checkbox" id="pulseImgToggle" onchange="togglePulseImg(this.checked)"><span class="track"></span><span class="lbl">显示脉象图</span></label>
+        <span class="hint" style="margin:0">分左右手勾选脉象；<b>每只手仅选一种</b>（再次点同一个可取消）。<b>只选一侧即视为双手同脉</b>。选好后到下方「🔬 四诊合参」与症状、舌象、体质一并出方。</span>
+      </div>
+      <div class="pulse-hands">
+        <div class="hand-box hand-left">
+          <div class="hand-title">✋ 左手（红框）<span class="hand-sub">寸·心(小肠)｜关·肝(胆)｜尺·肾(膀胱)</span></div>
+          <div class="pulsecards" id="searchPulseCardsL" style="margin:6px 0 0"></div>
+        </div>
+        <div class="hand-box hand-right">
+          <div class="hand-title">🤚 右手（绿框）<span class="hand-sub">寸·肺(大肠)｜关·脾(胃)｜尺·肾(命门·三焦)</span></div>
+          <div class="pulsecards" id="searchPulseCardsR" style="margin:6px 0 0"></div>
+        </div>
       </div>
       <div class="toolbar">
-        <button class="btn" onclick="runSearchCombined()">🔎 三诊合参推荐配方</button>
-        <button class="btn ghost sm" onclick="clearDiagnosis()">清空三诊选择</button>
+        <button class="btn ghost sm" onclick="clearPulseSelection()">清空脉象选择</button>
+      </div>
+    </div>
+
+    <!-- 第三步：选体质（与下方四诊合参联动） -->
+    <div class="card" style="background:#f3f0ff;border-color:#c9b8ff;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+        <strong style="color:#6b4fcf">🌿 第三步：选体质（王琦九种体质，可多选）</strong>
+        <span class="hint" style="margin:0">完成症状、舌象、脉象后，最后确定你的<b>中医体质</b>（可多选，兼夹体质一般 2 种）。选好后与症状、舌象、脉象一并进入下方「四诊合参」出方。<b>未选体质则不参与筛选</b>。</span>
+      </div>
+      <div class="tizhi-grid" id="searchTizhiGrid" style="margin-top:10px;"></div>
+      <div class="toolbar" style="margin-top:8px;align-items:center;">
+        <span class="tizhi-selbar" id="searchTizhiSel">已选 0 种体质</span>
+        <button class="btn ghost sm" onclick="clearTizhiSelection()">清空体质选择</button>
+      </div>
+    </div>
+
+    <!-- 四诊合参：舌象 + 脉象 + 体质 + 症状 一次性出方 -->
+    <div class="card" style="background:#eef6ff;border-color:#9cc8ff;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+        <strong style="color:#2266cc">🔬 四诊合参：舌象(第一步) + 脉象(第二步) + 体质(第三步) + 症状 → 智能出配方</strong>
+        <span class="hint" style="margin:0">已在上方填症状/证型、选好<b>第一步舌象</b>、<b>第二步脉象</b>、<b>第三步体质</b>后，点下方按钮一次性综合推荐。<b>体质为可选</b>：若已选体质，则配方需<b>同时</b>命中体质＋症状＋脉象＋舌象；未选体质则按症状＋脉象＋舌象推荐。</span>
+      </div>
+      <div class="toolbar">
+        <button class="btn" onclick="runSearchCombined()">🔎 四诊合参推荐配方</button>
+        <button class="btn ghost sm" onclick="clearDiagnosis()">清空四诊选择</button>
       </div>
       <div class="pulse-summary" id="searchCombinedSummary" style="display:none;"></div>
       <div class="count" id="searchCombinedCount"></div>
@@ -620,7 +620,7 @@
 
   <!-- 体质辨证（王琦九种体质） -->
   <section id="tab-tizhi" style="display:none;">
-    <div class="hint" style="margin-bottom:8px;">🌿 <b>体质辨证</b>：基于王琦九种中医体质。点选下方体质卡片（可多选，中医常言「兼夹体质」，一般 2 种）查看其特征、推荐单方精油与复方按摩油；勾选后会在『智能配方』第零步同步，并联动「四诊合参」出方。外部项目可调用 <code>AROMA_tizhiRecommend(['平和质','气虚质'])</code> 取得推荐配方。</div>
+    <div class="hint" style="margin-bottom:8px;">🌿 <b>体质辨证</b>：基于王琦九种中医体质。点选下方体质卡片（可多选，中医常言「兼夹体质」，一般 2 种）查看其特征、推荐单方精油与复方按摩油；勾选后会在『智能配方』第三步同步，并联动「四诊合参」出方。外部项目可调用 <code>AROMA_tizhiRecommend(['平和质','气虚质'])</code> 取得推荐配方。</div>
     <div class="tizhi-wrap">
       <div>
         <div class="tizhi-grid" id="tizhiGrid"></div>
@@ -1388,7 +1388,7 @@
     var ptoks=pulseTokens();
     var tnames=selectedTongueNames();
     var ttoks=tongueTokens();
-    // 舌脉合参：症状 + 脉象 + 舌象 三者同时命中（与智能配方「三诊合参」同理）
+    // 舌脉合参：症状 + 脉象 + 舌象 三者同时命中（与智能配方「四诊合参」同理，区别在本页不含体质步骤）
     if(!q){
       summaryEl.style.display="block";
       summaryEl.innerHTML='<span class="hint">⚠ 请先在上方症状框填写症状/证型（如：失眠 焦虑、痛经、脾胃虚寒），再结合脉象与舌象「舌脉合参」。</span>';
@@ -1993,7 +1993,7 @@
   window.szCollectAllTags=szCollectAllTags; window.szCollectAllNames=szCollectAllNames;
   window.szCollectAllDiseases=szCollectAllDiseases; window.szHasSelection=szHasSelection;
 
-  // 三诊合参：症状(上方框) + 脉象(左右手) + 舌象(可多选) 三者共同出方（AND 命中）
+  // 四诊合参：症状(上方框) + 舌象(第一步) + 脉象(第二步) + 体质(第三步,可选) 共同出方（AND 命中；体质为可选）
   function renderCombinedRecommend(summaryEl, resultsEl, countEl){
     var q=document.getElementById("q").value.trim();
     var symToks=tokenize(q);
@@ -2006,7 +2006,7 @@
     // 三者缺一不可
     if(!q){
       summaryEl.style.display="block";
-      summaryEl.innerHTML='<span class="hint">⚠ 请先在上方症状框填写症状/证型（如：失眠 焦虑、痛经、脾胃虚寒），再结合脉象与舌象三诊合参。</span>';
+      summaryEl.innerHTML='<span class="hint">⚠ 请先在上方症状框填写症状/证型（如：失眠 焦虑、痛经、脾胃虚寒），再结合舌象、脉象与体质四诊合参。</span>';
       resultsEl.innerHTML=""; countEl.textContent=""; return;
     }
     if(!pulseNames.length){
