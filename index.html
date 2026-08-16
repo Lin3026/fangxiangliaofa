@@ -224,9 +224,50 @@
   .dose-table tbody tr:nth-child(even){background:#fafcfa;}
   .dose-note{font-size:12px;color:var(--muted);margin:6px 0 2px;}
   @media(max-width:560px){.dose-grid{grid-template-columns:1fr;}}
+
+  /* 进入网站强制须知弹窗 */
+  .entry-mask{position:fixed;inset:0;background:rgba(20,30,26,.55);z-index:9999;
+    display:flex;align-items:center;justify-content:center;padding:16px;}
+  .entry-modal{background:#fff;border-radius:16px;width:100%;max-width:540px;max-height:88vh;
+    overflow:auto;box-shadow:0 16px 50px rgba(0,0,0,.30);font-family:inherit;animation:emPop .18s ease-out;}
+  @keyframes emPop{from{transform:translateY(10px) scale(.98);opacity:0;}to{transform:none;opacity:1;}}
+  .entry-head{font-size:17px;font-weight:700;color:#7a4a16;background:#fff7ef;
+    border-bottom:1px solid #f3d9bf;padding:15px 20px;border-radius:16px 16px 0 0;
+    display:flex;align-items:center;gap:8px;}
+  .entry-body{padding:14px 20px;font-size:13.5px;line-height:1.66;color:#333;}
+  .entry-lead{margin:0 0 12px;color:#555;font-weight:600;}
+  .entry-list{margin:0;padding-left:20px;}
+  .entry-list li{margin:9px 0;}
+  .entry-list b{color:#b3502a;}
+  .entry-foot{padding:14px 20px 20px;text-align:center;border-top:1px solid #f0e6da;}
+  .entry-ok{background:var(--accent,#2f8f6f);color:#fff;font-size:15px;font-weight:600;
+    padding:11px 34px;border:none;border-radius:10px;cursor:pointer;letter-spacing:1px;}
+  .entry-ok:hover{filter:brightness(.95);}
 </style>
 </head>
 <body>
+
+<!-- 进入网站强制须知弹窗（每次进入弹出，仅点「我已知晓」可关闭） -->
+<div class="entry-mask" id="entryMask" aria-modal="true" role="dialog" aria-labelledby="entryTitle">
+  <div class="entry-modal">
+    <div class="entry-head">⚠️ 使用须知 · 重要提示</div>
+    <div class="entry-body">
+      <p class="entry-lead">欢迎使用「中医芳香理疗知识库」。在开始查阅前，请务必阅读并理解以下事项：</p>
+      <ul class="entry-list">
+        <li>本网站资料<b>仅供学习参考，不替代医疗诊断与治疗</b>。任何健康问题请前往正规医疗机构就诊，由执业中医师／医师面诊判断。</li>
+        <li>精油为高浓度物质，<b>严禁口服</b>；用于皮肤前务必稀释于基础油，并先在手腕内侧做过敏测试。</li>
+        <li>孕妇、婴幼儿、癫痫、哮喘、高血压及慢性病患者（肝肾功能异常等），使用部分精油须谨慎或禁用，请先咨询专业芳疗师／医师。</li>
+        <li>柑橘类精油具<b>光敏性</b>，使用后 12 小时内避免日晒与紫外线照射。</li>
+        <li>舌象、脉象与配方推荐均为<b>辅助参考</b>，不能替代执业医师的辨证与处方；急症、重症请立即就医。</li>
+        <li>本库内容基于《芳香疗法学》等公开资料整理，可能存在疏漏，使用者须自行承担全部风险。</li>
+      </ul>
+    </div>
+    <div class="entry-foot">
+      <button class="entry-ok" id="entryOkBtn" onclick="closeEntryModal()">我已知晓</button>
+    </div>
+  </div>
+</div>
+
 <header>
   <h1>🌿 中医芳香理疗知识库</h1>
   <p>辨证 · 脉诊 · 精油性味归经 · 对症配方自动推荐　|　输入症状/体质，或选择脉象，自动弹出精油配方</p>
@@ -2232,12 +2273,27 @@
   document.getElementById("oilq").addEventListener("keydown",function(e){ if(e.key==="Enter") renderOils(); });
   document.getElementById("hydq").addEventListener("keydown",function(e){ if(e.key==="Enter") renderHydro(); });
 
+  // ===== 进入网站强制须知弹窗 =====
+  function showEntryModal(){
+    var m=document.getElementById('entryMask');
+    if(m) m.style.display='flex';
+  }
+  function closeEntryModal(){
+    var m=document.getElementById('entryMask');
+    if(m) m.style.display='none';
+  }
+  window.showEntryModal=showEntryModal;
+  window.closeEntryModal=closeEntryModal;
+  // 遮罩本身不关闭，只能点「我已知晓」；禁用 ESC 关闭
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ var m=document.getElementById('entryMask'); if(m && m.style.display!=='none') e.preventDefault(); } });
+
   // 初始化
   renderSysChips(); renderCloud(); runSearch(); renderSrcBox();
   renderPulseGrids();
   renderPulseSites();
   szRenderSteps(); szSwitchStep("qu");
   renderDose();
+  showEntryModal();   // 每次进入网站弹出须知
 
   // 暴露给控制台调试
   window.AROMA_DB=db;
