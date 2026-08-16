@@ -342,7 +342,7 @@
         <strong style="color:var(--accent)">👅 第一步：选舌象（分步辨证，可只选你实际看到的部分）</strong>
         <label class="imgswitch" title="显示 / 隐藏各辨证步骤的舌象真实参考照片（图名已按课本截图核对）"><input type="checkbox" id="szPhotoToggle" checked onchange="toggleSzPhoto(this.checked)"><span class="track"></span><span class="lbl">显示舌象照片</span></label>
       </div>
-      <div class="hint" style="margin:4px 0 2px;">按中医辨证顺序逐步点选你<b>实际看到的</b>舌象：<b>①望舌质（舌色）→②望舌苔（苔色苔质）→③舌下脉络→④舌面分区（脏腑定位）→⑤舌态（形态动态）</b>。顶部可切换步骤，每步单选（舌面分区可多选区域、每区选一特征）。选好后到下方「🔬 四诊合参」与症状、脉象、体质一并出方。</div>
+      <div class="hint" style="margin:4px 0 2px;">按中医辨证顺序逐步点选你<b>实际看到的</b>舌象：<b>①望舌质（舌色）→②望舌苔（苔色苔质）→③舌下脉络→④舌面分区（脏腑定位）→⑤舌态（形态动态）</b>。顶部可切换步骤，每步单选（舌面分区可多选区域、每区可多选特征）。选好后到下方「🔬 四诊合参」与症状、脉象、体质一并出方。</div>
       <div class="tonguephoto-disclaimer">⚠ 舌象照片为临床参考图谱（已按课本截图核对图名），<b>非诊断依据</b>；辨证请结合全身症状，由执业中医师面诊为准。</div>
 
       <div class="dz-steps" id="szSteps"></div>
@@ -1526,7 +1526,7 @@
     {key:"dan",     cx:232, cy:162, rx:22, ry:18, fill:"rgba(220,200,40,.30)", stroke:"rgba(180,150,20,.55)", label:"胆区",   lx:232, ly:166, fc:"#665a00"}
   ];
   var dzSel={};   // 区域 key -> true（可多选）
-  var dzObs={};   // 区域 key -> 该区选中的 observation key（单区单选）
+  var dzObs={};   // 区域 key -> 该区选中的 observation key 数组（单区多选）
 
   // 五步辨证步骤定义：qi/tai/mai/xing 自带 tags；qu 复用 TONGUE_REGIONS（舌面分区）
   var TONGUE_STEPS=[
@@ -1554,7 +1554,7 @@
         {key:"xueyu",  label:"瘀血",     tags:["血瘀","青紫","瘀斑","刺痛","经闭"]},
         {key:"qizhi",  label:"气滞",     tags:["气滞","肝郁","胀闷"]}
       ]},
-    {key:"qu",   title:"④ 望舌面分区 · 脏腑定位", short:"舌面分区", desc:"8 大区可多选；每区选 1 个特征，右侧显示病情。", qu:true},
+    {key:"qu",   title:"④ 望舌面分区 · 脏腑定位", short:"舌面分区", desc:"8 大区可多选；每区可多选特征，右侧显示病情。", qu:true},
     {key:"xing", title:"⑤ 望形态动态", short:"舌态", desc:"看舌体形态与动态，反映邪正虚实、动静。正常 = 大小适中、柔软灵活。",
       options:[
         {key:"normal",  label:"正常舌形",     normal:true, tags:["正常"]},
@@ -1621,8 +1621,10 @@
     dzRenderMap(); dzRenderDetail();
   }
   function dzToggleObs(regionKey, obsKey){
-    if(dzObs[regionKey]===obsKey) delete dzObs[regionKey];
-    else dzObs[regionKey]=obsKey;
+    if(!dzObs[regionKey]) dzObs[regionKey]=[];
+    var arr=dzObs[regionKey], idx=arr.indexOf(obsKey);
+    if(idx>=0) arr.splice(idx,1); else arr.push(obsKey);
+    if(arr.length===0) delete dzObs[regionKey];
     dzRenderDetail();
   }
   function dzRenderDetail(){
@@ -1644,7 +1646,7 @@
       html+='<div class="dr-desc">'+escapeHtml(r.desc)+'</div>';
       html+='<div class="dz-obs">';
       r.observations.forEach(function(o){
-        var sel=dzObs[r.key]===o.key;
+        var sel=dzObs[r.key] && dzObs[r.key].indexOf(o.key)>=0;
         html+='<div class="dz-ob'+(sel?" sel":"")+'" onclick="dzToggleObs(\''+r.key+'\',\''+o.key+'\')">'+
               '<span class="ob-check">✓</span>'+
               '<div class="ob-label">'+escapeHtml(o.label)+'</div>'+
@@ -1723,8 +1725,10 @@
     });
     Object.keys(dzObs).forEach(function(rk){
       var r=TONGUE_REGIONS.filter(function(x){return x.key===rk;})[0]; if(!r) return;
-      var o=r.observations.filter(function(x){return x.key===dzObs[rk];})[0]; if(!o) return;
-      (o.tags||[]).forEach(function(t){ if(toks.indexOf(t)<0) toks.push(t); });
+      dzObs[rk].forEach(function(ok){
+        var o=r.observations.filter(function(x){return x.key===ok;})[0]; if(!o) return;
+        (o.tags||[]).forEach(function(t){ if(toks.indexOf(t)<0) toks.push(t); });
+      });
     });
     return toks;
   }
@@ -1732,8 +1736,10 @@
     var toks=[];
     Object.keys(dzObs).forEach(function(rk){
       var r=TONGUE_REGIONS.filter(function(x){return x.key===rk;})[0]; if(!r) return;
-      var o=r.observations.filter(function(x){return x.key===dzObs[rk];})[0]; if(!o) return;
-      (o.tags||[]).forEach(function(t){ if(toks.indexOf(t)<0) toks.push(t); });
+      dzObs[rk].forEach(function(ok){
+        var o=r.observations.filter(function(x){return x.key===ok;})[0]; if(!o) return;
+        (o.tags||[]).forEach(function(t){ if(toks.indexOf(t)<0) toks.push(t); });
+      });
     });
     return toks;
   }
@@ -1758,8 +1764,10 @@
     });
     Object.keys(dzObs).forEach(function(rk){
       var r=TONGUE_REGIONS.filter(function(x){return x.key===rk;})[0]; if(!r) return;
-      var o=r.observations.filter(function(x){return x.key===dzObs[rk];})[0]; if(!o) return;
-      picked.push("舌面·"+r.label+" → "+o.disease);
+      dzObs[rk].forEach(function(ok){
+        var o=r.observations.filter(function(x){return x.key===ok;})[0]; if(!o) return;
+        picked.push("舌面·"+r.label+" → "+o.disease);
+      });
     });
     summaryEl.style.display="block";
     summaryEl.innerHTML='<b>所选舌象：</b>'+picked.join("； ")+'<br><b>推断可能涉及：</b>'+toks.join("、")+'<br><span class="hint">（下方按全部所选舌象 tags 匹配精油配方，按综合相关度排序）</span>';
@@ -1794,7 +1802,7 @@
   var szStep="qu";                       // 当前步骤（默认舌面分区）
   var szPick={qi:null, tai:null, mai:null, xing:null};  // 各步骤单选（qu 用 szSel/szObs）
   var szSel={};                          // 区域 key -> true（可多选）
-  var szObs={};                          // 区域 key -> 该区选中的 observation key（单区单选）
+  var szObs={};                          // 区域 key -> 该区选中的 observation key 数组（单区多选）
   var showSzPhoto=true;                  // 是否显示真实舌象照片（默认开）
 
   function szHasSelection(){
@@ -1860,8 +1868,10 @@
     szRenderMap(); szRenderDetail(); szUpdateCount();
   }
   function szToggleObs(regionKey, obsKey){
-    if(szObs[regionKey]===obsKey) delete szObs[regionKey];
-    else szObs[regionKey]=obsKey;
+    if(!szObs[regionKey]) szObs[regionKey]=[];
+    var arr=szObs[regionKey], idx=arr.indexOf(obsKey);
+    if(idx>=0) arr.splice(idx,1); else arr.push(obsKey);
+    if(arr.length===0) delete szObs[regionKey];
     szRenderDetail(); szUpdateCount();
   }
   function szRenderDetail(){
@@ -1883,7 +1893,7 @@
       html+='<div class="dr-desc">'+escapeHtml(r.desc)+'</div>';
       html+='<div class="dz-obs">';
       r.observations.forEach(function(o){
-        var sel=szObs[r.key]===o.key;
+        var sel=szObs[r.key] && szObs[r.key].indexOf(o.key)>=0;
         html+='<div class="dz-ob'+(sel?" sel":"")+'" onclick="szToggleObs(\''+r.key+'\',\''+o.key+'\')">'+
               '<span class="ob-check">✓</span>'+
               '<div class="ob-label">'+escapeHtml(o.label)+'</div>'+
@@ -1933,7 +1943,7 @@
   function szUpdateCount(){
     var n=0;
     ["qi","tai","mai","xing"].forEach(function(k){ if(szPick[k]) n++; });
-    n+=Object.keys(szObs).length;
+    n+=Object.keys(szObs).reduce(function(a,k){ return a+(szObs[k].length||0); }, 0);
     var el=document.getElementById("szSelCount"); if(el) el.textContent=n;
   }
   function szCollectAllTags(){
@@ -1946,8 +1956,10 @@
     });
     Object.keys(szObs).forEach(function(rk){
       var r=TONGUE_REGIONS.filter(function(x){return x.key===rk;})[0]; if(!r) return;
-      var o=r.observations.filter(function(x){return x.key===szObs[rk];})[0]; if(!o) return;
-      (o.tags||[]).forEach(function(t){ if(toks.indexOf(t)<0) toks.push(t); });
+      szObs[rk].forEach(function(ok){
+        var o=r.observations.filter(function(x){return x.key===ok;})[0]; if(!o) return;
+        (o.tags||[]).forEach(function(t){ if(toks.indexOf(t)<0) toks.push(t); });
+      });
     });
     return toks;
   }
@@ -1961,7 +1973,9 @@
     });
     Object.keys(szObs).forEach(function(rk){
       var r=TONGUE_REGIONS.filter(function(x){return x.key===rk;})[0]; if(!r) return;
-      var o=r.observations.filter(function(x){return x.key===szObs[rk];})[0]; if(o) names.push("舌面·"+r.label+" → "+o.disease);
+      szObs[rk].forEach(function(ok){
+        var o=r.observations.filter(function(x){return x.key===ok;})[0]; if(o) names.push("舌面·"+r.label+" → "+o.disease);
+      });
     });
     return names;
   }
@@ -1974,7 +1988,9 @@
     });
     Object.keys(szObs).forEach(function(rk){
       var r=TONGUE_REGIONS.filter(function(x){return x.key===rk;})[0]; if(!r) return;
-      var o=r.observations.filter(function(x){return x.key===szObs[rk];})[0]; if(o) arr.push(o.disease);
+      szObs[rk].forEach(function(ok){
+        var o=r.observations.filter(function(x){return x.key===ok;})[0]; if(o) arr.push(o.disease);
+      });
     });
     return arr;
   }
