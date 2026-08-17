@@ -406,7 +406,7 @@
     <div class="card" style="background:#eef6ff;border-color:#9cc8ff;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
         <strong style="color:#2266cc">🔬 四诊合参：舌象(第一步) + 脉象(第二步) + 体质(第三步) + 症状 → 智能出配方</strong>
-        <span class="hint" style="margin:0">已在上方填症状/证型、选好<b>第一步舌象</b>、<b>第二步脉象</b>、<b>第三步体质</b>后，点下方按钮一次性综合推荐。<b>体质为可选</b>：若已选体质，则配方需<b>同时</b>命中体质＋症状＋脉象＋舌象；未选体质则按症状＋脉象＋舌象推荐。</span>
+        <span class="hint" style="margin:0">上方<b>第一步舌象 / 第二步脉象 / 第三步体质</b>与症状框<b>均独立可选</b>，不必全部填写：仅按你实际填选的维度筛选推荐，未填的步骤不参与。<b>例如只写「失眠」即可直接出方。</b></span>
       </div>
       <div class="toolbar">
         <button class="btn" onclick="runSearchCombined()">🔎 四诊合参推荐配方</button>
@@ -2019,20 +2019,11 @@
     var ttoks=szCollectAllTags();
     var tizhiNamesList=tizhiNames();
     var tizhiToks=tizhiTokens();
-    // 三者缺一不可
-    if(!q){
+    // 各步骤皆可独立使用：仅按用户实际填写/勾选的部分做筛选，不再强制全部步骤
+    var anyInput = q || pulseNames.length || tnames.length || tizhiNamesList.length;
+    if(!anyInput){
       summaryEl.style.display="block";
-      summaryEl.innerHTML='<span class="hint">⚠ 请先在上方症状框填写症状/证型（如：失眠 焦虑、痛经、脾胃虚寒），再结合舌象、脉象与体质四诊合参。</span>';
-      resultsEl.innerHTML=""; countEl.textContent=""; return;
-    }
-    if(!pulseNames.length){
-      summaryEl.style.display="block";
-      summaryEl.innerHTML='<span class="hint">⚠ 请至少勾选一种脉象（左手红框 / 右手绿框）。</span>';
-      resultsEl.innerHTML=""; countEl.textContent=""; return;
-    }
-    if(!tnames.length){
-      summaryEl.style.display="block";
-      summaryEl.innerHTML='<span class="hint">⚠ 请在上方「第二步：选舌象」按步骤点选至少一项舌象（望舌质 / 望舌苔 / 舌下脉络 / 舌面分区 / 舌态）。</span>';
+      summaryEl.innerHTML='<span class="hint">⚠ 请至少填写一项：在上方症状框写症状/证型，或勾选舌象、脉象、体质中的任意一项，即可智能推荐配方（不必完成全部步骤）。</span>';
       resultsEl.innerHTML=""; countEl.textContent=""; return;
     }
     // 双手同脉提示
@@ -2044,7 +2035,7 @@
     var pZhu=pulseNames.map(function(k){ return (selectedLeft[k]||selectedRight[k]).zhubing||k; });
     var tZhu=szCollectAllDiseases();
     summaryEl.style.display="block";
-    summaryEl.innerHTML='<b>症状/证型：</b>'+escapeHtml(q)+'<br><b>所选体质：</b>'+tizhiNamesList.join("、")+'<br><b>所选脉象：</b>'+pulseNames.join("、")+handNote+'<br><b>所选舌象：</b>'+tnames.join("、")+'<br><b>推断可能涉及：</b>'+(pZhu.concat(tZhu)).join("；")+'<br><span class="hint">（下方配方需<b>同时</b>命中「'+(tizhiNamesList.length?'体质 + ':'')+'症状 + 脉象 + 舌象」'+(tizhiNamesList.length?'四类':'三类')+'关键词'+(tizhiNamesList.length?'':'；未选体质时仅按症状+脉象+舌象')+'，按综合相关度排序）</span>';
+    summaryEl.innerHTML='<b>症状/证型：</b>'+(q||'—')+'<br><b>所选体质：</b>'+(tizhiNamesList.join("、")||'—')+'<br><b>所选脉象：</b>'+(pulseNames.join("、")||'—')+handNote+'<br><b>所选舌象：</b>'+(tnames.join("、")||'—')+'<br><b>推断可能涉及：</b>'+(pZhu.concat(tZhu)).join("；")+'<br><span class="hint">（仅按你<b>已填写/勾选</b>的维度筛选：'+[q?'症状':'',pulseNames.length?'脉象':'',tnames.length?'舌象':'',tizhiToks.length?'体质':''].filter(Boolean).join(' + ')+'；未填的步骤不参与筛选。各维度按命中相关度累计排序，可只完成部分步骤。）</span>';
     var toks=symToks.concat(ptoks).concat(ttoks).concat(tizhiToks);
     var scored=db.formulas.map(function(f){
       var sSym=scoreFormula(f, symToks);
@@ -2052,14 +2043,22 @@
       var sT=scoreFormula(f, ttoks);
       var sTz=scoreFormula(f, tizhiToks);
       return {f:f, sSym:sSym, sPulse:sPulse, sT:sT, sTz:sTz, s:sSym+sPulse+sT+sTz};
-    }).filter(function(x){ return x.sSym>0 && x.sPulse>0 && x.sT>0 && (tizhiToks.length? x.sTz>0 : true); })
+    }).filter(function(x){
+      // 仅对「用户实际填写/勾选」的维度做命中要求
+      if(q && x.sSym<=0) return false;
+      if(pulseNames.length && x.sPulse<=0) return false;
+      if(tnames.length && x.sT<=0) return false;
+      if(tizhiToks.length && x.sTz<=0) return false;
+      return true;
+    })
       .sort(function(a,b){ return b.s-a.s; });
     resultsEl.innerHTML="";
     if(!scored.length){
-      resultsEl.innerHTML='<div class="empty">没有同时命中「症状 + 脉象 + 舌象」三者的配方。可尝试：①放宽症状词（如用「失眠」而非「入睡困难」）；②减少舌象/脉象种类，保留主证；③到「我的库」补充对应配方。</div>';
+      resultsEl.innerHTML='<div class="empty">没有命中您所填维度的配方。可尝试：①放宽症状词（如用「失眠」而非「入睡困难」）；②减少舌象/脉象种类，保留主证；③只填一项也会出结果（如仅写症状）；④到「我的库」补充对应配方。</div>';
       countEl.textContent=""; return;
     }
-    countEl.textContent="共推荐 "+scored.length+" 条配方（"+(tizhiNamesList.length?"体质+":"")+"症状+脉象+舌象同中，显示前 12 条）";
+    var dims=[q?'症状':'',pulseNames.length?'脉象':'',tnames.length?'舌象':'',tizhiToks.length?'体质':''].filter(Boolean).join('+');
+    countEl.textContent="共推荐 "+scored.length+" 条配方（按 "+(dims||"已填维度")+" 命中，显示前 12 条）";
     scored.slice(0,12).forEach(function(x){ resultsEl.appendChild(makeResultCard(x.f,toks)); });
   }
   function runSearchCombined(){ renderCombinedRecommend(document.getElementById("searchCombinedSummary"), document.getElementById("searchCombinedResults"), document.getElementById("searchCombinedCount")); }
