@@ -21,6 +21,14 @@
   .tab{padding:9px 16px;cursor:pointer;border-radius:8px 8px 0 0;font-size:14px;color:var(--muted);font-weight:600;}
   .tab.active{color:var(--accent);background:var(--accent-soft);}
   .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px;}
+  /* 智能配方的悬浮搜索栏：随滚动条钉在视口顶部，半透白底，避免遮挡下方卡片 */
+  .sticky-search{position:sticky;top:0;z-index:50;background:rgba(255,253,247,.94);
+    -webkit-backdrop-filter:saturate(160%) blur(8px);backdrop-filter:saturate(160%) blur(8px);
+    padding:10px 14px;margin:-6px -14px 14px;border-bottom:1px solid rgba(0,0,0,.07);
+    border-radius:0 0 12px 12px;box-shadow:0 4px 14px -10px rgba(0,0,0,.18);}
+  .sticky-search .toolbar{margin-bottom:6px;}
+  .sticky-search .searchhint{font-size:12px;color:var(--muted);margin:0;}
+  .sticky-search .searchhint b{color:var(--accent);}
   input[type=text],select,textarea{font-family:inherit;font-size:14px;color:var(--ink);
     border:1px solid var(--line);border-radius:8px;padding:9px 11px;background:#fff;outline:none;}
   input[type=text]:focus,select:focus,textarea:focus{border-color:var(--accent);}
@@ -327,22 +335,25 @@
 
   <!-- 智能配方 -->
   <section id="tab-search">
-    <div class="toolbar">
-      <input type="text" id="q" class="search" placeholder="输入症状 / 证型 / 体质 / 精油，如：失眠 焦虑、痛经、脾胃虚寒、祛湿…" />
-      <button class="btn" onclick="runSearch()">搜索配方</button>
-      <button class="btn ghost sm" onclick="clearSearch()">清空</button>
+    <div class="sticky-search">
+      <div class="toolbar">
+        <input type="text" id="q" class="search" placeholder="输入症状 / 证型 / 体质 / 精油，如：失眠 焦虑、痛经、脾胃虚寒、祛湿…（按 Enter 直接出方）" />
+        <button class="btn" onclick="runSearch()">搜索配方</button>
+        <button class="btn ghost sm" onclick="clearSearch()">清空</button>
+      </div>
+      <p class="searchhint">智能配方会<b>自动合并</b>：症状框 + 舌象 + 脉象 + 体质，任一维度填选即参与筛选；只填一项也能直接出方。⬇︎ 下方三步选填，越多越精准。</p>
     </div>
     <div class="syschips" id="syschips"></div>
     <div class="hint" style="margin:-8px 0 10px;">快捷症状（按所选系统筛选，点击填入搜索）：</div>
     <div class="cloud" id="cloud"></div>
 
-    <!-- 第一步：选舌象（与下方四诊合参联动）· 分步辨证 -->
+    <!-- 第一步：选舌象（与顶部「搜索配方」联动）· 分步辨证 -->
     <div class="card" style="background:var(--accent-soft);border-color:#bfe3d4;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
         <strong style="color:var(--accent)">👅 第一步：选舌象（分步辨证，可只选你实际看到的部分）</strong>
         <label class="imgswitch" title="显示 / 隐藏各辨证步骤的舌象真实参考照片（图名已按课本截图核对）"><input type="checkbox" id="szPhotoToggle" checked onchange="toggleSzPhoto(this.checked)"><span class="track"></span><span class="lbl">显示舌象照片</span></label>
       </div>
-      <div class="hint" style="margin:4px 0 2px;">按中医辨证顺序逐步点选你<b>实际看到的</b>舌象：<b>①望舌质（舌色）→②望舌苔（苔色苔质）→③舌下脉络→④舌面分区（脏腑定位）→⑤舌态（形态动态）</b>。顶部可切换步骤，每步单选（舌面分区可多选区域、每区可多选特征）。选好后到下方「🔬 四诊合参」与症状、脉象、体质一并出方。</div>
+      <div class="hint" style="margin:4px 0 2px;">按中医辨证顺序逐步点选你<b>实际看到的</b>舌象：<b>①望舌质（舌色）→②望舌苔（苔色苔质）→③舌下脉络→④舌面分区（脏腑定位）→⑤舌态（形态动态）</b>。顶部可切换步骤，每步单选（舌面分区可多选区域、每区可多选特征）。选好后<b>回到顶部点「搜索配方」</b>即可出方（自动合并症状+脉象+体质）。</div>
       <div class="tonguephoto-disclaimer">⚠ 舌象照片为临床参考图谱（已按课本截图核对图名），<b>非诊断依据</b>；辨证请结合全身症状，由执业中医师面诊为准。</div>
 
       <div class="dz-steps" id="szSteps"></div>
@@ -367,12 +378,12 @@
       </div>
     </div>
 
-    <!-- 第二步：选脉象（与下方四诊合参联动） -->
+    <!-- 第二步：选脉象（与顶部「搜索配方」联动） -->
     <div class="card" style="background:var(--accent-soft);border-color:#bfe3d4;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
         <strong style="color:var(--accent)">💓 第二步：选脉象（左手红框 / 右手绿框）</strong>
         <label class="imgswitch" title="显示 / 隐藏脉象示意图"><input type="checkbox" id="pulseImgToggle" onchange="togglePulseImg(this.checked)"><span class="track"></span><span class="lbl">显示脉象图</span></label>
-        <span class="hint" style="margin:0">分左右手勾选脉象；<b>每只手仅选一种</b>（再次点同一个可取消）。<b>只选一侧即视为双手同脉</b>。选好后到下方「🔬 四诊合参」与症状、舌象、体质一并出方。</span>
+        <span class="hint" style="margin:0">分左右手勾选脉象；<b>每只手仅选一种</b>（再次点同一个可取消）。<b>只选一侧即视为双手同脉</b>。选好后<b>回到顶部点「搜索配方」</b>即可出方（自动合并症状+舌象+体质）。</span>
       </div>
       <div class="pulse-hands">
         <div class="hand-box hand-left">
@@ -389,11 +400,11 @@
       </div>
     </div>
 
-    <!-- 第三步：选体质（与下方四诊合参联动） -->
+    <!-- 第三步：选体质（与顶部「搜索配方」联动） -->
     <div class="card" style="background:#f3f0ff;border-color:#c9b8ff;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
         <strong style="color:#6b4fcf">🌿 第三步：选体质（王琦九种体质，可多选）</strong>
-        <span class="hint" style="margin:0">完成症状、舌象、脉象后，最后确定你的<b>中医体质</b>（可多选，兼夹体质一般 2 种）。选好后与症状、舌象、脉象一并进入下方「四诊合参」出方。<b>未选体质则不参与筛选</b>。</span>
+        <span class="hint" style="margin:0">完成症状、舌象、脉象后，最后确定你的<b>中医体质</b>（可多选，兼夹体质一般 2 种）。选好后<b>回到顶部点「搜索配方」</b>即可出方（自动合并症状+舌象+脉象）。<b>未选体质则不参与筛选</b>。</span>
       </div>
       <div class="tizhi-grid" id="searchTizhiGrid" style="margin-top:10px;"></div>
       <div class="toolbar" style="margin-top:8px;align-items:center;">
@@ -402,20 +413,7 @@
       </div>
     </div>
 
-    <!-- 四诊合参：舌象 + 脉象 + 体质 + 症状 一次性出方 -->
-    <div class="card" style="background:#eef6ff;border-color:#9cc8ff;">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
-        <strong style="color:#2266cc">🔬 四诊合参：舌象(第一步) + 脉象(第二步) + 体质(第三步) + 症状 → 智能出配方</strong>
-        <span class="hint" style="margin:0">上方<b>第一步舌象 / 第二步脉象 / 第三步体质</b>与症状框<b>均独立可选</b>，不必全部填写：仅按你实际填选的维度筛选推荐，未填的步骤不参与。<b>例如只写「失眠」即可直接出方。</b></span>
-      </div>
-      <div class="toolbar">
-        <button class="btn" onclick="runSearchCombined()">🔎 四诊合参推荐配方</button>
-        <button class="btn ghost sm" onclick="clearDiagnosis()">清空四诊选择</button>
-      </div>
-      <div class="pulse-summary" id="searchCombinedSummary" style="display:none;"></div>
-      <div class="count" id="searchCombinedCount"></div>
-      <div id="searchCombinedResults"></div>
-    </div>
+    <!-- 四诊合参卡片已移除：现在「搜索配方」按钮会自动合并 症状 / 舌象 / 脉象 / 体质 一次性出方。 -->
 
     <div class="count" id="count"></div>
     <div id="results"></div>
@@ -620,7 +618,7 @@
 
   <!-- 体质辨证（王琦九种体质） -->
   <section id="tab-tizhi" style="display:none;">
-    <div class="hint" style="margin-bottom:8px;">🌿 <b>体质辨证</b>：基于王琦九种中医体质。点选下方体质卡片（可多选，中医常言「兼夹体质」，一般 2 种）查看其特征、推荐单方精油与复方按摩油；勾选后会在『智能配方』第三步同步，并联动「四诊合参」出方。外部项目可调用 <code>AROMA_tizhiRecommend(['平和质','气虚质'])</code> 取得推荐配方。</div>
+    <div class="hint" style="margin-bottom:8px;">🌿 <b>体质辨证</b>：基于王琦九种中医体质。点选下方体质卡片（可多选，中医常言「兼夹体质」，一般 2 种）查看其特征、推荐单方精油与复方按摩油；勾选后会在『智能配方』第三步同步，与症状/舌象/脉象一起合入「搜索配方」出方。外部项目可调用 <code>AROMA_tizhiRecommend(['平和质','气虚质'])</code> 取得推荐配方。</div>
     <div class="tizhi-wrap">
       <div>
         <div class="tizhi-grid" id="tizhiGrid"></div>
@@ -787,31 +785,50 @@
   function runSearch(){
     var q=document.getElementById("q").value;
     curQuery=q;
-    var tokens=tokenize(q);
+    var symToks=tokenize(q);
+    var ptoks=pulseTokens();
+    var ttoks=szCollectAllTags();
+    var tizhiToks=tizhiTokens();
+    var hasPulse=ptoks.length>0;
+    var hasT=ttoks.length>0;
+    var hasTz=tizhiToks.length>0;
+    var hasAnyDim=q || hasPulse || hasT || hasTz;
+    var allToks=symToks.concat(ptoks, ttoks, tizhiToks);
+    // 顶层先按当前所选系统筛；系统内再按「已填维度」打分与过滤
     var list=db.formulas.filter(function(f){ return curSys==="全部"||f.system===curSys; });
-    var scored=list.map(function(f){ return {f:f,s:scoreFormula(f,tokens)}; })
-                   .filter(function(x){ return tokens.length? x.s>0 : true; });
-    if(tokens.length) scored.sort(function(a,b){ return b.s-a.s; });
+    var scored=list.map(function(f){
+      var sSym=scoreFormula(f, symToks);
+      var sPulse=scoreFormula(f, ptoks);
+      var sT=scoreFormula(f, ttoks);
+      var sTz=scoreFormula(f, tizhiToks);
+      return {f:f, sSym:sSym, sPulse:sPulse, sT:sT, sTz:sTz, s:sSym+sPulse+sT+sTz};
+    }).filter(function(x){
+      // 只对「用户实际填/选」的维度做命中要求；未填的不参与
+      if(q && x.sSym<=0) return false;
+      if(hasPulse && x.sPulse<=0) return false;
+      if(hasT && x.sT<=0) return false;
+      if(hasTz && x.sTz<=0) return false;
+      return true;
+    });
+    if(allToks.length) scored.sort(function(a,b){ return b.s-a.s; });
     var box=document.getElementById("results");
     var count=document.getElementById("count");
     box.innerHTML="";
-    if(!scored.length){ box.innerHTML='<div class="empty">没有匹配的配方，换个关键词试试，或到「我的库」添加。</div>'; count.textContent=""; return; }
-    count.textContent="共 "+scored.length+" 条"+(tokens.length?("（按相关度排序）"):"");
-    scored.forEach(function(x){
-      var f=x.f;
-      var card=document.createElement("div");
-      card.className="card";
-      var sym=(f.symptoms||[]).slice(0,10).map(function(s){return '<span class="sym">'+highlight(s,tokens)+'</span>';}).join("");
-      var oils=(f.oils||[]).map(function(o){return o.name;}).join("、");
-      card.innerHTML=
-        '<h3>'+highlight(f.name,tokens)+'</h3>'+
-        '<div class="meta"><span class="badge">'+escapeHtml(f.system)+'</span>'+(f.tcmPattern?highlight(f.tcmPattern,tokens):"")+'</div>'+
-        '<div class="oils-line">精油：'+highlight(oils,tokens)+'</div>'+
-        (sym?'<div style="margin-top:6px">'+sym+'</div>':"")+
-        (f.tongue?'<div class="oils-line" style="margin-top:6px;color:#48615a"><b>👅 舌象：</b>'+highlight(f.tongue,tokens)+'</div>':"")+
-        '<div style="margin-top:10px"><button class="btn sm" onclick="openDetail(\''+f.id+'\')">查看完整配方 ▸</button></div>';
-      box.appendChild(card);
-    });
+    // 没有任何筛选条件时：展示全部配方（沿用旧行为）
+    if(!hasAnyDim){
+      count.innerHTML='<span class="hint">未填任何条件 · 展示全部 '+list.length+' 条配方。直接输症状/点选下方舌象/脉象/体质即可精准筛选。</span>';
+      list.forEach(function(f){ box.appendChild(makeResultCard(f, allToks)); });
+      return;
+    }
+    if(!scored.length){ box.innerHTML='<div class="empty">没有命中「已填维度」的配方。可尝试：①放宽症状词（如用「失眠」而非「入睡困难」）；②减少勾选，保留主证；③到「我的库」补充对应配方。</div>'; count.textContent=""; return; }
+    // 顶部摘要：列出本次参与筛选的维度
+    var parts=[];
+    if(q) parts.push('症状 <b>'+escapeHtml(q)+'</b>');
+    if(hasPulse) parts.push('脉象 <b>'+selectedPulseNames().join("、")+'</b>');
+    if(hasT) parts.push('舌象 <b>'+szCollectAllNames().join("、")+'</b>');
+    if(hasTz) parts.push('体质 <b>'+tizhiNames().join("、")+'</b>');
+    count.innerHTML='<span class="hint">已选：'+parts.join(' · ')+' · 共 '+scored.length+' 条（按命中相关度排序）</span>';
+    scored.forEach(function(x){ box.appendChild(makeResultCard(x.f, allToks)); });
   }
 
   function clearSearch(){
@@ -1388,7 +1405,7 @@
     var ptoks=pulseTokens();
     var tnames=selectedTongueNames();
     var ttoks=tongueTokens();
-    // 舌脉合参：症状 + 脉象 + 舌象 三者同时命中（与智能配方「四诊合参」同理，区别在本页不含体质步骤）
+    // 舌脉合参：症状 + 脉象 + 舌象 三者同时命中（与智能配方的合并搜索同理，区别在本页不含体质步骤）
     if(!q){
       summaryEl.style.display="block";
       summaryEl.innerHTML='<span class="hint">⚠ 请先在上方症状框填写症状/证型（如：失眠 焦虑、痛经、脾胃虚寒），再结合脉象与舌象「舌脉合参」。</span>';
@@ -2009,72 +2026,6 @@
   window.szCollectAllTags=szCollectAllTags; window.szCollectAllNames=szCollectAllNames;
   window.szCollectAllDiseases=szCollectAllDiseases; window.szHasSelection=szHasSelection;
 
-  // 四诊合参：症状(上方框) + 舌象(第一步) + 脉象(第二步) + 体质(第三步,可选) 共同出方（AND 命中；体质为可选）
-  function renderCombinedRecommend(summaryEl, resultsEl, countEl){
-    var q=document.getElementById("q").value.trim();
-    var symToks=tokenize(q);
-    var pulseNames=selectedPulseNames();
-    var ptoks=pulseTokens();
-    var tnames=szCollectAllNames();
-    var ttoks=szCollectAllTags();
-    var tizhiNamesList=tizhiNames();
-    var tizhiToks=tizhiTokens();
-    // 各步骤皆可独立使用：仅按用户实际填写/勾选的部分做筛选，不再强制全部步骤
-    var anyInput = q || pulseNames.length || tnames.length || tizhiNamesList.length;
-    if(!anyInput){
-      summaryEl.style.display="block";
-      summaryEl.innerHTML='<span class="hint">⚠ 请至少填写一项：在上方症状框写症状/证型，或勾选舌象、脉象、体质中的任意一项，即可智能推荐配方（不必完成全部步骤）。</span>';
-      resultsEl.innerHTML=""; countEl.textContent=""; return;
-    }
-    // 双手同脉提示
-    var lk=Object.keys(selectedLeft), rk=Object.keys(selectedRight);
-    var handNote="";
-    if(lk.length && !rk.length) handNote="（仅选左手 → 视为双手同脉："+lk.join("、")+"）";
-    else if(rk.length && !lk.length) handNote="（仅选右手 → 视为双手同脉："+rk.join("、")+"）";
-    else if(lk.length && rk.length) handNote="（左手："+lk.join("、")+"；右手："+rk.join("、")+"）";
-    var pZhu=pulseNames.map(function(k){ return (selectedLeft[k]||selectedRight[k]).zhubing||k; });
-    var tZhu=szCollectAllDiseases();
-    summaryEl.style.display="block";
-    summaryEl.innerHTML='<b>症状/证型：</b>'+(q||'—')+'<br><b>所选体质：</b>'+(tizhiNamesList.join("、")||'—')+'<br><b>所选脉象：</b>'+(pulseNames.join("、")||'—')+handNote+'<br><b>所选舌象：</b>'+(tnames.join("、")||'—')+'<br><b>推断可能涉及：</b>'+(pZhu.concat(tZhu)).join("；")+'<br><span class="hint">（仅按你<b>已填写/勾选</b>的维度筛选：'+[q?'症状':'',pulseNames.length?'脉象':'',tnames.length?'舌象':'',tizhiToks.length?'体质':''].filter(Boolean).join(' + ')+'；未填的步骤不参与筛选。各维度按命中相关度累计排序，可只完成部分步骤。）</span>';
-    var toks=symToks.concat(ptoks).concat(ttoks).concat(tizhiToks);
-    var scored=db.formulas.map(function(f){
-      var sSym=scoreFormula(f, symToks);
-      var sPulse=scoreFormula(f, ptoks);
-      var sT=scoreFormula(f, ttoks);
-      var sTz=scoreFormula(f, tizhiToks);
-      return {f:f, sSym:sSym, sPulse:sPulse, sT:sT, sTz:sTz, s:sSym+sPulse+sT+sTz};
-    }).filter(function(x){
-      // 仅对「用户实际填写/勾选」的维度做命中要求
-      if(q && x.sSym<=0) return false;
-      if(pulseNames.length && x.sPulse<=0) return false;
-      if(tnames.length && x.sT<=0) return false;
-      if(tizhiToks.length && x.sTz<=0) return false;
-      return true;
-    })
-      .sort(function(a,b){ return b.s-a.s; });
-    resultsEl.innerHTML="";
-    if(!scored.length){
-      resultsEl.innerHTML='<div class="empty">没有命中您所填维度的配方。可尝试：①放宽症状词（如用「失眠」而非「入睡困难」）；②减少舌象/脉象种类，保留主证；③只填一项也会出结果（如仅写症状）；④到「我的库」补充对应配方。</div>';
-      countEl.textContent=""; return;
-    }
-    var dims=[q?'症状':'',pulseNames.length?'脉象':'',tnames.length?'舌象':'',tizhiToks.length?'体质':''].filter(Boolean).join('+');
-    countEl.textContent="共推荐 "+scored.length+" 条配方（按 "+(dims||"已填维度")+" 命中，显示前 12 条）";
-    scored.slice(0,12).forEach(function(x){ resultsEl.appendChild(makeResultCard(x.f,toks)); });
-  }
-  function runSearchCombined(){ renderCombinedRecommend(document.getElementById("searchCombinedSummary"), document.getElementById("searchCombinedResults"), document.getElementById("searchCombinedCount")); }
-  window.runSearchCombined=runSearchCombined;
-  function clearDiagnosis(){
-    selectedLeft={}; selectedRight={}; renderPulseGrids();
-    selectedTizhi.clear(); renderTizhiGrids();
-    szClear();
-    ["searchCombinedSummary","searchCombinedResults","searchCombinedCount"].forEach(function(id){
-      var el=document.getElementById(id); if(!el) return;
-      if(id.indexOf("Summary")>=0) el.style.display="none";
-      else if(id.indexOf("count")>=0) el.textContent="";
-      else el.innerHTML="";
-    });
-  }
-  window.clearDiagnosis=clearDiagnosis;
   // ===== 体质辨证（王琦九种体质） =====
   var selectedTizhi=new Set();
   function tizhiAll(){ return (db.constitutions||[]).slice().sort(function(a,b){return a.order-b.order;}); }
@@ -2131,7 +2082,7 @@
       '<div class="tizhi-sub">复方按摩油配方</div>'+ blends+
       '<div class="tizhi-actions">'+
         '<button class="btn sm" onclick="tizhiAddToSearch(\''+c.id+'\')">＋ 加入症状搜索框</button>'+
-        '<button class="btn sm ghost" onclick="tizhiLinkCombined(\''+c.id+'\')">🔗 联动四诊合参</button>'+
+        '<button class="btn sm ghost" onclick="tizhiLinkCombined(\''+c.id+'\')">🔗 联动出方（自动合并）</button>'+
         '<button class="btn sm ghost" onclick="tizhiClearOne(\''+c.id+'\')">取消选择</button>'+
       '</div>';
   }
@@ -2144,7 +2095,7 @@
   }
   function tizhiLinkCombined(id){
     if(!selectedTizhi.has(id)){ selectedTizhi.add(id); renderTizhiGrids(); }
-    goTab("search"); runSearchCombined();
+    goTab("search"); runSearch();
   }
   function tizhiClearOne(id){ if(selectedTizhi.has(id)) selectedTizhi.delete(id); renderTizhiGrids(); if(document.getElementById("tizhiGrid")) renderTizhiDetail(id); }
   function clearTizhiSelection(){ selectedTizhi.clear(); renderTizhiGrids(); }
@@ -2442,6 +2393,9 @@
   window.closeEntryModal=closeEntryModal;
   // 遮罩本身不关闭，只能点「我已知晓」；禁用 ESC 关闭
   document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ var m=document.getElementById('entryMask'); if(m && m.style.display!=='none') e.preventDefault(); } });
+  // 搜索框按 Enter 直接出方（移动端也友好）
+  var qInput=document.getElementById('q');
+  if(qInput){ qInput.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); runSearch(); } }); }
 
   // 初始化
   renderSysChips(); renderCloud(); runSearch(); renderSrcBox();
