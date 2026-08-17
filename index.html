@@ -1555,9 +1555,9 @@
         {key:"qizhi",  label:"气滞",     tags:["气滞","肝郁","胀闷"]}
       ]},
     {key:"qu",   title:"④ 望舌面分区 · 脏腑定位", short:"舌面分区", desc:"8 大区可多选；每区可多选特征，右侧显示病情。", qu:true},
-    {key:"xing", title:"⑤ 望形态动态", short:"舌态", desc:"看舌体形态与动态，反映邪正虚实、动静。正常 = 大小适中、柔软灵活。",
+    {key:"xing", title:"⑤ 望形态动态", short:"舌态", desc:"看舌体形态与动态，反映邪正虚实、动静。三角舌：舌前窄、舌根宽，提示肝郁 / 血瘀等相关证候（见下）。",
       options:[
-        {key:"normal",  label:"正常舌形",     normal:true, tags:["正常"]},
+        {key:"sanji",   label:"三角舌",       normal:false, tags:["三角舌","心肌缺血","贫血","头晕","肝郁","脾气差","容易结节","失眠","颈肩不适","两肋胀痛"]},
         {key:"lao",     label:"老舌",        tags:["老舌","实热","邪盛"]},
         {key:"nen",     label:"嫩舌",        tags:["嫩舌","虚","阳虚"]},
         {key:"pangda",  label:"胖大齿痕舌",   tags:["胖大","齿痕","痰湿","脾虚","虚"]},
@@ -1578,7 +1578,7 @@
     qi:{ danbai:"tongues/tongue-01.png", dan_hong:"tongues/tongue-02.png", hong:"tongues/tongue-03.png", jiang:"tongues/tongue-04.png", qingzi:"tongues/tongue-05.png" },
     tai:{ normal:"tongues/tongue-14.png", hou:"tongues/tongue-15.png", ni:"tongues/tongue-16.png", huang:"tongues/tongue-12.png", huihei:"tongues/tongue-13.png", zao:"tongues/tongue-11.png", bo:"tongues/tongue-18.png" },
     mai:{ normal:"tongues/正常.png", xueyu:"tongues/舌下淤血.png", qizhi:"tongues/气滞.png" },
-    xing:{ normal:"tongues/tongue-02.png", lao:"tongues/tongue-06.png", nen:"tongues/tongue-07.png", pangda:"tongues/tongue-08.png", shoubao:"tongues/tongue-09.png", liewen:"tongues/tongue-10.png", qiangying:"tongues/tongue-19.png", weiruan:"tongues/tongue-20.png", mangci:"tongues/芒刺舌.png", suoduan:"tongues/缩短舌.png" }
+    xing:{ sanji:"tongues/三角舌.png", lao:"tongues/tongue-06.png", nen:"tongues/tongue-07.png", pangda:"tongues/tongue-08.png", shoubao:"tongues/tongue-09.png", liewen:"tongues/tongue-10.png", qiangying:"tongues/tongue-19.png", weiruan:"tongues/tongue-20.png", mangci:"tongues/芒刺舌.png", suoduan:"tongues/缩短舌.png" }
   };
   var DZ_ORGAN_IMG="tongues/舌面对应脏腑.jpg";  // 舌面分区与脏腑对应全息图（qu 步骤参考）
   function toggleDzPhoto(v){ showDzPhoto=!!v; dzRenderCurrent(); }
