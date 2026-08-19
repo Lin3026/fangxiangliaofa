@@ -363,7 +363,7 @@
           <div class="dz-map">
             <div class="dz-mapbox" id="szMap"></div>
             <div class="dz-chips" id="szChips"></div>
-            <div class="dz-tip">💡 舌边属肝胆，舌中属脾胃，舌尖属心肺，舌根属肾膀胱。点区域可多选（最多 8 个）。</div>
+            <div class="dz-tip">💡 舌边属肝胆，舌中属脾胃，舌尖属心肺，舌根属肾膀胱。点区域可多选（最多 9 个）。</div>
           </div>
           <div class="dz-detail" id="szDetail">
             <div class="dz-empty">← 在左侧点选舌区，这里会列出该区的脏腑定位与可观察特征；选中特征即显示具体病情。</div>
@@ -599,7 +599,7 @@
         <div class="dz-map">
           <div class="dz-mapbox" id="dzMap"></div>
           <div class="dz-chips" id="dzChips"></div>
-          <div class="dz-tip">💡 舌边属肝胆，舌中属脾胃，舌尖属心肺，舌根属肾膀胱。点区域可多选（最多 8 个）。</div>
+          <div class="dz-tip">💡 舌边属肝胆，舌中属脾胃，舌尖属心肺，舌根属肾膀胱。点区域可多选（最多 9 个）。</div>
           <div class="dz-links">
             <a class="btn ghost sm" href="tongue_teach.html" target="_blank">📖 舌诊教学</a>
             <a class="btn ghost sm" href="tongue_wizard.html" target="_blank">🩺 分步舌诊向导</a>
@@ -1528,6 +1528,18 @@
        {key:"fahong",  label:"舌色发红", disease:"肝胆火旺",     symptom:"主症：口苦、消化差、易疲倦；兼症：烦躁、恶心、肋痛、嗳气、便秘、面红目赤", tags:["肝胆火旺","口苦","红","肝胆","肝火"]},
        {key:"aoxian",  label:"舌形凹陷", disease:"胆囊功能差",   symptom:"主症：消化油腻差、腹胀、口苦；兼症：嗳气、便溏、面色萎黄、恶心、右上腹不适", tags:["胆囊","功能差","凹陷","虚"]},
        {key:"tuqi",    label:"舌形凸起", disease:"胆汁排泄异常", symptom:"主症：右胁胀痛、嗳气、口苦；兼症：消化差、皮肤发黄、烦躁、恶心呕吐、大便不畅", tags:["胆汁","排泄异常","凸起","气滞"]}
+     ]},
+    {key:"shen",    label:"肾区", organ:"肾、膀胱", zone:"舌根", desc:"舌根 → 肾、膀胱（下焦）；苔厚腻 / 色红 / 凹陷 / 裂纹",
+     observations:[
+       {key:"tai_houni",  label:"舌根苔厚腻",   disease:"下焦湿浊",              symptom:"主症：腰骶酸胀、小便黄赤；兼症：小便频急、阴囊潮湿、带下多、下肢沉重、大便黏滞", tags:["下焦湿浊","厚腻","苔厚","湿","湿浊"]},
+       {key:"tai_huangni",label:"舌根黄腻苔",   disease:"下焦湿热（膀胱湿热）",   symptom:"主症：小便短赤灼痛、腰酸；兼症：尿频尿急、口苦口黏、带下黄臭、小腹胀满", tags:["下焦湿热","膀胱湿热","黄腻","湿热","泌尿"]},
+       {key:"bao_tai",    label:"舌根剥苔/无苔",disease:"肾阴亏虚",              symptom:"主症：腰膝酸软、潮热盗汗；兼症：五心烦热、眩晕耳鸣、失眠多梦、咽干、男子遗精、女子月经量少", tags:["肾阴虚","剥苔","无苔","阴虚","虚"]},
+       {key:"se_hong",    label:"舌根色红",     disease:"肾阴虚火旺",            symptom:"主症：咽干口燥、手足心热；兼症：盗汗、腰膝酸软、耳鸣、失眠、遗精早泄", tags:["肾阴虚","虚火","舌红","阴虚火旺","热"]},
+       {key:"liewen",     label:"舌根裂纹",     disease:"肾精亏虚",              symptom:"主症：腰膝酸软、耳鸣健忘；兼症：头晕目眩、发脱齿摇、遗精早泄、夜尿频多", tags:["肾精亏虚","裂纹","精亏","肾阴虚","虚"]},
+       {key:"danbai_pang",label:"舌根淡白胖大", disease:"肾阳虚衰",              symptom:"主症：畏寒肢冷、夜尿频多；兼症：腰膝冷痛、精神不振、小便清长、下肢水肿、性欲减退", tags:["肾阳虚","淡白","胖大","阳虚","寒"]},
+       {key:"aoxian",     label:"舌根凹陷",     disease:"肾气亏虚",              symptom:"主症：腰膝酸软、气短乏力；兼症：夜尿多、耳鸣、遗尿、齿松发脱、动则汗出", tags:["肾气虚","凹陷","气虚","虚"]},
+       {key:"tuqi",       label:"舌根凸起",     disease:"下焦气滞",              symptom:"主症：小腹胀痛、腰骶胀闷；兼症：便秘、小便不利、下肢沉重、情志不畅", tags:["下焦气滞","凸起","气滞","胀满"]},
+       {key:"qingzi",     label:"舌根青紫/瘀点",disease:"肾络瘀阻",              symptom:"主症：腰部刺痛、痛处固定；兼症：面色晦暗、夜尿涩痛、肌肤甲错、舌下络脉青紫", tags:["血瘀","肾络瘀阻","青紫","瘀","痛"]}
      ]}
   ];
   var DZ_ZONES=[
@@ -1540,7 +1552,8 @@
     {key:"ruxian",  cx:240, cy:122, rx:18, ry:14, fill:"rgba(180,100,140,.30)",stroke:"rgba(140,70,110,.55)", label:"乳腺区", lx:240, ly:126, fc:"#7a2f5a"},
     {key:"piwei",   cx:140, cy:152, rx:36, ry:22, fill:"rgba(200,140,40,.35)", stroke:"rgba(160,100,20,.55)", label:"脾胃区", lx:140, ly:156, fc:"#5a3300"},
     {key:"gan",     cx:48,  cy:162, rx:22, ry:18, fill:"rgba(60,150,80,.30)",  stroke:"rgba(40,110,60,.55)",  label:"肝区",   lx:48,  ly:166, fc:"#1f5a2f"},
-    {key:"dan",     cx:232, cy:162, rx:22, ry:18, fill:"rgba(220,200,40,.30)", stroke:"rgba(180,150,20,.55)", label:"胆区",   lx:232, ly:166, fc:"#665a00"}
+    {key:"dan",     cx:232, cy:162, rx:22, ry:18, fill:"rgba(220,200,40,.30)", stroke:"rgba(180,150,20,.55)", label:"胆区",   lx:232, ly:166, fc:"#665a00"},
+    {key:"shen",    cx:140, cy:195, rx:34, ry:15, fill:"rgba(110,80,170,.32)", stroke:"rgba(80,50,140,.60)",  label:"肾区",   lx:140, ly:199, fc:"#3a2066"}
   ];
   var dzSel={};   // 区域 key -> true（可多选）
   var dzObs={};   // 区域 key -> 该区选中的 observation key 数组（单区多选）
@@ -1571,7 +1584,7 @@
         {key:"xueyu",  label:"瘀血",     tags:["血瘀","青紫","瘀斑","刺痛","经闭"]},
         {key:"qizhi",  label:"气滞",     tags:["气滞","肝郁","胀闷"]}
       ]},
-    {key:"qu",   title:"④ 望舌面分区 · 脏腑定位", short:"舌面分区", desc:"8 大区可多选；每区可多选特征，右侧显示病情。", qu:true},
+    {key:"qu",   title:"④ 望舌面分区 · 脏腑定位", short:"舌面分区", desc:"9 大区可多选；每区可多选特征，右侧显示病情。", qu:true},
     {key:"xing", title:"⑤ 望形态动态", short:"舌态", desc:"看舌体形态与动态，反映邪正虚实、动静。三角舌：舌前窄、舌根宽，提示肝郁 / 血瘀等相关证候（见下）。",
       options:[
         {key:"sanji",   label:"三角舌",       normal:false, tags:["三角舌","心肌缺血","贫血","头晕","肝郁","脾气差","容易结节","失眠","颈肩不适","两肋胀痛"]},
