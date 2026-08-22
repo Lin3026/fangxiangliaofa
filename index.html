@@ -241,6 +241,29 @@
   .tizhi-empty{color:var(--muted);font-size:13px;text-align:center;padding:40px 10px;border:1px dashed var(--line);border-radius:10px;line-height:1.6;}
   .tizhi-selbar{font-size:12px;color:var(--muted);}
   .tizhi-selbar b{color:var(--accent);}
+  /* 体质自测问卷 */
+  .tzquiz{max-height:62vh;overflow:auto;padding-right:6px;}
+  .tzq-group{margin:14px 0 4px;font-weight:700;color:var(--accent);border-top:1px dashed var(--line);padding-top:10px;}
+  .tzq{margin:8px 0;font-size:13px;}
+  .tzq .opts{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap;}
+  .tzq .chip{display:inline-flex;cursor:pointer;}
+  .tzq .chip input{position:absolute;opacity:0;width:0;height:0;}
+  .tzq .chip span{font-size:12px;background:#f3f6f5;border:1px solid var(--line);border-radius:14px;padding:4px 13px;color:#333;}
+  .tzq .chip input:checked+span{background:var(--accent);color:#fff;border-color:var(--accent);}
+  /* 条状图结果 */
+  .tzchart{position:relative;display:flex;align-items:flex-start;justify-content:space-around;gap:6px;height:300px;padding-top:22px;margin-top:6px;}
+  .tzcol{flex:1;display:flex;flex-direction:column;align-items:center;}
+  .tzcol .score{font-size:12px;font-weight:700;color:#333;margin-bottom:4px;line-height:1.2;}
+  .tzcol .track{height:200px;width:62%;max-width:46px;display:flex;align-items:flex-end;}
+  .tzcol .bar{width:100%;background:#b9c2cc;border-radius:5px 5px 0 0;height:0;}
+  .tzcol .bar.ok{background:linear-gradient(180deg,#e8745f,#c0392b);}
+  .tzcol .name{margin-top:8px;font-size:11px;text-align:center;line-height:1.25;min-height:28px;color:#333;}
+  .tzcol .tag{font-size:10px;font-weight:700;margin-top:2px;}
+  .tzcol .tag.ok{color:#c0392b;}
+  .tzcol .tag.no{color:#8a94a0;}
+  .tzline{position:absolute;left:0;right:0;top:0;border-top:2px dashed #e23b3b;z-index:4;pointer-events:none;}
+  .tzline .lab{position:absolute;right:2px;top:-15px;font-size:10px;color:#e23b3b;background:#fff;padding:0 3px;}
+  .tzsummary{margin-top:10px;background:#fbf4f3;border:1px solid #f0d9d6;border-radius:8px;padding:8px 10px;font-size:13px;line-height:1.6;}
 
   /* 精油剂量计算器 */
   .dose-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:10px 0;}
@@ -619,6 +642,7 @@
   <!-- 体质辨证（王琦九种体质） -->
   <section id="tab-tizhi" style="display:none;">
     <div class="hint" style="margin-bottom:8px;">🌿 <b>体质辨证</b>：基于王琦九种中医体质。点选下方体质卡片（可多选，中医常言「兼夹体质」，一般 2 种）查看其特征、推荐单方精油与复方按摩油；勾选后会在『智能配方』第三步同步，与症状/舌象/脉象一起合入「搜索配方」出方。外部项目可调用 <code>AROMA_tizhiRecommend(['平和质','气虚质'])</code> 取得推荐配方。</div>
+    <div class="toolbar" style="margin-bottom:10px;"><button class="btn" onclick="openTizhiQuiz()">📝 开始体质自测（出条状图结果）</button></div>
     <div class="tizhi-wrap">
       <div>
         <div class="tizhi-grid" id="tizhiGrid"></div>
@@ -684,6 +708,7 @@
   // 兼容旧存档：补齐脉诊与来源元数据
   if(!db.pulses || !db.pulses.length) db.pulses = (window.AROMA_BASE && window.AROMA_BASE.pulses) ? window.AROMA_BASE.pulses : [];
   if(!db.tongues || !db.tongues.length) db.tongues = (window.AROMA_BASE && window.AROMA_BASE.tongues) ? window.AROMA_BASE.tongues : [];
+  if(!db.tizhiQuiz || !db.tizhiQuiz.length) db.tizhiQuiz = (window.AROMA_BASE && window.AROMA_BASE.tizhiQuiz) ? window.AROMA_BASE.tizhiQuiz : [];
   if(!db.meta) db.meta = window.AROMA_BASE.meta;
   else if(!db.meta.sources) db.meta.sources = window.AROMA_BASE.meta.sources;
 
@@ -2050,6 +2075,101 @@
     selectedTizhi.forEach(function(id){ var c=tizhiById(id); if(c)(c.tags||[]).forEach(function(t){ if(toks.indexOf(t)<0) toks.push(t); }); });
     return toks;
   }
+  /* ===== 体质自测问卷 + 条状图结果 ===== */
+  var OPT_LABELS=["没有","很少","有时","经常","总是"];
+  var lastTizhiScores=null;
+  function openTizhiQuiz(){
+    var quiz=db.tizhiQuiz||[];
+    if(!quiz.length){ alert("未找到自测题库（tizhiQuiz）。"); return; }
+    var total=quiz.reduce(function(a,b){return a+b.questions.length;},0);
+    var html='<h2>📝 体质自测（王琦九体质）</h2>';
+    html+='<div class="hint" style="margin:4px 0 10px;">凭第一感觉作答，每题选最符合的一项。<b>选项不显示分值，后台自动统计</b>。共 '+total+' 题、9 组体质。答完看条状图：<b>超过 40 分即确认该体质，低于 40 分则不算</b>。</div>';
+    html+='<div class="tzquiz">';
+    quiz.forEach(function(g){
+      var c=tizhiByAny(g.id), icon=c?c.icon:'';
+      html+='<div class="tzq-group">'+icon+' '+escapeHtml(g.name)+'</div>';
+      g.questions.forEach(function(qn,qi){
+        html+='<div class="tzq"><div>'+escapeHtml(qn.q)+'</div><div class="opts">';
+        OPT_LABELS.forEach(function(lbl,li){
+          html+='<label class="chip"><input type="radio" name="q_'+g.id+'_'+qi+'" value="'+li+'"><span>'+lbl+'</span></label>';
+        });
+        html+='</div></div>';
+      });
+    });
+    html+='</div>';
+    html+='<div class="actions" style="margin-top:14px;"><button class="btn" onclick="submitTizhiQuiz()">查看结果（条状图）</button><button class="btn ghost" onclick="closeModal()">取消</button></div>';
+    document.getElementById("modalBody").innerHTML=html;
+    document.getElementById("modal").classList.add("show");
+  }
+  function computeTizhiScores(){
+    var quiz=db.tizhiQuiz||[];
+    return quiz.map(function(g){
+      var N=g.questions.length, raw=0;
+      g.questions.forEach(function(qn,qi){
+        var el=document.querySelector('input[name="q_'+g.id+'_'+qi+'"]:checked');
+        var idx=el?parseInt(el.value,10):0;
+        var v = qn.reverse ? (5-idx) : (idx+1);
+        raw+=v;
+      });
+      var converted = N ? Math.round((raw-N)/(N*4)*100) : 0;
+      if(converted<0) converted=0; if(converted>100) converted=100;
+      return {id:g.id, name:g.name, score:converted, confirmed:converted>=40};
+    });
+  }
+  function submitTizhiQuiz(){
+    var quiz=db.tizhiQuiz||[];
+    for(var i=0;i<quiz.length;i++){
+      var g=quiz[i];
+      for(var j=0;j<g.questions.length;j++){
+        var el=document.querySelector('input[name="q_'+g.id+'_'+j+'"]:checked');
+        if(!el){ alert('还有题目未作答，请完成第 '+(i+1)+' 组「'+g.name+'」的第 '+(j+1)+' 题。'); return; }
+      }
+    }
+    lastTizhiScores=computeTizhiScores();
+    renderTizhiResult(lastTizhiScores);
+  }
+  function renderTizhiResult(scores){
+    var confirmed=scores.filter(function(s){return s.confirmed;});
+    var html='<h2>📊 体质自测结果</h2>';
+    html+='<div class="hint" style="margin:4px 0 6px;">红色虚线为 <b>40 分确认线</b>：超过即确认该体质，低于即不算。中医常言「兼夹体质」，一般 1–2 种。</div>';
+    html+='<div class="tzchart" id="tzChart"><div class="tzline" id="tzLine"><span class="lab">40分·确认线</span></div>';
+    scores.forEach(function(s){
+      html+='<div class="tzcol">'
+        +'<div class="score">'+s.score+'</div>'
+        +'<div class="track"><div class="bar'+(s.confirmed?' ok':'')+'" style="height:'+s.score+'%"></div></div>'
+        +'<div class="name">'+escapeHtml(s.name)+'</div>'
+        +'<div class="tag '+(s.confirmed?'ok':'no')+'">'+(s.confirmed?'确认':'不是')+'</div>'
+        +'</div>';
+    });
+    html+='</div>';
+    html+='<div class="tzsummary">';
+    if(confirmed.length){
+      html+='<b style="color:#c0392b">确认体质（≥40分）：</b>'+confirmed.map(function(s){return escapeHtml(s.name)+'（'+s.score+'分）';}).join('、');
+    } else {
+      html+='<b>本次未确认明显偏颇体质（9 项均 &lt;40 分）</b>，更接近「平和质」。';
+    }
+    html+='</div>';
+    html+='<div class="actions" style="margin-top:14px;">';
+    if(confirmed.length) html+='<button class="btn" onclick="tizhiQuizToGrid()">在体质页查看确认体质配方</button>';
+    html+='<button class="btn ghost" onclick="openTizhiQuiz()">重新测试</button><button class="btn ghost" onclick="closeModal()">关闭</button></div>';
+    document.getElementById("modalBody").innerHTML=html;
+    var chart=document.getElementById("tzChart"), track=chart&&chart.querySelector(".track"), line=document.getElementById("tzLine");
+    if(track&&line){ line.style.top=(track.offsetTop + track.offsetHeight*(1-0.4))+'px'; }
+    document.getElementById("modal").classList.add("show");
+  }
+  function tizhiQuizToGrid(){
+    if(!lastTizhiScores) return;
+    var ids=lastTizhiScores.filter(function(s){return s.confirmed;}).map(function(s){return s.id;});
+    selectedTizhi.clear(); ids.forEach(function(id){ selectedTizhi.add(id); });
+    renderTizhiGrids();
+    closeModal();
+    goTab("tizhi");
+    if(ids.length) renderTizhiDetail(ids[0]);
+  }
+  window.openTizhiQuiz=openTizhiQuiz;
+  window.submitTizhiQuiz=submitTizhiQuiz;
+  window.tizhiQuizToGrid=tizhiQuizToGrid;
+  /* ===== 体质自测结束 ===== */
   function renderTizhiCards(target){
     if(!target) return;
     target.innerHTML="";
