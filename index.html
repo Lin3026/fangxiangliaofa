@@ -386,7 +386,7 @@
           <div class="dz-map">
             <div class="dz-mapbox" id="szMap"></div>
             <div class="dz-chips" id="szChips"></div>
-            <div class="dz-tip">💡 舌边属肝胆，舌中属脾胃，舌尖属心肺，舌根属肾膀胱。点区域可多选（最多 9 个）。</div>
+            <div class="dz-tip">💡 舌边属肝胆，舌中属脾胃，舌尖属心肺，舌根属肾膀胱。点区域可多选（最多 10 个）。</div>
           </div>
           <div class="dz-detail" id="szDetail">
             <div class="dz-empty">← 在左侧点选舌区，这里会列出该区的脏腑定位与可观察特征；选中特征即显示具体病情。</div>
@@ -622,7 +622,7 @@
         <div class="dz-map">
           <div class="dz-mapbox" id="dzMap"></div>
           <div class="dz-chips" id="dzChips"></div>
-          <div class="dz-tip">💡 舌边属肝胆，舌中属脾胃，舌尖属心肺，舌根属肾膀胱。点区域可多选（最多 9 个）。</div>
+          <div class="dz-tip">💡 舌边属肝胆，舌中属脾胃，舌尖属心肺，舌根属肾膀胱。点区域可多选（最多 10 个）。</div>
           <div class="dz-links">
             <a class="btn ghost sm" href="tongue_teach.html" target="_blank">📖 舌诊教学</a>
             <a class="btn ghost sm" href="tongue_wizard.html" target="_blank">🩺 分步舌诊向导</a>
@@ -1516,6 +1516,12 @@
        {key:"hongdian",label:"舌质红点", disease:"肩周淤堵", symptom:"主症：发紧、疼痛、活动受限；兼症：上肢麻木、夜间加重、肩部怕冷、抬举困难、肩部沉重", tags:["肩周","瘀堵","发紧","红点","血瘀"]},
        {key:"quexian", label:"舌形缺损", disease:"气机不畅", symptom:"主症：酸胀、活动无力；兼症：抬举困难、肩部怕风、情绪抑郁、胸闷叹气", tags:["气机不畅","酸胀","缺损","气滞"]}
      ]},
+    {key:"shou", label:"手区", organ:"上肢、手", zone:"舌边前中段（肩周下方）", desc:"舌边前中段 → 上肢、手；舌形凹陷 / 舌质红 / 舌质淡白",
+     observations:[
+       {key:"aoxian",  label:"舌形凹陷", disease:"上肢气血虚",       symptom:"主症：手部乏力、手指发麻、手臂酸沉；兼症：手部怕冷、握力差、末梢循环差、指甲色淡、上肢易疲劳", tags:["上肢虚","手部乏力","发麻","凹陷","气血不足","虚"]},
+       {key:"se_hong", label:"舌质红",   disease:"手心热（阴虚内热）", symptom:"主症：手心发热、五心烦热；兼症：手部燥热、口干、失眠、盗汗、易烦躁", tags:["手心热","阴虚","红","虚热"]},
+       {key:"se_bai",  label:"舌质淡白", disease:"手部怕冷、循环差", symptom:"主症：手凉、手指发紫、遇冷发白；兼症：末梢循环差、手部青紫、怕冷、指甲脆", tags:["手凉","循环差","淡白","阳虚","寒"]}
+     ]},
     {key:"ruxian",  label:"乳腺区", organ:"乳", zone:"舌边前段", desc:"舌边前段 → 乳腺；舌质红点 / 舌形凹陷",
      observations:[
        {key:"hongdian",label:"舌质红点", disease:"乳腺增生", symptom:"主症：胀痛、经前加重、乳房肿块；兼症：胸闷、月经不调、易怒、情绪抑郁、乳头溢液", tags:["乳腺","乳腺增生","红点","血瘀","胀闷"]},
@@ -1573,6 +1579,8 @@
     {key:"fei",     cx:140, cy:108, rx:24, ry:14, fill:"rgba(74,122,155,.30)", stroke:"rgba(74,122,155,.55)", label:"肺区",   lx:140, ly:112, fc:"#1f4a66"},
     {key:"jianzhou",cx:48,  cy:84,  rx:20, ry:14, fill:"rgba(227,196,82,.30)", stroke:"rgba(180,140,40,.55)", label:"肩周区", lx:48,  ly:88,  fc:"#7a5b00"},
     {key:"jianzhou",cx:232, cy:84,  rx:20, ry:14, fill:"rgba(227,196,82,.30)", stroke:"rgba(180,140,40,.55)", label:"肩周区", lx:232, ly:88,  fc:"#7a5b00"},
+    {key:"shou",    cx:64,  cy:106, rx:14, ry:10, fill:"rgba(214,118,46,.30)",  stroke:"rgba(170,80,20,.55)",  label:"手区",   lx:64,  ly:110, fc:"#7a3b00"},
+    {key:"shou",    cx:216, cy:106, rx:14, ry:10, fill:"rgba(214,118,46,.30)",  stroke:"rgba(170,80,20,.55)",  label:"手区",   lx:216, ly:110, fc:"#7a3b00"},
     {key:"ruxian",  cx:40,  cy:122, rx:18, ry:14, fill:"rgba(180,100,140,.30)",stroke:"rgba(140,70,110,.55)", label:"乳腺区", lx:40,  ly:126, fc:"#7a2f5a"},
     {key:"ruxian",  cx:240, cy:122, rx:18, ry:14, fill:"rgba(180,100,140,.30)",stroke:"rgba(140,70,110,.55)", label:"乳腺区", lx:240, ly:126, fc:"#7a2f5a"},
     {key:"piwei",   cx:140, cy:152, rx:36, ry:22, fill:"rgba(200,140,40,.35)", stroke:"rgba(160,100,20,.55)", label:"脾胃区", lx:140, ly:156, fc:"#5a3300"},
@@ -1609,7 +1617,7 @@
         {key:"xueyu",  label:"瘀血",     tags:["血瘀","青紫","瘀斑","刺痛","经闭"]},
         {key:"qizhi",  label:"气滞",     tags:["气滞","肝郁","胀闷"]}
       ]},
-    {key:"qu",   title:"④ 望舌面分区 · 脏腑定位", short:"舌面分区", desc:"9 大区可多选；每区可多选特征，右侧显示病情。", qu:true},
+    {key:"qu",   title:"④ 望舌面分区 · 脏腑定位", short:"舌面分区", desc:"10 大区可多选；每区可多选特征，右侧显示病情。", qu:true},
     {key:"xing", title:"⑤ 望形态动态", short:"舌态", desc:"看舌体形态与动态，反映邪正虚实、动静。三角舌：舌前窄、舌根宽，提示肝郁 / 血瘀等相关证候（见下）。",
       options:[
         {key:"sanji",   label:"三角舌",       normal:false, tags:["三角舌","心肌缺血","贫血","头晕","肝郁","脾气差","容易结节","失眠","颈肩不适","两肋胀痛"]},
