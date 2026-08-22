@@ -261,8 +261,8 @@
   .tzcol .tag{font-size:10px;font-weight:700;margin-top:2px;}
   .tzcol .tag.ok{color:#c0392b;}
   .tzcol .tag.no{color:#8a94a0;}
-  .tzline{position:absolute;left:0;right:0;top:0;border-top:2px dashed #e23b3b;z-index:4;pointer-events:none;}
-  .tzline .lab{position:absolute;right:2px;top:-15px;font-size:10px;color:#e23b3b;background:#fff;padding:0 3px;}
+  .tzline{position:absolute;left:0;right:0;top:0;border-top:2px solid #2563eb;z-index:4;pointer-events:none;}
+  .tzline .lab{position:absolute;right:2px;top:-15px;font-size:10px;color:#2563eb;background:#fff;padding:0 3px;}
   .tzsummary{margin-top:10px;background:#fbf4f3;border:1px solid #f0d9d6;border-radius:8px;padding:8px 10px;font-size:13px;line-height:1.6;}
 
   /* 精油剂量计算器 */
@@ -2131,7 +2131,7 @@
   function renderTizhiResult(scores){
     var confirmed=scores.filter(function(s){return s.confirmed;});
     var html='<h2>📊 体质自测结果</h2>';
-    html+='<div class="hint" style="margin:4px 0 6px;">红色虚线为 <b>40 分确认线</b>：超过即确认该体质，低于即不算。中医常言「兼夹体质」，一般 1–2 种。</div>';
+    html+='<div class="hint" style="margin:4px 0 6px;">蓝色实线为 <b>40 分确认线</b>：超过即确认该体质，低于即不算。中医常言「兼夹体质」，一般 1–2 种。</div>';
     html+='<div class="tzchart" id="tzChart"><div class="tzline" id="tzLine"><span class="lab">40分·确认线</span></div>';
     scores.forEach(function(s){
       html+='<div class="tzcol">'
