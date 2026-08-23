@@ -397,8 +397,7 @@
     <div class="card" style="background:var(--accent-soft);border-color:#bfe3d4;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
         <strong style="color:var(--accent)">👅 第二步：选舌象（分步辨证，可只选你实际看到的部分）</strong>
-        <label class="imgswitch" title="显示 / 隐藏望舌质的舌象参考照片（其他步骤不显示开关）" id="szPhotoLabel" style="display:none;"><input type="checkbox" id="szPhotoToggle" checked onchange="toggleSzPhoto(this.checked)"><span class="track"></span><span class="lbl">显示舌象照片</span></label>
-      </div>
+              </div>
       <div class="hint" style="margin:4px 0 2px;">按中医辨证顺序逐步点选你<b>实际看到的</b>舌象：<b>①望舌质（舌色）→②望舌苔（苔色苔质）→③舌下脉络→④舌态（形态动态）→⑤舌面分区（脏腑定位）</b>。顶部可切换步骤，每步单选（舌面分区可多选区域、每区可多选特征）。选好后<b>回到顶部点「搜索配方」</b>即可出方（自动合并症状+脉象+体质）。</div>
       <div class="tonguephoto-disclaimer">⚠ 舌象照片为临床参考图谱（已按课本截图核对图名），<b>非诊断依据</b>；辨证请结合全身症状，由执业中医师面诊为准。</div>
 
@@ -635,8 +634,7 @@
             <button class="btn" onclick="goTab('search');runSearch();">搜索配方</button>
             <button class="btn ghost sm" onclick="dzClear()">清空选择</button>
             <span id="dzCount" class="count"></span>
-            <label class="imgswitch" style="margin-left:auto;" title="显示 / 隐藏望舌质的舌象参考照片（其他步骤不显示开关）" id="dzPhotoLabel" style="display:none;"><input type="checkbox" id="dzPhotoToggle" checked onchange="toggleDzPhoto(this.checked)"><span class="track"></span><span class="lbl">显示舌象照片</span></label>
-          </div>
+                      </div>
         </div>
         <div class="dz-detail" id="dzDetail">
           <div class="dz-empty">← 在左侧点选舌区，这里会列出该区的脏腑定位与可观察特征；选中特征即显示具体病情。</div>
@@ -1808,23 +1806,16 @@
             '<div>'+escapeHtml(o.label)+(o.normal?' <span class="dz-oc-tags">（正常）</span>':'')+'</div>';
       if(o.tags&&o.tags.length) html+='<div class="dz-oc-tags">'+escapeHtml(o.tags.join("、"))+'</div>';
       if(o.tizhi&&o.tizhi.length) html+='<div class="dz-oc-tizhi">🌿 体质倾向：'+escapeHtml(o.tizhi.join("、"))+'</div>';
-      if(showDzPhoto){
-        var p=DZ_PHOTO_MAP[key]?DZ_PHOTO_MAP[key][o.key]:null;
-        if(p){
-          var sp=escapeAttr(p), sn=escapeAttr(o.label);
-          html+='<img class="dz-photo" src="'+sp+'" alt="'+escapeHtml(o.label)+' 参考图" loading="lazy" onerror="this.outerHTML=\'<div class=&quot;dz-photo-none&quot;>图未找到：'+sp+'</div>\'">';
-        } else {
-          html+='<div class="dz-photo-none">暂无对应图谱</div>';
-        }
+      var p=DZ_PHOTO_MAP[key]?DZ_PHOTO_MAP[key][o.key]:null;
+      if(p){
+        var sp=escapeAttr(p), sn=escapeAttr(o.label);
+        html+='<img class="dz-photo" src="'+sp+'" alt="'+escapeHtml(o.label)+' 参考图" loading="lazy" onerror="this.outerHTML=\'<div class=&quot;dz-photo-none&quot;>图未找到：'+sp+'</div>\'">';
+      } else {
+        html+='<div class="dz-photo-none">暂无对应图谱</div>';
       }
       html+='</div>';
     });
     html+='</div>';
-    if(key==="qi"){
-      var lbl=document.getElementById("dzPhotoLabel"); if(lbl) lbl.style.display="inline-block";
-    } else {
-      var lbl2=document.getElementById("dzPhotoLabel"); if(lbl2) lbl2.style.display="none";
-    }
     box.innerHTML=html;
   }
   window.toggleDzPhoto=toggleDzPhoto;
@@ -2071,23 +2062,16 @@
             '<div>'+escapeHtml(o.label)+(o.normal?' <span class="dz-oc-tags">（正常）</span>':'')+'</div>';
       if(o.tags&&o.tags.length) html+='<div class="dz-oc-tags">'+escapeHtml(o.tags.join("、"))+'</div>';
       if(o.tizhi&&o.tizhi.length) html+='<div class="dz-oc-tizhi">🌿 体质倾向：'+escapeHtml(o.tizhi.join("、"))+'</div>';
-      if(showSzPhoto){
-        var p=DZ_PHOTO_MAP[key]?DZ_PHOTO_MAP[key][o.key]:null;
-        if(p){
-          var sp=escapeAttr(p), sn=escapeAttr(o.label);
-          html+='<img class="dz-photo" src="'+sp+'" alt="'+escapeHtml(o.label)+' 参考图" loading="lazy" onerror="this.outerHTML=\'<div class=&quot;dz-photo-none&quot;>图未找到：'+sp+'</div>\'">';
-        } else {
-          html+='<div class="dz-photo-none">暂无对应图谱</div>';
-        }
+      var p=DZ_PHOTO_MAP[key]?DZ_PHOTO_MAP[key][o.key]:null;
+      if(p){
+        var sp=escapeAttr(p), sn=escapeAttr(o.label);
+        html+='<img class="dz-photo" src="'+sp+'" alt="'+escapeHtml(o.label)+' 参考图" loading="lazy" onerror="this.outerHTML=\'<div class=&quot;dz-photo-none&quot;>图未找到：'+sp+'</div>\'">';
+      } else {
+        html+='<div class="dz-photo-none">暂无对应图谱</div>';
       }
       html+='</div>';
     });
     html+='</div>';
-    if(key==="qi"){
-      var lbl=document.getElementById("szPhotoLabel"); if(lbl) lbl.style.display="inline-block";
-    } else {
-      var lbl2=document.getElementById("szPhotoLabel"); if(lbl2) lbl2.style.display="none";
-    }
     box.innerHTML=html;
   }
   function toggleSzPhoto(v){ showSzPhoto=!!v; szRenderCurrent(); }
