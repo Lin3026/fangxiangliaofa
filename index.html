@@ -1504,6 +1504,7 @@
     {key:"xinnao", label:"心脑区", organ:"心、脑", zone:"舌尖", desc:"舌尖区域 → 心脑；舌形凹 / 舌尖缺损",
      observations:[
        {key:"aoxian",  label:"舌形凹",   disease:"供血不足", symptom:"主症：头晕脑胀、记忆力差；兼症：注意力不集中、面色苍白、心悸、气短、乏力、月经量少、指甲色淡、易疲劳", tags:["供血不足","头晕","记忆力","凹陷","气血不足","虚"], tizhi:["气虚质","阳虚质"]},
+       {key:"tuqi",    label:"舌形凸起", disease:"心气郁滞", symptom:"主症：心烦、胸闷、舌尖胀满；兼症：易怒、口苦、失眠、叹气、急躁、口腔溃疡", tags:["心气郁","凸起","胸闷","烦躁","气滞"], tizhi:["气郁质","阴虚质"]},
        {key:"quexian", label:"舌尖缺损", disease:"气血不足", symptom:"主症：胸闷、心慌；兼症：气短、乏力、面色无华、头晕目眩、月经量少、易感冒、失眠多梦", tags:["气血不足","胸闷","心慌","缺损","虚"], tizhi:["气虚质","阳虚质"]}
      ]},
     {key:"jingzhui", label:"颈椎区", organ:"颈椎", zone:"舌尖下", desc:"舌尖下 → 颈椎；舌形凹 / 舌形凸",
@@ -1527,6 +1528,7 @@
      ]},
     {key:"piwei",   label:"脾胃区", organ:"脾、胃", zone:"舌中", desc:"舌中 → 脾胃；舌形凹陷 / 凸起 / 苔色",
      observations:[
+       {key:"aoxian",      label:"舌形凹陷",        disease:"脾胃气虚",       symptom:"主症：食欲差、腹胀、饭后困倦；兼症：大便溏、面色萎黄、消瘦、乏力、容易疲倦", tags:["脾胃气虚","凹陷","脾虚","虚"], tizhi:["气虚质","阳虚质"]},
        {key:"tuqi",        label:"舌形凸起",        disease:"胃气滞",         symptom:"主症：积食、腹胀、打嗝；兼症：嗳气、胃部窜痛、反酸、恶心、饭后加重", tags:["胃气滞","积食","凸起","气滞"], tizhi:["气郁质"]},
        {key:"zhi_baitai",  label:"舌质白苔",        disease:"脾胃虚寒",       symptom:"主症：怕冷、腹部冷痛、喜温喜按；兼症：大便溏、四肢凉、面色白、完谷不化", tags:["脾胃虚寒","白苔","脾虚","虚寒"], tizhi:["阳虚质","气虚质"]},
        {key:"zhi_huangtai",label:"舌质黄苔",        disease:"积食",           symptom:"主症：口臭、腹胀、食欲差；兼症：嗳气、大便臭、舌苔厚腻、夜间磨牙、放屁多", tags:["积食","口臭","黄苔","苔黄","厚"], tizhi:["湿热质","痰湿质"]},
@@ -1670,6 +1672,7 @@
     if(dzSel[key]){ delete dzSel[key]; delete dzObs[key]; }
     else { dzSel[key]=true; }
     dzRenderMap(); dzRenderDetail();
+    syncSzFromDz();
   }
   function dzToggleObs(regionKey, obsKey){
     if(!dzObs[regionKey]) dzObs[regionKey]=[];
@@ -1677,6 +1680,7 @@
     if(idx>=0) arr.splice(idx,1); else arr.push(obsKey);
     if(arr.length===0) delete dzObs[regionKey];
     dzRenderDetail();
+    syncSzFromDz();
   }
   function dzRenderDetail(){
     var box=document.getElementById("dzDetail"); if(!box) return;
@@ -1767,6 +1771,7 @@
     if(dzPick[stepKey]===optKey) delete dzPick[stepKey];
     else dzPick[stepKey]=optKey;
     dzRenderPick(stepKey);
+    syncSzFromDz();
   }
   function dzCollectAllTags(){
     var toks=[];
@@ -1873,6 +1878,7 @@
     if(s) s.style.display="none";
     if(r) r.innerHTML="";
     if(c) c.textContent="";
+    syncSzFromDz();
   }
   window.dzRecommend=dzRecommend; window.dzClear=dzClear; window.dzRenderMap=dzRenderMap;
   window.dzToggleRegion=dzToggleRegion; window.dzToggleObs=dzToggleObs;
@@ -1951,6 +1957,7 @@
     if(szSel[key]){ delete szSel[key]; delete szObs[key]; }
     else { szSel[key]=true; }
     szRenderMap(); szRenderDetail(); szUpdateCount();
+    syncDzFromSz();
   }
   function szToggleObs(regionKey, obsKey){
     if(!szObs[regionKey]) szObs[regionKey]=[];
@@ -1958,6 +1965,7 @@
     if(idx>=0) arr.splice(idx,1); else arr.push(obsKey);
     if(arr.length===0) delete szObs[regionKey];
     szRenderDetail(); szUpdateCount();
+    syncDzFromSz();
   }
   function szRenderDetail(){
     var box=document.getElementById("szDetail"); if(!box) return;
@@ -2026,6 +2034,7 @@
     if(szPick[stepKey]===optKey) delete szPick[stepKey];
     else szPick[stepKey]=optKey;
     szRenderPick(stepKey); szUpdateCount();
+    syncDzFromSz();
   }
   function szUpdateCount(){
     var n=0;
@@ -2087,6 +2096,25 @@
     szRenderSteps();
     if(szStep==="qu"){ szRenderMap(); szRenderDetail(); }
     else { szRenderPick(szStep); }
+    szUpdateCount();
+    syncDzFromSz();
+  }
+  // 双向同步：智能配方(sz*) ↔ 舌诊辨证(dz*) 选择状态保持一致（共用数据，任一侧操作自动同步到另一侧）
+  function syncDzFromSz(){
+    dzPick={qi:szPick.qi, tai:szPick.tai, mai:szPick.mai, xing:szPick.xing};
+    dzSel={}; Object.keys(szSel).forEach(function(k){ dzSel[k]=true; });
+    dzObs={}; Object.keys(szObs).forEach(function(k){ dzObs[k]=szObs[k].slice(); });
+    if(!document.getElementById("dzSteps")) return;
+    dzRenderSteps();
+    if(dzStep==="qu"){ dzRenderMap(); dzRenderDetail(); } else { dzRenderPick(dzStep); }
+  }
+  function syncSzFromDz(){
+    szPick={qi:dzPick.qi, tai:dzPick.tai, mai:dzPick.mai, xing:dzPick.xing};
+    szSel={}; Object.keys(dzSel).forEach(function(k){ szSel[k]=true; });
+    szObs={}; Object.keys(dzObs).forEach(function(k){ szObs[k]=dzObs[k].slice(); });
+    if(!document.getElementById("szSteps")) return;
+    szRenderSteps();
+    if(szStep==="qu"){ szRenderMap(); szRenderDetail(); } else { szRenderPick(szStep); }
     szUpdateCount();
   }
   window.toggleSzPhoto=toggleSzPhoto;
