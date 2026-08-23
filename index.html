@@ -79,6 +79,9 @@
   .liblist .row{display:flex;justify-content:space-between;align-items:center;gap:8px;}
   .liblist .row .ops{display:flex;gap:6px;}
   .hint{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .diag-card{background:var(--accent-soft);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;padding:10px 14px;margin:10px 0 12px;font-size:13.5px;line-height:1.75;color:var(--ink);}
+  .diag-card .diag-head{font-weight:700;font-size:14.5px;color:var(--accent);margin-bottom:4px;}
+  .diag-card .diag-row{margin-top:3px;}
   /* 示意图显示开关（第一步/第二步标题后） */
   .imgswitch{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#48615a;cursor:pointer;user-select:none;margin-left:10px;vertical-align:middle;}
   .imgswitch input{position:absolute;opacity:0;width:0;height:0;}
@@ -809,6 +812,31 @@
   function escapeHtml(s){ return (s||"").replace(/[&<>"]/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m];}); }
   function escapeAttr(s){ return (s||"").replace(/[&<>"']/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m];}); }
 
+  // 点击「搜索配方 / 综合辨证推荐配方」后自动滚动到结果区
+  function scrollToEl(id){
+    var el=document.getElementById(id);
+    if(el && el.scrollIntoView) el.scrollIntoView({behavior:"smooth", block:"start"});
+  }
+  // 生成「诊断分析」卡片：基于命中公式的证型/精油归纳出辨证倾向与调理思路
+  function buildDiagnosis(scored, extra){
+    if(!scored || !scored.length) return "";
+    var top=scored.slice(0,5);
+    var pat={};
+    top.forEach(function(x){
+      var p=((x.f&&(x.f.tcmPattern||x.f.name))||"").trim(); if(!p) return;
+      pat[p]=(pat[p]||0)+1;
+    });
+    var pats=Object.keys(pat).sort(function(a,b){return pat[b]-pat[a];}).slice(0,3);
+    var oils=[];
+    top.forEach(function(x){ (x.f.oils||[]).forEach(function(o){ if(oils.indexOf(o.name)<0 && oils.length<6) oils.push(o.name); }); });
+    var h='<div class="diag-card"><div class="diag-head">📋 诊断分析</div>'+
+      '<div class="diag-row"><b>证型倾向：</b>'+(pats.length?pats.join("、"):"未明显命中，以症状关键词为准")+'</div>'+
+      '<div class="diag-row"><b>调理思路：</b>'+(pats[0]?"以「"+pats[0]+"」为主线，":"结合所选框象")+'参考下方推荐配方中的精油组合（'+(oils.length?oils.join("、"):"—")+'）协同调理，建议按周期坚持并观察身体反馈。</div>'+
+      (extra?'<div class="diag-row">'+extra+'</div>':"")+
+      '</div>';
+    return h;
+  }
+
   function runSearch(){
     var q=document.getElementById("q").value;
     curQuery=q;
@@ -845,9 +873,10 @@
     if(!hasAnyDim){
       count.innerHTML='<span class="hint">未填任何条件 · 展示全部 '+list.length+' 条配方。直接输症状/点选下方舌象/脉象/体质即可精准筛选。</span>';
       list.forEach(function(f){ box.appendChild(makeResultCard(f, allToks)); });
+      scrollToEl("results");
       return;
     }
-    if(!scored.length){ box.innerHTML='<div class="empty">没有命中「已填维度」的配方。可尝试：①放宽症状词（如用「失眠」而非「入睡困难」）；②减少勾选，保留主证；③到「我的库」补充对应配方。</div>'; count.textContent=""; return; }
+    if(!scored.length){ box.innerHTML='<div class="empty">没有命中「已填维度」的配方。可尝试：①放宽症状词（如用「失眠」而非「入睡困难」）；②减少勾选，保留主证；③到「我的库」补充对应配方。</div>'; count.textContent=""; scrollToEl("results"); return; }
     // 顶部摘要：列出本次参与筛选的维度
     var parts=[];
     if(q) parts.push('症状 <b>'+escapeHtml(q)+'</b>');
@@ -855,7 +884,9 @@
     if(hasT) parts.push('舌象 <b>'+szCollectAllNames().join("、")+'</b>');
     if(hasTz) parts.push('体质 <b>'+tizhiNames().join("、")+'</b>');
     count.innerHTML='<span class="hint">已选：'+parts.join(' · ')+' · 共 '+scored.length+' 条（按命中相关度排序）</span>';
+    box.insertAdjacentHTML("afterbegin", buildDiagnosis(scored, hasTz?('体质倾向：'+tizhiNames().join("、")):""));
     scored.forEach(function(x){ box.appendChild(makeResultCard(x.f, allToks)); });
+    scrollToEl("results");
   }
 
   function clearSearch(){
@@ -1842,7 +1873,7 @@
     if(!anyPick && !Object.keys(dzObs).length){
       summaryEl.style.display="block";
       summaryEl.innerHTML='<span class="hint">⚠ 请先按步骤点选舌象：顶部切换「望舌质 / 望舌苔 / 舌下脉络 / 舌面分区 / 舌态」，选择你实际看到的舌象（可只选部分步骤），再点「综合推荐配方」。</span>';
-      resultsEl.innerHTML=""; if(countEl) countEl.textContent=""; return;
+      resultsEl.innerHTML=""; if(countEl) countEl.textContent=""; scrollToEl("dzSummary"); return;
     }
     var picked=[];
     TONGUE_STEPS.forEach(function(s){
@@ -1870,9 +1901,12 @@
       .filter(function(x){ return x.s>0; })
       .sort(function(a,b){ return b.s-a.s; });
     resultsEl.innerHTML="";
-    if(!scored.length){ resultsEl.innerHTML='<div class="empty">没有命中所选舌象特征的配方，可调整所选步骤/特征，或到「我的库」补充。</div>'; if(countEl) countEl.textContent=""; return; }
+    if(!scored.length){ resultsEl.innerHTML='<div class="empty">没有命中所选舌象特征的配方，可调整所选步骤/特征，或到「我的库」补充。</div>'; if(countEl) countEl.textContent=""; scrollToEl("dzResults"); return; }
     if(countEl) countEl.textContent="共推荐 "+scored.length+" 条配方（显示前 12 条）";
+    var diagExtra=tlist.length?('体质倾向：'+tlist.map(function(t){return t.name+'（'+t.n+'）';}).join("、")):"";
+    resultsEl.insertAdjacentHTML("afterbegin", buildDiagnosis(scored, diagExtra));
     scored.slice(0,12).forEach(function(x){ resultsEl.appendChild(makeResultCard(x.f, toks)); });
+    scrollToEl("dzResults");
   }
   function dzClear(){
     dzSel={}; dzObs={};
