@@ -397,7 +397,7 @@
     <div class="card" style="background:var(--accent-soft);border-color:#bfe3d4;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
         <strong style="color:var(--accent)">👅 第二步：选舌象（分步辨证，可只选你实际看到的部分）</strong>
-        <label class="imgswitch" title="显示 / 隐藏各辨证步骤的舌象真实参考照片（图名已按课本截图核对）"><input type="checkbox" id="szPhotoToggle" checked onchange="toggleSzPhoto(this.checked)"><span class="track"></span><span class="lbl">显示舌象照片</span></label>
+        <label class="imgswitch" title="显示 / 隐藏望舌质的舌象参考照片（其他步骤不显示开关）" id="szPhotoLabel" style="display:none;"><input type="checkbox" id="szPhotoToggle" checked onchange="toggleSzPhoto(this.checked)"><span class="track"></span><span class="lbl">显示舌象照片</span></label>
       </div>
       <div class="hint" style="margin:4px 0 2px;">按中医辨证顺序逐步点选你<b>实际看到的</b>舌象：<b>①望舌质（舌色）→②望舌苔（苔色苔质）→③舌下脉络→④舌态（形态动态）→⑤舌面分区（脏腑定位）</b>。顶部可切换步骤，每步单选（舌面分区可多选区域、每区可多选特征）。选好后<b>回到顶部点「搜索配方」</b>即可出方（自动合并症状+脉象+体质）。</div>
       <div class="tonguephoto-disclaimer">⚠ 舌象照片为临床参考图谱（已按课本截图核对图名），<b>非诊断依据</b>；辨证请结合全身症状，由执业中医师面诊为准。</div>
@@ -635,7 +635,7 @@
             <button class="btn" onclick="goTab('search');runSearch();">搜索配方</button>
             <button class="btn ghost sm" onclick="dzClear()">清空选择</button>
             <span id="dzCount" class="count"></span>
-            <label class="imgswitch" style="margin-left:auto;" title="显示 / 隐藏各辨证步骤的舌象真实参考照片（图名已与课本截图核对）"><input type="checkbox" id="dzPhotoToggle" checked onchange="toggleDzPhoto(this.checked)"><span class="track"></span><span class="lbl">显示舌象照片</span></label>
+            <label class="imgswitch" style="margin-left:auto;" title="显示 / 隐藏望舌质的舌象参考照片（其他步骤不显示开关）" id="dzPhotoLabel" style="display:none;"><input type="checkbox" id="dzPhotoToggle" checked onchange="toggleDzPhoto(this.checked)"><span class="track"></span><span class="lbl">显示舌象照片</span></label>
           </div>
         </div>
         <div class="dz-detail" id="dzDetail">
@@ -1683,7 +1683,7 @@
     {key:"qu",   title:"⑤ 望舌面分区 · 脏腑定位", short:"舌面分区", desc:"10 大区可多选；每区可多选特征，右侧显示病情。", qu:true}
   ];
   var dzPick={qi:null, tai:null, mai:null, xing:null};  // 各步骤单选（qu 用 dzSel/dzObs）
-  var dzStep="qi";  // 当前步骤（默认望舌质）
+  var dzStep="qu";  // 当前步骤（默认舌面分区）
   var showDzPhoto=true;  // 分布舌诊是否显示真实舌象照片（默认开；图名已按课本截图核对）
 
   // 各步骤选项对应的真实舌象照片（按课本截图与舌头教学/向导页核对：tongue-01~05=望舌质，tongue-06~10+19~20=舌态，tongue-11=燥苔，tongue-12~16=望舌苔，tongue-18=剥苔；带中文名的为专题图。缺图显示「暂无对应图谱」，绝不出破图标）
@@ -1747,10 +1747,6 @@
     var keys=Object.keys(dzSel);
     if(!keys.length){ box.innerHTML='<div class="dz-empty">← 在左侧点选舌区，这里会列出该区的脏腑定位与可观察特征；选中特征即显示具体病情。</div>'; return; }
     var html="";
-    if(dzStep==="qu" && showDzPhoto){
-      var oi=escapeAttr(DZ_ORGAN_IMG);
-      html+='<div class="dz-organ-img"><img src="'+oi+'" alt="舌面对应脏腑全息图" loading="lazy" onerror="this.parentNode.outerHTML=\'<div class=&quot;dz-photo-none&quot;>图未找到：'+oi+'</div>\'"><div class="dz-organ-cap">舌面分区与脏腑对应全息图（参考图谱）</div></div>';
-    }
     keys.forEach(function(k){
       var r=TONGUE_REGIONS.filter(function(x){return x.key===k;})[0]; if(!r) return;
       html+='<div class="dz-region">';
@@ -1824,6 +1820,11 @@
       html+='</div>';
     });
     html+='</div>';
+    if(key==="qi"){
+      var lbl=document.getElementById("dzPhotoLabel"); if(lbl) lbl.style.display="inline-block";
+    } else {
+      var lbl2=document.getElementById("dzPhotoLabel"); if(lbl2) lbl2.style.display="none";
+    }
     box.innerHTML=html;
   }
   window.toggleDzPhoto=toggleDzPhoto;
@@ -1953,7 +1954,7 @@
   /* ============ 智能配方·分步舌诊（与舌诊辨证页同款五步，独立状态 sz*） ============ */
   // 与分布舌诊（dz*）共用 TONGUE_STEPS / DZ_PHOTO_MAP / TONGUE_REGIONS / DZ_ZONES / DZ_ORGAN_IMG 数据，
   // 但拥有独立选择状态，两个标签页互不干扰。
-  var szStep="qi";                       // 当前步骤（默认望舌质）
+  var szStep="qu";                       // 当前步骤（默认舌面分区）
   var szPick={qi:null, tai:null, mai:null, xing:null};  // 各步骤单选（qu 用 szSel/szObs）
   var szSel={};                          // 区域 key -> true（可多选）
   var szObs={};                          // 区域 key -> 该区选中的 observation key 数组（单区多选）
@@ -2035,10 +2036,6 @@
     var keys=Object.keys(szSel);
     if(!keys.length){ box.innerHTML='<div class="dz-empty">← 在左侧点选舌区，这里会列出该区的脏腑定位与可观察特征；选中特征即显示具体病情。</div>'; return; }
     var html="";
-    if(szStep==="qu" && showSzPhoto){
-      var oi=escapeAttr(DZ_ORGAN_IMG);
-      html+='<div class="dz-organ-img"><img src="'+oi+'" alt="舌面对应脏腑全息图" loading="lazy" onerror="this.parentNode.outerHTML=\'<div class=&quot;dz-photo-none&quot;>图未找到：'+oi+'</div>\'"><div class="dz-organ-cap">舌面分区与脏腑对应全息图（参考图谱）</div></div>';
-    }
     keys.forEach(function(k){
       var r=TONGUE_REGIONS.filter(function(x){return x.key===k;})[0]; if(!r) return;
       html+='<div class="dz-region">';
@@ -2086,6 +2083,11 @@
       html+='</div>';
     });
     html+='</div>';
+    if(key==="qi"){
+      var lbl=document.getElementById("szPhotoLabel"); if(lbl) lbl.style.display="inline-block";
+    } else {
+      var lbl2=document.getElementById("szPhotoLabel"); if(lbl2) lbl2.style.display="none";
+    }
     box.innerHTML=html;
   }
   function toggleSzPhoto(v){ showSzPhoto=!!v; szRenderCurrent(); }
