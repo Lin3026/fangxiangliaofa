@@ -777,7 +777,7 @@
       var el=document.createElement("span");
       el.className="schip"+(s===curSys?" active":"");
       el.textContent=s;
-      el.onclick=function(){ curSys=s; renderSysChips(); renderCloud(); runSearch(); };
+      el.onclick=function(){ curSys=s; renderSysChips(); renderCloud(); runSearch(false); };
       box.appendChild(el);
     });
   }
@@ -800,7 +800,7 @@
         var inp=document.getElementById("q");
         var v=inp.value.trim();
         inp.value=v? v+" "+k : k;
-        runSearch();
+        runSearch(false);
       };
       box.appendChild(el);
     });
@@ -844,7 +844,8 @@
     return h;
   }
 
-  function runSearch(){
+  function runSearch(scroll){
+    var doScroll = scroll!==false;
     var q=document.getElementById("q").value;
     curQuery=q;
     var symToks=tokenize(q);
@@ -880,10 +881,10 @@
     if(!hasAnyDim){
       count.innerHTML='<span class="hint">未填任何条件 · 展示全部 '+list.length+' 条配方。直接输症状/点选下方舌象/脉象/体质即可精准筛选。</span>';
       list.forEach(function(f){ box.appendChild(makeResultCard(f, allToks)); });
-      scrollToEl("results");
+      if(doScroll) scrollToEl("results");
       return;
     }
-    if(!scored.length){ box.innerHTML='<div class="empty">没有命中「已填维度」的配方。可尝试：①放宽症状词（如用「失眠」而非「入睡困难」）；②减少勾选，保留主证；③到「我的库」补充对应配方。</div>'; count.textContent=""; scrollToEl("results"); return; }
+    if(!scored.length){ box.innerHTML='<div class="empty">没有命中「已填维度」的配方。可尝试：①放宽症状词（如用「失眠」而非「入睡困难」）；②减少勾选，保留主证；③到「我的库」补充对应配方。</div>'; count.textContent=""; if(doScroll) scrollToEl("results"); return; }
     // 顶部摘要：列出本次参与筛选的维度
     var parts=[];
     if(q) parts.push('症状 <b>'+escapeHtml(q)+'</b>');
@@ -893,12 +894,12 @@
     count.innerHTML='<span class="hint">已选：'+parts.join(' · ')+' · 共 '+scored.length+' 条（按命中相关度排序）</span>';
     box.insertAdjacentHTML("afterbegin", buildDiagnosis(scored, hasTz?('体质倾向：'+tizhiNames().join("、")):""));
     scored.forEach(function(x){ box.appendChild(makeResultCard(x.f, allToks)); });
-    scrollToEl("results");
+    if(doScroll) scrollToEl("results");
   }
 
   function clearSearch(){
     document.getElementById("q").value=""; curQuery=""; curSys="全部";
-    renderSysChips(); renderCloud(); runSearch();
+    renderSysChips(); renderCloud(); runSearch(false);
   }
   window.runSearch=runSearch; window.clearSearch=clearSearch;
 
@@ -2638,7 +2639,7 @@
   if(qInput){ qInput.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); runSearch(); } }); }
 
   // 初始化
-  renderSysChips(); renderCloud(); runSearch(); renderSrcBox();
+  renderSysChips(); renderCloud(); runSearch(false); renderSrcBox();
   renderPulseGrids();
   renderPulseSites();
   renderTizhiGrids();
