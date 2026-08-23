@@ -625,22 +625,17 @@
 
     <div class="dz-steps" id="dzSteps"></div>
 
-    <div class="dz-pickbar">
-      <button class="btn" onclick="goTab('search');runSearch();">搜索配方</button>
-      <button class="btn ghost sm" onclick="dzClear()">清空选择</button>
-      <span id="dzCount" class="count"></span>
-      <label class="imgswitch" style="margin-left:auto;" title="显示 / 隐藏各辨证步骤的舌象真实参考照片（图名已与课本截图核对）"><input type="checkbox" id="dzPhotoToggle" checked onchange="toggleDzPhoto(this.checked)"><span class="track"></span><span class="lbl">显示舌象照片</span></label>
-    </div>
-
     <div id="dzQuBody">
       <div class="dz-wrap">
         <div class="dz-map">
           <div class="dz-mapbox" id="dzMap"></div>
           <div class="dz-chips" id="dzChips"></div>
           <div class="dz-tip">💡 舌边属肝胆，舌中属脾胃，舌尖属心肺，舌根属肾膀胱。点区域可多选（最多 10 个）。</div>
-          <div class="dz-links">
-            <a class="btn ghost sm" href="tongue_teach.html" target="_blank">📖 舌诊教学</a>
-            <a class="btn ghost sm" href="tongue_wizard.html" target="_blank">🩺 分步舌诊向导</a>
+          <div class="dz-pickbar">
+            <button class="btn" onclick="goTab('search');runSearch();">搜索配方</button>
+            <button class="btn ghost sm" onclick="dzClear()">清空选择</button>
+            <span id="dzCount" class="count"></span>
+            <label class="imgswitch" style="margin-left:auto;" title="显示 / 隐藏各辨证步骤的舌象真实参考照片（图名已与课本截图核对）"><input type="checkbox" id="dzPhotoToggle" checked onchange="toggleDzPhoto(this.checked)"><span class="track"></span><span class="lbl">显示舌象照片</span></label>
           </div>
         </div>
         <div class="dz-detail" id="dzDetail">
@@ -652,6 +647,11 @@
 
     <div class="pulse-summary" id="dzSummary" style="display:none;"></div>
     <div id="dzResults"></div>
+
+    <div class="dz-links" style="text-align:center;margin-top:14px;">
+      <a class="btn ghost sm" href="tongue_teach.html" target="_blank">📖 舌诊教学</a>
+      <a class="btn ghost sm" href="tongue_wizard.html" target="_blank">🩺 分步舌诊向导</a>
+    </div>
   </section>
 
   <!-- 体质辨证（王琦八种体质） -->
