@@ -225,7 +225,6 @@
   .tizhi-card{border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;background:#fff;transition:.15s;text-align:left;font-family:inherit;color:inherit;}
   .tizhi-card:hover{border-color:var(--accent);}
   .tizhi-card.sel{background:var(--accent-soft);border-color:var(--accent);box-shadow:var(--shadow);}
-  .tizhi-card .tc-icon{font-size:20px;line-height:1;}
   .tizhi-card h4{margin:3px 0 3px;font-size:14px;display:flex;align-items:center;gap:6px;}
   .tizhi-card .tc-short{font-size:11px;color:var(--muted);}
   .tizhi-card .tc-des{font-size:11px;color:#48615a;margin-top:4px;line-height:1.45;}
@@ -1761,7 +1760,7 @@
               '<div class="ob-label">'+escapeHtml(o.label)+'</div>'+
               '<div class="ob-disease">'+escapeHtml(o.disease)+'</div>'+
               '<div class="ob-symptom">'+escapeHtml(o.symptom)+'</div>'+
-              (o.tizhi&&o.tizhi.length?'<div class="ob-tizhi">🌿 体质倾向：'+escapeHtml(o.tizhi.join("、"))+'</div>':'')+
+              (o.tizhi&&o.tizhi.length?'<div class="ob-tizhi">体质倾向：'+escapeHtml(o.tizhi.join("、"))+'</div>':'')+
               '</div>';
       });
       html+='</div></div>';
@@ -1805,7 +1804,7 @@
       html+='<div class="dz-optcard'+(sel?" sel":"")+'" onclick="dzSelectPick(\''+key+'\',\''+o.key+'\')">'+
             '<div>'+escapeHtml(o.label)+(o.normal?' <span class="dz-oc-tags">（正常）</span>':'')+'</div>';
       if(o.tags&&o.tags.length) html+='<div class="dz-oc-tags">'+escapeHtml(o.tags.join("、"))+'</div>';
-      if(o.tizhi&&o.tizhi.length) html+='<div class="dz-oc-tizhi">🌿 体质倾向：'+escapeHtml(o.tizhi.join("、"))+'</div>';
+      if(o.tizhi&&o.tizhi.length) html+='<div class="dz-oc-tizhi">体质倾向：'+escapeHtml(o.tizhi.join("、"))+'</div>';
       var p=DZ_PHOTO_MAP[key]?DZ_PHOTO_MAP[key][o.key]:null;
       if(p){
         var sp=escapeAttr(p), sn=escapeAttr(o.label);
@@ -1910,7 +1909,7 @@
     var tmap=dzCollectTizhi();
     var tlist=Object.keys(tmap).map(function(k){return {name:k,n:tmap[k]};}).sort(function(a,b){return b.n-a.n;});
     if(tlist.length){
-      summaryEl.innerHTML+='<br><b>🌿 体质倾向推断（8 大）：</b>'+tlist.map(function(t){return t.name+'（'+t.n+'）';}).join("、")+
+      summaryEl.innerHTML+='<br><b>体质倾向推断（8 大）：</b>'+tlist.map(function(t){return t.name+'（'+t.n+'）';}).join("、")+
         ' <button class="btn ghost" onclick="dzTizhiInferToGrid()">查看体质配方</button>';
     }
     var scored=db.formulas.map(function(f){ return {f:f, s:scoreFormula(f, toks)}; })
@@ -2043,7 +2042,7 @@
               '<div class="ob-label">'+escapeHtml(o.label)+'</div>'+
               '<div class="ob-disease">'+escapeHtml(o.disease)+'</div>'+
               '<div class="ob-symptom">'+escapeHtml(o.symptom)+'</div>'+
-              (o.tizhi&&o.tizhi.length?'<div class="ob-tizhi">🌿 体质倾向：'+escapeHtml(o.tizhi.join("、"))+'</div>':'')+
+              (o.tizhi&&o.tizhi.length?'<div class="ob-tizhi">体质倾向：'+escapeHtml(o.tizhi.join("、"))+'</div>':'')+
               '</div>';
       });
       html+='</div></div>';
@@ -2061,7 +2060,7 @@
       html+='<div class="dz-optcard'+(sel?" sel":"")+'" onclick="szSelectPick(\''+key+'\',\''+o.key+'\')">'+
             '<div>'+escapeHtml(o.label)+(o.normal?' <span class="dz-oc-tags">（正常）</span>':'')+'</div>';
       if(o.tags&&o.tags.length) html+='<div class="dz-oc-tags">'+escapeHtml(o.tags.join("、"))+'</div>';
-      if(o.tizhi&&o.tizhi.length) html+='<div class="dz-oc-tizhi">🌿 体质倾向：'+escapeHtml(o.tizhi.join("、"))+'</div>';
+      if(o.tizhi&&o.tizhi.length) html+='<div class="dz-oc-tizhi">体质倾向：'+escapeHtml(o.tizhi.join("、"))+'</div>';
       var p=DZ_PHOTO_MAP[key]?DZ_PHOTO_MAP[key][o.key]:null;
       if(p){
         var sp=escapeAttr(p), sn=escapeAttr(o.label);
@@ -2195,8 +2194,7 @@
     html+='<div class="hint" style="margin:4px 0 10px;">凭第一感觉作答，每题选最符合的一项。<b>选项不显示分值，后台自动统计</b>。共 '+total+' 题、9 组体质。答完看条状图：<b>超过 40 分即确认该体质，低于 40 分则不算</b>。</div>';
     html+='<div class="tzquiz">';
     quiz.forEach(function(g){
-      var c=tizhiByAny(g.id), icon=c?c.icon:'';
-      html+='<div class="tzq-group">'+icon+' '+escapeHtml(g.name)+'</div>';
+      html+='<div class="tzq-group">'+escapeHtml(g.name)+'</div>';
       g.questions.forEach(function(qn,qi){
         html+='<div class="tzq"><div>'+escapeHtml(qn.q)+'</div><div class="opts">';
         OPT_LABELS.forEach(function(lbl,li){
@@ -2286,7 +2284,7 @@
       var el=document.createElement("button");
       el.type="button";
       el.className="tizhi-card"+(selectedTizhi.has(c.id)?" sel":"");
-      el.innerHTML='<div class="tc-icon">'+c.icon+'</div><h4>'+escapeHtml(c.name)+'</h4><div class="tc-short">'+escapeHtml(c.short)+'</div><div class="tc-des">'+escapeHtml(c.descShort)+'</div>';
+      el.innerHTML='<h4>'+escapeHtml(c.name)+'</h4><div class="tc-short">'+escapeHtml(c.short)+'</div><div class="tc-des">'+escapeHtml(c.descShort)+'</div>';
       el.onclick=function(){ toggleTizhi(c.id, target.id==="tizhiGrid"); };
       target.appendChild(el);
     });
@@ -2317,7 +2315,7 @@
         (cp.effect?'<div class="tb-effect">功效：'+escapeHtml(cp.effect)+'</div>':'')+'</div>';
     }).join("");
     box.innerHTML=
-      '<h3>'+c.icon+' '+escapeHtml(c.name)+' <span class="hint">('+escapeHtml(c.short)+')</span></h3>'+
+      '<h3>'+escapeHtml(c.name)+' <span class="hint">('+escapeHtml(c.short)+')</span></h3>'+
       '<div class="tizhi-fields">'+fl+'</div>'+
       '<div class="tizhi-sub">推荐单方精油（芳香调理）</div>'+
       '<div class="tizhi-oils">'+singles+'</div>'+
