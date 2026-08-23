@@ -415,6 +415,7 @@
 
       <div class="dz-pickbar">
         <button class="btn ghost sm" onclick="szClear()">清空舌象选择</button>
+        <button class="btn sm" onclick="runSearch()">搜索配方</button>
         <span class="hint" style="margin:0">已选 <b id="szSelCount">0</b> 项（步骤选择 + 舌区特征）</span>
       </div>
     </div>
@@ -620,7 +621,7 @@
     <div class="dz-steps" id="dzSteps"></div>
 
     <div class="dz-pickbar">
-      <button class="btn" onclick="dzRecommend()">🔎 综合辨证推荐配方</button>
+      <button class="btn" onclick="goTab('search');runSearch();">搜索配方</button>
       <button class="btn ghost sm" onclick="dzClear()">清空选择</button>
       <span id="dzCount" class="count"></span>
       <label class="imgswitch" style="margin-left:auto;" title="显示 / 隐藏各辨证步骤的舌象真实参考照片（图名已与课本截图核对）"><input type="checkbox" id="dzPhotoToggle" checked onchange="toggleDzPhoto(this.checked)"><span class="track"></span><span class="lbl">显示舌象照片</span></label>
