@@ -870,6 +870,34 @@
     return h;
   }
 
+  // 体质双重验证：把「第一步初步体质判断(selectedTizhi)」与「舌象推断体质(tongueMap)」叠加对比
+  function tizhiVerifyCard(tongueMap){
+    var sel=Array.from(selectedTizhi).map(function(id){ var c=tizhiById(id); return c?c.name:id; });
+    var tongue=Object.keys(tongueMap||{}).map(function(k){ return {name:k, n:tongueMap[k]}; })
+      .sort(function(a,b){ return b.n-a.n; });
+    var common=sel.filter(function(n){ return tongue.some(function(t){ return t.name===n; }); });
+    var onlyTongue=tongue.filter(function(t){ return sel.indexOf(t.name)<0; }).map(function(t){ return t.name; });
+    var onlySel=sel.filter(function(n){ return !tongue.some(function(t){ return t.name===n; }); });
+    var verdict;
+    if(!sel.length && !tongue.length){
+      verdict='尚未获得体质信息：建议先到「体质辨证」完成初步自诊，并在本页完善舌象点选，二者叠加才能做双重验证。';
+    } else if(common.length){
+      verdict='✓ 双重验证一致：初步判断与舌象推断共同指向 <b>'+common.join("、")+'</b>，体质倾向较明确，可作为配方与调理主线。';
+      if(onlyTongue.length) verdict+='（舌象另提示 '+onlyTongue.join("、")+'，可作兼夹体质参考）';
+      if(onlySel.length) verdict+='（初步另倾向 '+onlySel.join("、")+'，舌象暂未直接佐证，建议结合问卷确认）';
+    } else if(sel.length && tongue.length){
+      verdict='⚠ 初步判断与舌象推断不完全吻合：初步倾向 <b>'+sel.join("、")+'</b>，舌象指向 <b>'+tongue.map(function(t){return t.name;}).join("、")+'</b>。差异可能源于阶段性状态或兼夹体质，建议结合脉象、问卷综合判断。';
+    } else if(tongue.length){
+      verdict='舌象推断体质为 <b>'+tongue.map(function(t){return t.name;}).join("、")+'</b>，可作调理参考；若先完成「体质辨证」初步自诊，可进一步锁定。';
+    } else {
+      verdict='初步倾向 <b>'+sel.join("、")+'</b>，但舌象未直接佐证，仍需结合其他维度确认。';
+    }
+    return '<div class="diag-card"><div class="diag-head">🔍 体质双重验证（初步判断 × 舌象推断）</div>'+
+      '<div class="diag-row"><b>初步体质判断：</b>'+(sel.length?sel.join("、"):"未做初步体质判断（建议先到「体质辨证」自诊）")+'</div>'+
+      '<div class="diag-row"><b>舌象推断体质：</b>'+(tongue.length?tongue.map(function(t){return t.name+'（'+t.n+'）';}).join("、"):"舌象未指向明确体质")+'</div>'+
+      '<div class="diag-row"><b>验证结论：</b>'+verdict+'</div>'+
+      '</div>';
+  }
   function runSearch(scroll){
     var doScroll = scroll!==false;
     var q=document.getElementById("q").value;
@@ -918,7 +946,7 @@
     if(hasT) parts.push('舌象 <b>'+szCollectAllNames().join("、")+'</b>');
     if(hasTz) parts.push('体质 <b>'+tizhiNames().join("、")+'</b>');
     count.innerHTML='<span class="hint">已选：'+parts.join(' · ')+' · 共 '+scored.length+' 条（按命中相关度排序）</span>';
-    box.insertAdjacentHTML("afterbegin", buildDiagnosis(scored, hasTz?('体质倾向：'+tizhiNames().join("、")):""));
+    box.insertAdjacentHTML("afterbegin", buildDiagnosis(scored, "") + tizhiVerifyCard(szCollectTizhi()));
     scored.forEach(function(x){ box.appendChild(makeResultCard(x.f, allToks)); });
     if(doScroll) scrollToEl("results");
   }
@@ -1935,9 +1963,9 @@
     summaryEl.innerHTML='<b>所选舌象：</b>'+picked.join("； ")+'<br><b>推断可能涉及：</b>'+toks.join("、")+'<br><span class="hint">（下方按全部所选舌象 tags 匹配精油配方，按综合相关度排序）</span>';
     var tmap=dzCollectTizhi();
     var tlist=Object.keys(tmap).map(function(k){return {name:k,n:tmap[k]};}).sort(function(a,b){return b.n-a.n;});
-    if(tlist.length){
-      summaryEl.innerHTML+='<br><b>体质倾向推断（8 大）：</b>'+tlist.map(function(t){return t.name+'（'+t.n+'）';}).join("、")+
-        ' <button class="btn ghost" onclick="dzTizhiInferToGrid()">查看体质配方</button>';
+    if(tlist.length || selectedTizhi.size){
+      summaryEl.insertAdjacentHTML("beforeend", tizhiVerifyCard(tmap) +
+        (tlist.length?' <button class="btn ghost" onclick="dzTizhiInferToGrid()">查看体质配方</button>':''));
     }
     var scored=db.formulas.map(function(f){ return {f:f, s:scoreFormula(f, toks)}; })
       .filter(function(x){ return x.s>0; })
@@ -1945,8 +1973,7 @@
     resultsEl.innerHTML="";
     if(!scored.length){ resultsEl.innerHTML='<div class="empty">没有命中所选舌象特征的配方，可调整所选步骤/特征，或到「我的库」补充。</div>'; if(countEl) countEl.textContent=""; scrollToEl("dzResults"); return; }
     if(countEl) countEl.textContent="共推荐 "+scored.length+" 条配方（显示前 12 条）";
-    var diagExtra=tlist.length?('体质倾向：'+tlist.map(function(t){return t.name+'（'+t.n+'）';}).join("、")):"";
-    resultsEl.insertAdjacentHTML("afterbegin", buildDiagnosis(scored, diagExtra));
+    resultsEl.insertAdjacentHTML("afterbegin", buildDiagnosis(scored, ""));
     scored.slice(0,12).forEach(function(x){ resultsEl.appendChild(makeResultCard(x.f, toks)); });
     scrollToEl("dzResults");
   }
@@ -2164,6 +2191,23 @@
       });
     });
     return arr;
+  }
+  function szCollectTizhi(){
+    var map={};
+    TONGUE_STEPS.forEach(function(s){
+      if(s.key==="qu") return;
+      var k=szPick[s.key]; if(!k) return;
+      var o=s.options.filter(function(x){return x.key===k;})[0]; if(!o||!o.tizhi) return;
+      o.tizhi.forEach(function(t){ map[t]=(map[t]||0)+1; });
+    });
+    Object.keys(szObs).forEach(function(rk){
+      var r=TONGUE_REGIONS.filter(function(x){return x.key===rk;})[0]; if(!r) return;
+      (szObs[rk]||[]).forEach(function(ok){
+        var o=r.observations.filter(function(x){return x.key===ok;})[0]; if(!o||!o.tizhi) return;
+        o.tizhi.forEach(function(t){ map[t]=(map[t]||0)+1; });
+      });
+    });
+    return map;
   }
   function szClear(){
     szSel={}; szObs={};
