@@ -375,13 +375,26 @@
     <div class="hint" style="margin:-8px 0 10px;">快捷症状（按所选系统筛选，点击填入搜索）：</div>
     <div class="cloud" id="cloud"></div>
 
-    <!-- 第一步：选舌象（与顶部「搜索配方」联动）· 分步辨证 -->
+    <!-- 第一步：选体质（与顶部「搜索配方」联动） -->
+    <div class="card" style="background:#f3f0ff;border-color:#c9b8ff;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+        <strong style="color:#6b4fcf">🌿 第一步：选体质（王琦八种体质，可多选）</strong>
+        <span class="hint" style="margin:0">先确定你的<b>中医体质</b>（可多选，兼夹体质一般 2 种）。选好后<b>回到顶部点「搜索配方」</b>即可出方（自动合并症状+舌象+脉象）。<b>未选体质则不参与筛选</b>。</span>
+      </div>
+      <div class="tizhi-grid" id="searchTizhiGrid" style="margin-top:10px;"></div>
+      <div class="toolbar" style="margin-top:8px;align-items:center;">
+        <span class="tizhi-selbar" id="searchTizhiSel">已选 0 种体质</span>
+        <button class="btn ghost sm" onclick="clearTizhiSelection()">清空体质选择</button>
+      </div>
+    </div>
+
+    <!-- 第二步：选舌象（与顶部「搜索配方」联动）· 分步辨证 -->
     <div class="card" style="background:var(--accent-soft);border-color:#bfe3d4;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
-        <strong style="color:var(--accent)">👅 第一步：选舌象（分步辨证，可只选你实际看到的部分）</strong>
+        <strong style="color:var(--accent)">👅 第二步：选舌象（分步辨证，可只选你实际看到的部分）</strong>
         <label class="imgswitch" title="显示 / 隐藏各辨证步骤的舌象真实参考照片（图名已按课本截图核对）"><input type="checkbox" id="szPhotoToggle" checked onchange="toggleSzPhoto(this.checked)"><span class="track"></span><span class="lbl">显示舌象照片</span></label>
       </div>
-      <div class="hint" style="margin:4px 0 2px;">按中医辨证顺序逐步点选你<b>实际看到的</b>舌象：<b>①望舌质（舌色）→②望舌苔（苔色苔质）→③舌下脉络→④舌面分区（脏腑定位）→⑤舌态（形态动态）</b>。顶部可切换步骤，每步单选（舌面分区可多选区域、每区可多选特征）。选好后<b>回到顶部点「搜索配方」</b>即可出方（自动合并症状+脉象+体质）。</div>
+      <div class="hint" style="margin:4px 0 2px;">按中医辨证顺序逐步点选你<b>实际看到的</b>舌象：<b>①望舌质（舌色）→②望舌苔（苔色苔质）→③舌下脉络→④舌态（形态动态）→⑤舌面分区（脏腑定位）</b>。顶部可切换步骤，每步单选（舌面分区可多选区域、每区可多选特征）。选好后<b>回到顶部点「搜索配方」</b>即可出方（自动合并症状+脉象+体质）。</div>
       <div class="tonguephoto-disclaimer">⚠ 舌象照片为临床参考图谱（已按课本截图核对图名），<b>非诊断依据</b>；辨证请结合全身症状，由执业中医师面诊为准。</div>
 
       <div class="dz-steps" id="szSteps"></div>
@@ -406,40 +419,31 @@
       </div>
     </div>
 
-    <!-- 第二步：选脉象（与顶部「搜索配方」联动） -->
+    <!-- 第三步：选脉象（与顶部「搜索配方」联动；可折叠，默认收起只留标题） -->
     <div class="card" style="background:var(--accent-soft);border-color:#bfe3d4;">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
-        <strong style="color:var(--accent)">💓 第二步：选脉象（左手红框 / 右手绿框）</strong>
-        <label class="imgswitch" title="显示 / 隐藏脉象示意图"><input type="checkbox" id="pulseImgToggle" onchange="togglePulseImg(this.checked)"><span class="track"></span><span class="lbl">显示脉象图</span></label>
-        <span class="hint" style="margin:0">分左右手勾选脉象；<b>每只手仅选一种</b>（再次点同一个可取消）。<b>只选一侧即视为双手同脉</b>。选好后<b>回到顶部点「搜索配方」</b>即可出方（自动合并症状+舌象+体质）。</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;cursor:pointer;" onclick="togglePulseFold()" title="点击展开 / 收起脉象选择">
+        <strong style="color:var(--accent)">💓 第三步：选脉象 <span id="pulseFoldArrow" style="display:inline-block;font-size:12px;">▸</span></strong>
+        <label class="imgswitch" onclick="event.stopPropagation()" title="显示 / 隐藏脉象示意图"><input type="checkbox" id="pulseImgToggle" onchange="togglePulseImg(this.checked)"><span class="track"></span><span class="lbl">显示脉象图</span></label>
+        <span class="hint" style="margin:0">点标题展开 / 收起；分左右手勾选脉象，<b>每只手仅选一种</b>，只选一侧视为双手同脉。选好后<b>回到顶部点「搜索配方」</b>出方（自动合并症状+舌象+体质）。</span>
       </div>
-      <div class="pulse-hands">
-        <div class="hand-box hand-left">
-          <div class="hand-title">✋ 左手（红框）<span class="hand-sub">寸·心(小肠)｜关·肝(胆)｜尺·肾(膀胱)</span></div>
-          <div class="pulsecards" id="searchPulseCardsL" style="margin:6px 0 0"></div>
+      <div id="searchPulseBody" style="display:none;">
+        <div class="pulse-hands">
+          <div class="hand-box hand-left">
+            <div class="hand-title">✋ 左手（红框）<span class="hand-sub">寸·心(小肠)｜关·肝(胆)｜尺·肾(膀胱)</span></div>
+            <div class="pulsecards" id="searchPulseCardsL" style="margin:6px 0 0"></div>
+          </div>
+          <div class="hand-box hand-right">
+            <div class="hand-title">🤚 右手（绿框）<span class="hand-sub">寸·肺(大肠)｜关·脾(胃)｜尺·肾(命门·三焦)</span></div>
+            <div class="pulsecards" id="searchPulseCardsR" style="margin:6px 0 0"></div>
+          </div>
         </div>
-        <div class="hand-box hand-right">
-          <div class="hand-title">🤚 右手（绿框）<span class="hand-sub">寸·肺(大肠)｜关·脾(胃)｜尺·肾(命门·三焦)</span></div>
-          <div class="pulsecards" id="searchPulseCardsR" style="margin:6px 0 0"></div>
+        <div class="toolbar">
+          <button class="btn ghost sm" onclick="clearPulseSelection()">清空脉象选择</button>
         </div>
-      </div>
-      <div class="toolbar">
-        <button class="btn ghost sm" onclick="clearPulseSelection()">清空脉象选择</button>
       </div>
     </div>
 
-    <!-- 第三步：选体质（与顶部「搜索配方」联动） -->
-    <div class="card" style="background:#f3f0ff;border-color:#c9b8ff;">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
-        <strong style="color:#6b4fcf">🌿 第三步：选体质（王琦八种体质，可多选）</strong>
-        <span class="hint" style="margin:0">完成症状、舌象、脉象后，最后确定你的<b>中医体质</b>（可多选，兼夹体质一般 2 种）。选好后<b>回到顶部点「搜索配方」</b>即可出方（自动合并症状+舌象+脉象）。<b>未选体质则不参与筛选</b>。</span>
-      </div>
-      <div class="tizhi-grid" id="searchTizhiGrid" style="margin-top:10px;"></div>
-      <div class="toolbar" style="margin-top:8px;align-items:center;">
-        <span class="tizhi-selbar" id="searchTizhiSel">已选 0 种体质</span>
-        <button class="btn ghost sm" onclick="clearTizhiSelection()">清空体质选择</button>
-      </div>
-    </div>
+    <!-- 体质已上移至第一步（上方卡片） -->
 
     <!-- 四诊合参卡片已移除：现在「搜索配方」按钮会自动合并 症状 / 舌象 / 脉象 / 体质 一次性出方。 -->
 
@@ -611,7 +615,7 @@
   <!-- 舌诊辨证（舌脉合参） -->
   <!-- 分布舌诊（舌面分区定位脏腑·交互） -->
   <section id="tab-tongue" style="display:none;">
-    <div class="hint" style="margin-bottom:10px;">👅 <b>分步舌诊辨证</b>：按中医辨证顺序——<b>①望舌质（舌色）→②望舌苔（苔色苔质）→③望舌下脉络→④望舌面分区（脏腑定位）→⑤望舌态（形态动态）</b>。顶部可切换步骤，每步把你<b>实际看到的</b>舌象点选出来（可只选其中几步），系统累积所有步骤，最后「综合推荐配方」按全部所选舌象匹配精油配方。<b>去掉了脉象，更直观准确</b>。</div>
+    <div class="hint" style="margin-bottom:10px;">👅 <b>分步舌诊辨证</b>：按中医辨证顺序——<b>①望舌质（舌色）→②望舌苔（苔色苔质）→③望舌下脉络→④望舌态（形态动态）→⑤望舌面分区（脏腑定位）</b>。顶部可切换步骤，每步把你<b>实际看到的</b>舌象点选出来（可只选其中几步），系统累积所有步骤，最后「综合推荐配方」按全部所选舌象匹配精油配方。<b>去掉了脉象，更直观准确</b>。</div>
 
     <div class="dz-steps" id="dzSteps"></div>
 
@@ -1031,8 +1035,15 @@
   var showPulseImg=false;
   var showTongueImg=true;
   function togglePulseImg(v){ showPulseImg=!!v; renderPulseGrids(); }
+  function togglePulseFold(){
+    var b=document.getElementById("searchPulseBody"), a=document.getElementById("pulseFoldArrow");
+    if(!b) return;
+    var open=b.style.display!=="none";
+    b.style.display=open?"none":"block";
+    if(a) a.textContent=open?"▸":"▾";
+  }
   function toggleTongueImg(v){ showTongueImg=!!v; renderTongueGroups(); }
-  window.togglePulseImg=togglePulseImg; window.toggleTongueImg=toggleTongueImg;
+  window.togglePulseImg=togglePulseImg; window.toggleTongueImg=toggleTongueImg; window.togglePulseFold=togglePulseFold;
   // 脉象波形示意图参数（初学者友好 · 强辨识度版）
   // depth=浮/中/沉 取脉深度(决定波形纵向位置)；shape=波形特征；rate=脉率；strength=力度；rhythm=节律
   var PULSE_WAVES={
@@ -1643,8 +1654,7 @@
         {key:"xueyu",  label:"瘀血",     tags:["血瘀","青紫","瘀斑","刺痛","经闭"], tizhi:["血瘀质"]},
         {key:"qizhi",  label:"气滞",     tags:["气滞","肝郁","胀闷"], tizhi:["气郁质"]}
       ]},
-    {key:"qu",   title:"④ 望舌面分区 · 脏腑定位", short:"舌面分区", desc:"10 大区可多选；每区可多选特征，右侧显示病情。", qu:true},
-    {key:"xing", title:"⑤ 望形态动态", short:"舌态", desc:"看舌体形态与动态，反映邪正虚实、动静。三角舌：舌前窄、舌根宽，提示肝郁 / 血瘀等相关证候（见下）。",
+    {key:"xing", title:"④ 望形态动态", short:"舌态", desc:"看舌体形态与动态，反映邪正虚实、动静。三角舌：舌前窄、舌根宽，提示肝郁 / 血瘀等相关证候（见下）。",
       options:[
         {key:"sanji",   label:"三角舌",       normal:false, tags:["三角舌","心肌缺血","贫血","头晕","肝郁","脾气差","容易结节","失眠","颈肩不适","两肋胀痛"], tizhi:["气郁质","血瘀质"]},
         {key:"lao",     label:"老舌",        tags:["老舌","实热","邪盛"], tizhi:["湿热质"]},
@@ -1656,10 +1666,11 @@
         {key:"qiangying",label:"强硬舌",     tags:["强硬","热闭","风动"], tizhi:["气郁质"]},
         {key:"weiruan", label:"痿软舌",      tags:["痿软","阴虚","气血两虚"], tizhi:["阴虚质","气虚质"]},
         {key:"suoduan", label:"缩短舌",      tags:["缩短","紧缩","重症","痿软","虚","实"], tizhi:["气虚质","阳虚质"]}
-      ]}
+      ]},
+    {key:"qu",   title:"⑤ 望舌面分区 · 脏腑定位", short:"舌面分区", desc:"10 大区可多选；每区可多选特征，右侧显示病情。", qu:true}
   ];
   var dzPick={qi:null, tai:null, mai:null, xing:null};  // 各步骤单选（qu 用 dzSel/dzObs）
-  var dzStep="qu";  // 当前步骤（默认舌面分区，保持用户现有视图）
+  var dzStep="qi";  // 当前步骤（默认望舌质）
   var showDzPhoto=true;  // 分布舌诊是否显示真实舌象照片（默认开；图名已按课本截图核对）
 
   // 各步骤选项对应的真实舌象照片（按课本截图与舌头教学/向导页核对：tongue-01~05=望舌质，tongue-06~10+19~20=舌态，tongue-11=燥苔，tongue-12~16=望舌苔，tongue-18=剥苔；带中文名的为专题图。缺图显示「暂无对应图谱」，绝不出破图标）
@@ -1872,7 +1883,7 @@
     var anyPick=dzPick.qi||dzPick.tai||dzPick.mai||dzPick.xing;
     if(!anyPick && !Object.keys(dzObs).length){
       summaryEl.style.display="block";
-      summaryEl.innerHTML='<span class="hint">⚠ 请先按步骤点选舌象：顶部切换「望舌质 / 望舌苔 / 舌下脉络 / 舌面分区 / 舌态」，选择你实际看到的舌象（可只选部分步骤），再点「综合推荐配方」。</span>';
+      summaryEl.innerHTML='<span class="hint">⚠ 请先按步骤点选舌象：顶部切换「望舌质 / 望舌苔 / 舌下脉络 / 舌态 / 舌面分区」，选择你实际看到的舌象（可只选部分步骤），再点「综合推荐配方」。</span>';
       resultsEl.innerHTML=""; if(countEl) countEl.textContent=""; scrollToEl("dzSummary"); return;
     }
     var picked=[];
@@ -1929,7 +1940,7 @@
   /* ============ 智能配方·分步舌诊（与舌诊辨证页同款五步，独立状态 sz*） ============ */
   // 与分布舌诊（dz*）共用 TONGUE_STEPS / DZ_PHOTO_MAP / TONGUE_REGIONS / DZ_ZONES / DZ_ORGAN_IMG 数据，
   // 但拥有独立选择状态，两个标签页互不干扰。
-  var szStep="qu";                       // 当前步骤（默认舌面分区）
+  var szStep="qi";                       // 当前步骤（默认望舌质）
   var szPick={qi:null, tai:null, mai:null, xing:null};  // 各步骤单选（qu 用 szSel/szObs）
   var szSel={};                          // 区域 key -> true（可多选）
   var szObs={};                          // 区域 key -> 该区选中的 observation key 数组（单区多选）
