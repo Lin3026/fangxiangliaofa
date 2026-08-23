@@ -226,7 +226,7 @@
   .tizhi-card:hover{border-color:var(--accent);}
   .tizhi-card.sel{background:var(--accent-soft);border-color:var(--accent);box-shadow:var(--shadow);}
   .tizhi-card h4{margin:3px 0 3px;font-size:14px;display:flex;align-items:center;gap:6px;}
-  .tizhi-card .tc-short{font-size:11px;color:var(--muted);}
+  .tizhi-card .tc-short{font-size:11px;color:var(--muted);font-weight:400;}
   .tizhi-card .tc-des{font-size:11px;color:#48615a;margin-top:4px;line-height:1.45;}
   .tizhi-detail{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);min-height:200px;}
   .tizhi-detail h3{margin:0 0 6px;font-size:17px;}
@@ -2284,7 +2284,7 @@
       var el=document.createElement("button");
       el.type="button";
       el.className="tizhi-card"+(selectedTizhi.has(c.id)?" sel":"");
-      el.innerHTML='<h4>'+escapeHtml(c.name)+'</h4><div class="tc-short">'+escapeHtml(c.short)+'</div><div class="tc-des">'+escapeHtml(c.descShort)+'</div>';
+      el.innerHTML='<h4>'+escapeHtml(c.name)+'<span class="tc-short">'+escapeHtml(c.short)+'</span></h4><div class="tc-des">'+escapeHtml(c.descShort)+'</div>';
       el.onclick=function(){ toggleTizhi(c.id, target.id==="tizhiGrid"); };
       target.appendChild(el);
     });
