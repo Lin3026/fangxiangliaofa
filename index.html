@@ -37,6 +37,9 @@
   .syschips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 14px;}
   .schip{padding:5px 11px;border-radius:20px;background:var(--chip);font-size:12.5px;cursor:pointer;color:var(--muted);border:1px solid transparent;}
   .schip.active{background:var(--accent);color:#fff;}
+  .schip-parent{background:var(--accent-soft);color:var(--accent);border-color:#e6dccd;font-weight:600;}
+  .schip-parent.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .schip-subbox{display:inline-flex;flex-wrap:wrap;gap:6px;margin-left:14px;padding:3px 0 3px 10px;border-left:2px dashed var(--line);}
   .cloud{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;}
   .tag{padding:4px 10px;background:#fff;border:1px solid var(--line);border-radius:16px;font-size:12px;color:var(--muted);cursor:pointer;}
   .tag:hover{border-color:var(--accent);color:var(--accent);}
@@ -769,17 +772,40 @@
     return Object.keys(s);
   }
 
+  var sysPregOpen=false;
   function renderSysChips(){
     var box=document.getElementById("syschips");
-    var arr=["全部"].concat(systems());
+    var all=["全部"].concat(systems());
+    var isPreg=function(s){return s && s!=="全部" && (s.indexOf("孕期")>=0 || s.indexOf("产后")>=0);};
+    var main=all.filter(function(s){return !isPreg(s);});
+    var sub=all.filter(function(s){return isPreg(s);});
     box.innerHTML="";
-    arr.forEach(function(s){
+    main.forEach(function(s){
       var el=document.createElement("span");
       el.className="schip"+(s===curSys?" active":"");
       el.textContent=s;
       el.onclick=function(){ curSys=s; renderSysChips(); renderCloud(); runSearch(false); };
       box.appendChild(el);
     });
+    if(sub.length){
+      var parent=document.createElement("span");
+      parent.className="schip schip-parent"+(curSys && isPreg(curSys)?" active":"");
+      parent.textContent="孕妇/产后（"+sub.length+"项）"+(sysPregOpen?" ▾":" ▸");
+      parent.onclick=function(){ sysPregOpen=!sysPregOpen; renderSysChips(); };
+      box.appendChild(parent);
+      if(sysPregOpen){
+        var subBox=document.createElement("span");
+        subBox.className="schip-subbox";
+        sub.forEach(function(s){
+          var el=document.createElement("span");
+          el.className="schip"+(s===curSys?" active":"");
+          el.textContent=s;
+          el.onclick=function(e){ e.stopPropagation(); curSys=s; renderSysChips(); renderCloud(); runSearch(false); };
+          subBox.appendChild(el);
+        });
+        box.appendChild(subBox);
+      }
+    }
   }
 
   function renderCloud(){
