@@ -71,6 +71,7 @@
     <button class="btn on" id="btnQi">🌀 气运动：开</button>
     <button class="btn on" id="btnLabels">🏷 穴位名：开</button>
     <button class="btn" id="btnReset">↺ 复位视角</button>
+    <button class="btn on" id="btnSkin">👤 皮肤：透明</button>
   </div>
 </div>
 
@@ -265,26 +266,30 @@ function alignModel(obj, targetH = 1.8) {
 }
 
 function loadRealModels() {
-  // 外表面：适度半透明让经络/穴位可见；提亮 emissive 避免贴图过暗融入背景
+  // 外表面：适度半透明让经络/穴位可见；高 emissive 让贴图提亮不被深色背景吞没
   fbxLoader.load('models/human1.fbx', (obj) => {
     realSkin = obj;
-    realSkin.traverse(o => {
+    obj.traverse(o => {
       if (o.isMesh && o.material) {
-        // FBXLoader 返回 MeshPhongMaterial + 贴图：透明度不能太低，否则在 #0e1116 深色背景下看不见
-        o.material.transparent = true;
-        o.material.opacity = 0.62;
-        o.material.depthWrite = true;          // 关 depthWrite 会导致与其他半透明层排序异常，先开启
-        o.material.side = THREE.DoubleSide;
-        o.material.emissive = new THREE.Color(0x222233);
-        o.material.emissiveIntensity = 0.6;
-        o.material.needsUpdate = true;
-        o.frustumCulled = false;              // FBX 加载后 geometry.boundingSphere 可能未更新，强制不剔除
+        const mat = o.material;
+        // 保留原始贴图（带皮肤纹理）+ 高 emissive 让贴图自发光，避免 #0e1116 背景吞没
+        mat.transparent = true;
+        mat.opacity = 0.78;
+        mat.depthWrite = true;
+        mat.side = THREE.DoubleSide;
+        mat.color = new THREE.Color(0xffffff);        // 贴图颜色不被基础色压暗
+        mat.emissive = new THREE.Color(0xdddddd);     // 高自发光，把贴图照亮
+        mat.emissiveIntensity = 0.55;
+        mat.emissiveMap = mat.map;                    // 用贴图作为发光贴图，整体亮度+细节都保留
+        mat.needsUpdate = true;
+        o.frustumCulled = false;
+        o.userData.transparentMode = true;
       }
     });
     alignModel(realSkin);
     scene.add(realSkin);
     bodyGroup.visible = false;
-    showStatus && showStatus('✅ 外表面模型已加载', 'ok');
+    showStatus && showStatus('✅ 外表面模型已加载（透明皮肤）', 'ok');
   }, undefined, (e) => {
     const detail = (e && e.message) || (e && e.toString()) || String(e);
     console.error('外表面加载失败：', e, 'URL: models/human1.fbx, 当前协议:', location.protocol);
@@ -294,16 +299,18 @@ function loadRealModels() {
   // 骨骼：加载真实骨骼，隐藏程序化骨杆保留中文骨名标签；默认隐藏，由开关控制
   fbxLoader.load('models/guge1.fbx', (obj) => {
     realSkeleton = obj;
-    realSkeleton.traverse(o => {
+    obj.traverse(o => {
       if (o.isMesh && o.material) {
-        // 骨骼材质：偏白/偏黄的发光，便于穿透外表面看到
-        o.material.transparent = true;
-        o.material.opacity = 0.85;
-        o.material.emissive = new THREE.Color(0xfff3d6);
-        o.material.emissiveIntensity = 0.4;
-        o.material.depthWrite = true;
-        o.material.side = THREE.DoubleSide;
-        o.material.needsUpdate = true;
+        const mat = o.material;
+        mat.transparent = true;
+        mat.opacity = 0.92;
+        mat.color = new THREE.Color(0xffffff);
+        mat.emissive = new THREE.Color(0xfff3d6);
+        mat.emissiveIntensity = 0.6;
+        mat.emissiveMap = mat.map;
+        mat.depthWrite = true;
+        mat.side = THREE.DoubleSide;
+        mat.needsUpdate = true;
         o.frustumCulled = false;
       }
     });
@@ -316,7 +323,11 @@ function loadRealModels() {
   }, undefined, (e) => {
     const detail = (e && e.message) || (e && e.toString()) || String(e);
     console.error('骨骼加载失败：', e, 'URL: models/guge1.fbx, 当前协议:', location.protocol);
-    showStatusRetry('❌ 骨骼加载失败：' + detail + '（协议：' + location.protocol + '）', () => { if (realSkin) { realSkeleton = null; hasRealSkeleton = false; } loadRealModels(); });
+    // 常见原因提示：预览面板无法访问 models/ 目录
+    const hint = location.host.startsWith('127.0.0.1:6022')
+      ? '（提示：你正在用预览面板，它只能服务单个 HTML 文件，请双击 start_server.bat 或推到 GitHub Pages 加载骨骼）'
+      : '';
+    showStatusRetry('❌ 骨骼加载失败：' + detail + '（协议：' + location.protocol + '）' + hint, () => { if (realSkin) { realSkeleton = null; hasRealSkeleton = false; } loadRealModels(); });
   });
 }
 
@@ -478,6 +489,7 @@ const btnSkeleton = document.getElementById('btnSkeleton');
 const btnQi = document.getElementById('btnQi');
 const btnLabels = document.getElementById('btnLabels');
 const btnReset = document.getElementById('btnReset');
+const btnSkin = document.getElementById('btnSkin');
 
 let skeletonOn = false;
 btnSkeleton.onclick = () => {
@@ -496,6 +508,21 @@ btnLabels.onclick = () => {
   labelOn = !labelOn;
   btnLabels.classList.toggle('on', labelOn);
   btnLabels.textContent = '🏷 穴位名：' + (labelOn ? '开' : '关');
+};
+/* 皮肤透明度切换：透明看经络 vs 实体看清模型细节 */
+let skinTransparent = true;
+btnSkin.onclick = () => {
+  skinTransparent = !skinTransparent;
+  if (realSkin) {
+    realSkin.traverse(o => {
+      if (o.isMesh && o.material) {
+        o.material.opacity = skinTransparent ? 0.55 : 0.98;
+        o.material.needsUpdate = true;
+      }
+    });
+  }
+  btnSkin.classList.toggle('on', skinTransparent);
+  btnSkin.textContent = '👤 皮肤：' + (skinTransparent ? '透明' : '实体');
 };
 btnReset.onclick = () => {
   camera.position.set(0, 1.05, 2.5);
