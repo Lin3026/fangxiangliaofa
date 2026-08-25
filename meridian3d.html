@@ -43,6 +43,12 @@
     background: #1e6f5c; color: #eafff7; font-size: 14px; cursor: pointer; }
   #hint { position: absolute; top: 52px; left: 0; right: 0; text-align: center;
     font-size: 11.5px; color: #6f8296; pointer-events: none; }
+  #status { position: absolute; top: 96px; left: 50%; transform: translateX(-50%);
+    max-width: 90%; padding: 6px 12px; font-size: 12px; border-radius: 6px;
+    background: rgba(20,28,38,.95); border: 1px solid #2f3a48; color: #9fb2c4;
+    pointer-events: none; z-index: 10; white-space: pre-wrap; word-break: break-all; }
+  #status.ok { border-color: #28a98c; color: #eafff7; }
+  #status.err { border-color: #e74c3c; color: #ffb8ae; font-weight: 600; }
   #result { position: absolute; top: 74px; left: 50%; transform: translateX(-50%);
     background: rgba(20,28,38,.95); border: 1px solid #28a98c; border-radius: 16px;
     padding: 6px 14px; font-size: 13px; color: #eafff7; display: none; z-index: 6; max-width: 90%; }
@@ -56,6 +62,7 @@
     <button id="btnSearch">定位</button>
   </div>
   <div id="hint">默认经络全关 · 点左侧经络开启 · 拖拽旋转 / 双指捏合缩放 · 搜穴位名自动聚焦</div>
+  <div id="status" style="display:none"></div>
   <div id="result"></div>
   <div id="loading">正在加载 3D 引擎…<br/>（需联网从 CDN 加载 Three.js，请保持网络畅通）</div>
   <div id="panel"><h4>经络（点击显隐）</h4><div id="mList"></div></div>
@@ -82,6 +89,15 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
 document.getElementById('loading').style.display = 'none';
+
+/* 状态提示：模型加载成功/失败/网络问题都直观显示在画面上 */
+const _statusEl = document.getElementById('status');
+function showStatus(msg, kind) {
+  _statusEl.textContent = msg;
+  _statusEl.className = kind || '';
+  _statusEl.style.display = 'block';
+  if (kind === 'ok') setTimeout(() => { _statusEl.style.display = 'none'; }, 4000);
+}
 
 /* ============ 基础场景 ============ */
 const wrap = document.getElementById('canvasWrap');
@@ -241,31 +257,57 @@ function alignModel(obj, targetH = 1.8) {
 }
 
 function loadRealModels() {
-  // 外表面：加载后转半透明，让内部经络/穴位透出；隐藏程序化皮肤
+  // 外表面：适度半透明让经络/穴位可见；提亮 emissive 避免贴图过暗融入背景
   fbxLoader.load('models/human1.fbx', (obj) => {
     realSkin = obj;
     realSkin.traverse(o => {
       if (o.isMesh && o.material) {
+        // FBXLoader 返回 MeshPhongMaterial + 贴图：透明度不能太低，否则在 #0e1116 深色背景下看不见
         o.material.transparent = true;
-        o.material.opacity = 0.32;
-        o.material.depthWrite = false;
+        o.material.opacity = 0.62;
+        o.material.depthWrite = true;          // 关 depthWrite 会导致与其他半透明层排序异常，先开启
         o.material.side = THREE.DoubleSide;
+        o.material.emissive = new THREE.Color(0x222233);
+        o.material.emissiveIntensity = 0.6;
+        o.material.needsUpdate = true;
+        o.frustumCulled = false;              // FBX 加载后 geometry.boundingSphere 可能未更新，强制不剔除
       }
     });
     alignModel(realSkin);
     scene.add(realSkin);
     bodyGroup.visible = false;
-  }, undefined, (e) => console.warn('外表面模型加载失败，回退程序化人体', e));
+    showStatus && showStatus('✅ 外表面模型已加载', 'ok');
+  }, undefined, (e) => {
+    console.error('外表面模型加载失败：', e);
+    showStatus && showStatus('❌ 外表面加载失败：' + (e && e.message || e), 'err');
+  });
 
   // 骨骼：加载真实骨骼，隐藏程序化骨杆保留中文骨名标签；默认隐藏，由开关控制
   fbxLoader.load('models/guge1.fbx', (obj) => {
     realSkeleton = obj;
+    realSkeleton.traverse(o => {
+      if (o.isMesh && o.material) {
+        // 骨骼材质：偏白/偏黄的发光，便于穿透外表面看到
+        o.material.transparent = true;
+        o.material.opacity = 0.85;
+        o.material.emissive = new THREE.Color(0xfff3d6);
+        o.material.emissiveIntensity = 0.4;
+        o.material.depthWrite = true;
+        o.material.side = THREE.DoubleSide;
+        o.material.needsUpdate = true;
+        o.frustumCulled = false;
+      }
+    });
     alignModel(realSkeleton);
     realSkeleton.visible = false;
     scene.add(realSkeleton);
     hasRealSkeleton = true;
     skeletonGroup.children.forEach(c => { if (c.type === 'Mesh') c.visible = false; });
-  }, undefined, (e) => console.warn('骨骼模型加载失败，回退程序化骨骼', e));
+    showStatus && showStatus('✅ 骨骼模型已加载', 'ok');
+  }, undefined, (e) => {
+    console.error('骨骼模型加载失败：', e);
+    showStatus && showStatus('❌ 骨骼加载失败：' + (e && e.message || e), 'err');
+  });
 }
 
 /* ============ 经络数据（14 条：十二正经 + 任脉 + 督脉） ============ */
