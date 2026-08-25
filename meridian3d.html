@@ -317,8 +317,9 @@ MERIDIANS.forEach(m => {
 
     // 气运动：沿经络流动的发光脉冲（成线，不是球）
     const flowGeo = new THREE.TubeGeometry(curve, 80, 0.009, 8, false);
+    const QI_COLOR = 0xff3b30; // 气运动统一用红色，不与任何经络配色冲突
     const flowMat = new THREE.ShaderMaterial({
-      uniforms: { uColor: { value: new THREE.Color(m.color) }, uTime: { value: 0 }, uSpeed: { value: 0.16 } },
+      uniforms: { uColor: { value: new THREE.Color(QI_COLOR) }, uTime: { value: 0 }, uSpeed: { value: 0.16 } },
       vertexShader: flowVert, fragmentShader: flowFrag,
       transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
     });
