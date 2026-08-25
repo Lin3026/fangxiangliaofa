@@ -79,6 +79,7 @@
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 document.getElementById('loading').style.display = 'none';
 
@@ -211,6 +212,56 @@ Object.values(joints).forEach(p => {
   j.position.set(p[0], p[1], p[2]);
   skeletonGroup.add(j);
 });
+
+/* ============ 真实 3D 模型（外表面 + 骨骼）替换程序化 ============ */
+/* 用户提供 models/human.glb（外表面）、models/guge.glb（骨骼）。
+   两模型均为 Y-up 站立、Z 厚度约 0.17 的扁平人形，米级（≈1 米高）。
+   自动对齐：等比缩放到身高 1.8、脚底 y=0、左右/前后居中，与现有经络坐标系一致。 */
+const gltfLoader = new GLTFLoader();
+let realSkin = null, realSkeleton = null, hasRealSkeleton = false;
+
+function alignModel(obj, targetH = 1.8) {
+  let box = new THREE.Box3().setFromObject(obj);
+  const size = new THREE.Vector3(); box.getSize(size);
+  const maxDim = Math.max(size.x, size.y, size.z);
+  const s = targetH / maxDim;
+  obj.scale.setScalar(s);
+  obj.updateMatrixWorld(true);
+  box = new THREE.Box3().setFromObject(obj);
+  const c = new THREE.Vector3(); box.getCenter(c);
+  obj.position.x -= c.x;
+  obj.position.z -= c.z;
+  obj.position.y -= box.min.y; // 脚底落到 y=0
+  obj.updateMatrixWorld(true);
+}
+
+function loadRealModels() {
+  // 外表面：加载后转半透明，让内部经络/穴位透出；隐藏程序化皮肤
+  gltfLoader.load('models/human.glb', (gltf) => {
+    realSkin = gltf.scene;
+    realSkin.traverse(o => {
+      if (o.isMesh && o.material) {
+        o.material.transparent = true;
+        o.material.opacity = 0.32;
+        o.material.depthWrite = false;
+        o.material.side = THREE.DoubleSide;
+      }
+    });
+    alignModel(realSkin);
+    scene.add(realSkin);
+    bodyGroup.visible = false;
+  }, undefined, (e) => console.warn('外表面模型加载失败，回退程序化人体', e));
+
+  // 骨骼：加载真实骨骼，隐藏程序化骨杆保留中文骨名标签；默认隐藏，由开关控制
+  gltfLoader.load('models/guge.glb', (gltf) => {
+    realSkeleton = gltf.scene;
+    alignModel(realSkeleton);
+    realSkeleton.visible = false;
+    scene.add(realSkeleton);
+    hasRealSkeleton = true;
+    skeletonGroup.children.forEach(c => { if (c.type === 'Mesh') c.visible = false; });
+  }, undefined, (e) => console.warn('骨骼模型加载失败，回退程序化骨骼', e));
+}
 
 /* ============ 经络数据（14 条：十二正经 + 任脉 + 督脉） ============ */
 /* pts 格式：[穴位名, x, y, z]；side: 'M'=中线单条, 'LR'=左右对称各一条 */
@@ -371,10 +422,13 @@ const btnQi = document.getElementById('btnQi');
 const btnLabels = document.getElementById('btnLabels');
 const btnReset = document.getElementById('btnReset');
 
+let skeletonOn = false;
 btnSkeleton.onclick = () => {
-  skeletonGroup.visible = !skeletonGroup.visible;
-  btnSkeleton.classList.toggle('on', skeletonGroup.visible);
-  btnSkeleton.textContent = '🦴 骨骼：' + (skeletonGroup.visible ? '开' : '关');
+  skeletonOn = !skeletonOn;
+  if (realSkeleton) realSkeleton.visible = skeletonOn;
+  skeletonGroup.visible = skeletonOn; // 控制程序化骨杆(无真实时) + 中文骨名标签
+  btnSkeleton.classList.toggle('on', skeletonOn);
+  btnSkeleton.textContent = '🦴 骨骼：' + (skeletonOn ? '开' : '关');
 };
 btnQi.onclick = () => {
   qiGroup.visible = !qiGroup.visible;
@@ -502,6 +556,9 @@ function animate() {
   renderer.render(scene, camera);
 }
 animate();
+
+/* 加载用户提供的真实 3D 模型（异步，加载完自动替换程序化人体/骨骼） */
+loadRealModels();
 
 /* ============ 自适应（手机旋转/窗口缩放） ============ */
 addEventListener('resize', () => {
