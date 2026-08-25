@@ -79,7 +79,7 @@
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
 document.getElementById('loading').style.display = 'none';
 
@@ -214,18 +214,23 @@ Object.values(joints).forEach(p => {
 });
 
 /* ============ 真实 3D 模型（外表面 + 骨骼）替换程序化 ============ */
-/* 用户提供 models/human.glb（外表面）、models/guge.glb（骨骼）。
-   两模型均为 Y-up 站立、Z 厚度约 0.17 的扁平人形，米级（≈1 米高）。
-   自动对齐：等比缩放到身高 1.8、脚底 y=0、左右/前后居中，与现有经络坐标系一致。 */
-const gltfLoader = new GLTFLoader();
+/* 用户提供 models/human1.fbx（外表面）、models/guge1.fbx（骨骼）。
+   已确认两模型均为站立人形、米级（≈1 米高）；FBX 体积仅为 GLB 的 ≈1/4，更适合 Pages。
+   自动对齐（自适应轴向，兼容 Y-up 或 Z-up 导出）：
+   等比缩放到身高 1.8、脚底 y=0、左右/前后居中，与现有经络坐标系一致。 */
+const fbxLoader = new FBXLoader();
 let realSkin = null, realSkeleton = null, hasRealSkeleton = false;
 
 function alignModel(obj, targetH = 1.8) {
+  obj.updateMatrixWorld(true);
   let box = new THREE.Box3().setFromObject(obj);
   const size = new THREE.Vector3(); box.getSize(size);
-  const maxDim = Math.max(size.x, size.y, size.z);
-  const s = targetH / maxDim;
-  obj.scale.setScalar(s);
+  const ext = [size.x, size.y, size.z];
+  const maxI = ext.indexOf(Math.max(...ext)); // 最长边视为"身高"方向
+  obj.scale.setScalar(targetH / ext[maxI]);
+  // 若身高轴不在 Y，旋转到 Y（兼容 FBX 默认 Z-up 导出）
+  if (maxI === 2) obj.rotation.x = -Math.PI / 2;     // Z-up -> Y-up
+  else if (maxI === 0) obj.rotation.z = Math.PI / 2; // X-up -> Y-up
   obj.updateMatrixWorld(true);
   box = new THREE.Box3().setFromObject(obj);
   const c = new THREE.Vector3(); box.getCenter(c);
@@ -237,8 +242,8 @@ function alignModel(obj, targetH = 1.8) {
 
 function loadRealModels() {
   // 外表面：加载后转半透明，让内部经络/穴位透出；隐藏程序化皮肤
-  gltfLoader.load('models/human.glb', (gltf) => {
-    realSkin = gltf.scene;
+  fbxLoader.load('models/human1.fbx', (obj) => {
+    realSkin = obj;
     realSkin.traverse(o => {
       if (o.isMesh && o.material) {
         o.material.transparent = true;
@@ -253,8 +258,8 @@ function loadRealModels() {
   }, undefined, (e) => console.warn('外表面模型加载失败，回退程序化人体', e));
 
   // 骨骼：加载真实骨骼，隐藏程序化骨杆保留中文骨名标签；默认隐藏，由开关控制
-  gltfLoader.load('models/guge.glb', (gltf) => {
-    realSkeleton = gltf.scene;
+  fbxLoader.load('models/guge1.fbx', (obj) => {
+    realSkeleton = obj;
     alignModel(realSkeleton);
     realSkeleton.visible = false;
     scene.add(realSkeleton);
