@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>经络 3D 可视化</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden;
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #0e1116; color: #e8edf2; -webkit-tap-highlight-color: transparent; }
+  #app { position: fixed; inset: 0; }
+  #canvasWrap { position: absolute; inset: 0; touch-action: none; }
+  #topbar { position: absolute; top: 0; left: 0; right: 0; padding: 8px 12px;
+    font-size: 13px; color: #9fb2c4; background: linear-gradient(#0e1116cc, #0e111600);
+    pointer-events: none; }
+  #topbar b { color: #e8edf2; }
+  #loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    text-align: center; padding: 24px; font-size: 15px; line-height: 1.7; color: #9fb2c4; }
+  /* 经络选择面板 */
+  #panel { position: absolute; top: 38px; left: 10px; width: 140px; max-height: 56vh; overflow-y: auto;
+    background: rgba(18,24,32,.92); border: 1px solid #2a3340; border-radius: 10px; padding: 8px; }
+  #panel h4 { margin: 0 0 6px; font-size: 12px; color: #9fb2c4; font-weight: 600; }
+  .mrow { display: flex; align-items: center; gap: 6px; padding: 5px 6px; border-radius: 6px; cursor: pointer;
+    font-size: 12.5px; user-select: none; }
+  .mrow:hover { background: #1d2733; }
+  .mrow.off { opacity: .4; }
+  .mdot { width: 11px; height: 11px; border-radius: 50%; flex: 0 0 auto; }
+  /* 底部控制条（大按钮，适合触摸） */
+  #ctrl { position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-wrap: wrap; gap: 8px;
+    justify-content: center; padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+    background: linear-gradient(#0e111600, #0e1116dd); }
+  .btn { min-height: 44px; padding: 0 16px; border-radius: 22px;
+    border: 1px solid #2f3a48; background: #1a222c; color: #e8edf2; font-size: 14px; cursor: pointer; }
+  .btn:active { background: #25313f; }
+  .btn.on { background: #1e6f5c; border-color: #28a98c; color: #eafff7; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="canvasWrap"></div>
+  <div id="topbar">🌐 <b>经络 3D</b> · 单指拖拽旋转 · 双指捏合缩放 · 滚轮缩放</div>
+  <div id="loading">正在加载 3D 引擎…<br/>（需联网从 CDN 加载 Three.js，请保持网络畅通）</div>
+  <div id="panel"><h4>经络（点击显隐）</h4><div id="mList"></div></div>
+  <div id="ctrl">
+    <button class="btn" id="btnSkeleton">🦴 骨骼：关</button>
+    <button class="btn on" id="btnQi">🌀 气运动：开</button>
+    <button class="btn on" id="btnLabels">🏷 穴位名：开</button>
+    <button class="btn" id="btnReset">↺ 复位视角</button>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+document.getElementById('loading').style.display = 'none';
+
+/* ============ 基础场景 ============ */
+const wrap = document.getElementById('canvasWrap');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0e1116);
+
+const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.05, 100);
+camera.position.set(0, 1.05, 2.5);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+wrap.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 1.0, 0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.minDistance = 0.7;
+controls.maxDistance = 7;
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+const dl = new THREE.DirectionalLight(0xffffff, 0.7);
+dl.position.set(2, 3, 2.5);
+scene.add(dl);
+const dl2 = new THREE.DirectionalLight(0x88aaff, 0.3);
+dl2.position.set(-2, 1, -2);
+scene.add(dl2);
+
+/* ============ 文字标签（始终朝向相机、不被遮挡） ============ */
+function makeLabel(text, color = '#eaf2ff') {
+  const fs = 30, pad = 10;
+  const c = document.createElement('canvas');
+  const ctx = c.getContext('2d');
+  ctx.font = `bold ${fs}px sans-serif`;
+  const w = Math.ceil(ctx.measureText(text).width) + pad * 2;
+  const h = fs + pad * 2;
+  c.width = w; c.height = h;
+  ctx.font = `bold ${fs}px sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(8,12,18,0.92)';
+  ctx.strokeText(text, w / 2, h / 2);
+  ctx.fillStyle = color; ctx.fillText(text, w / 2, h / 2);
+  const tex = new THREE.CanvasTexture(c);
+  tex.minFilter = THREE.LinearFilter;
+  const mat = new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true });
+  const sp = new THREE.Sprite(mat);
+  const sc = 0.0017;
+  sp.scale.set(w * sc, h * sc, 1);
+  return sp;
+}
+
+/* ============ 通用：两点间的"杆/肢段" ============ */
+function segment(posA, posB, radius, material) {
+  const a = new THREE.Vector3(posA[0], posA[1], posA[2]);
+  const b = new THREE.Vector3(posB[0], posB[1], posB[2]);
+  const dir = new THREE.Vector3().subVectors(b, a);
+  const len = dir.length();
+  const geo = new THREE.CapsuleGeometry(radius, Math.max(0.001, len - 2 * radius), 4, 8);
+  const m = new THREE.Mesh(geo, material);
+  m.position.copy(a).add(b).multiplyScalar(0.5);
+  if (len > 1e-5) m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
+  return m;
+}
+
+/* ============ 程序化"示意人体"（半透明，作为底） ============ */
+const bodyGroup = new THREE.Group();
+scene.add(bodyGroup);
+const skinMat = new THREE.MeshPhongMaterial({ color: 0xd2a892, transparent: true, opacity: 0.13, depthWrite: false, shininess: 10 });
+
+const head = new THREE.Mesh(new THREE.SphereGeometry(0.105, 24, 18), skinMat);
+head.position.set(0, 1.60, 0);
+bodyGroup.add(head);
+bodyGroup.add(segment([0, 1.46, 0], [0, 1.40, 0], 0.04, skinMat));      // 颈
+bodyGroup.add(segment([0, 1.36, 0], [0, 1.02, 0], 0.115, skinMat));    // 胸腹
+bodyGroup.add(segment([0, 0.96, 0], [0, 0.80, 0], 0.10, skinMat));     // 盆
+[-1, 1].forEach(s => {
+  bodyGroup.add(segment([0.18 * s, 1.36, 0], [0.34 * s, 1.08, 0], 0.034, skinMat)); // 上臂
+  bodyGroup.add(segment([0.34 * s, 1.05, 0], [0.43 * s, 0.82, 0], 0.030, skinMat)); // 前臂
+  bodyGroup.add(segment([0.43 * s, 0.79, 0], [0.45 * s, 0.70, 0], 0.026, skinMat)); // 手
+  bodyGroup.add(segment([0.09 * s, 0.78, 0], [0.11 * s, 0.50, 0.01], 0.05, skinMat)); // 大腿
+  bodyGroup.add(segment([0.11 * s, 0.48, 0.01], [0.11 * s, 0.10, 0.02], 0.04, skinMat)); // 小腿
+  const foot = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.035, 0.16), skinMat);
+  foot.position.set(0.11 * s, 0.035, 0.06);
+  bodyGroup.add(foot);
+});
+
+/* ============ 骨骼（可开关显示） ============ */
+const skeletonGroup = new THREE.Group();
+skeletonGroup.visible = false;
+scene.add(skeletonGroup);
+const boneMat = new THREE.MeshPhongMaterial({ color: 0xe9e4d6 });
+const jointMat = new THREE.MeshPhongMaterial({ color: 0xf3efe2 });
+
+const joints = {
+  head: [0, 1.60, 0], neck: [0, 1.44, -0.01], chest: [0, 1.22, -0.03],
+  spine: [0, 1.00, -0.05], pelvis: [0, 0.84, -0.04],
+  L_shoulder: [-0.17, 1.36, 0], R_shoulder: [0.17, 1.36, 0],
+  L_elbow: [-0.33, 1.08, 0], R_elbow: [0.33, 1.08, 0],
+  L_wrist: [-0.44, 0.82, 0], R_wrist: [0.44, 0.82, 0],
+  L_hip: [-0.09, 0.82, 0], R_hip: [0.09, 0.82, 0],
+  L_knee: [-0.11, 0.48, 0.01], R_knee: [0.11, 0.48, 0.01],
+  L_ankle: [-0.11, 0.07, 0.02], R_ankle: [0.11, 0.07, 0.02]
+};
+const boneLinks = [
+  ['head', 'neck', '颈椎'], ['neck', 'chest', '胸椎上段'], ['chest', 'spine', '胸椎下段'],
+  ['spine', 'pelvis', '腰椎/骶骨'], ['chest', 'L_shoulder', '左锁骨'], ['chest', 'R_shoulder', '右锁骨'],
+  ['L_shoulder', 'L_elbow', '左肱骨'], ['L_elbow', 'L_wrist', '左前臂骨'],
+  ['R_shoulder', 'R_elbow', '右肱骨'], ['R_elbow', 'R_wrist', '右前臂骨'],
+  ['pelvis', 'L_hip', '左髂骨'], ['pelvis', 'R_hip', '右髂骨'],
+  ['L_hip', 'L_knee', '左股骨'], ['L_knee', 'L_ankle', '左胫腓骨'],
+  ['R_hip', 'R_knee', '右股骨'], ['R_knee', 'R_ankle', '右胫腓骨']
+];
+const boneNameLabels = [];
+boneLinks.forEach(([a, b, label]) => {
+  skeletonGroup.add(segment(joints[a], joints[b], 0.018, boneMat));
+  const sp = makeLabel(label, '#fff3d6');
+  sp.position.set((joints[a][0] + joints[b][0]) / 2, (joints[a][1] + joints[b][1]) / 2 + 0.03, (joints[a][2] + joints[b][2]) / 2);
+  skeletonGroup.add(sp);
+  boneNameLabels.push(sp);
+});
+Object.values(joints).forEach(p => {
+  const j = new THREE.Mesh(new THREE.SphereGeometry(0.022, 12, 10), jointMat);
+  j.position.set(p[0], p[1], p[2]);
+  skeletonGroup.add(j);
+});
+
+/* ============ 经络数据（14 条：十二正经 + 任脉 + 督脉） ============ */
+/* pts 格式：[穴位名, x, y, z]；side: 'M'=中线单条, 'LR'=左右对称各一条 */
+const MERIDIANS = [
+  { id: 'ren', name: '任脉', color: 0xff5fa2, side: 'M', pts: [
+    ['会阴', 0, 0.06, 0.10], ['曲骨', 0, 0.78, 0.13], ['关元', 0, 0.88, 0.13], ['气海', 0, 0.95, 0.13],
+    ['神阙', 0, 1.00, 0.14], ['中脘', 0, 1.10, 0.13], ['膻中', 0, 1.32, 0.12], ['天突', 0, 1.45, 0.10], ['承浆', 0, 1.50, 0.10]
+  ]},
+  { id: 'du', name: '督脉', color: 0xffd24a, side: 'M', pts: [
+    ['长强', 0, 0.12, -0.10], ['命门', 0, 1.00, -0.10], ['大椎', 0, 1.42, -0.04], ['风府', 0, 1.55, -0.03],
+    ['百会', 0, 1.70, 0], ['印堂', 0, 1.58, 0.10], ['水沟', 0, 1.50, 0.12]
+  ]},
+  { id: 'lu', name: '手太阴肺经', color: 0x6fd3ff, side: 'LR', pts: [
+    ['中府', 0.16, 1.30, 0.10], ['尺泽', 0.30, 1.08, 0.02], ['列缺', 0.38, 0.86, 0.06], ['太渊', 0.40, 0.84, 0.04], ['少商', 0.45, 0.72, 0.04]
+  ]},
+  { id: 'li', name: '手阳明大肠经', color: 0x7CFC00, side: 'LR', pts: [
+    ['商阳', 0.45, 0.72, 0.04], ['合谷', 0.42, 0.80, 0.06], ['曲池', 0.32, 1.08, 0.04], ['肩髃', 0.18, 1.36, 0.02], ['迎香', 0.04, 1.50, 0.13]
+  ]},
+  { id: 'st', name: '足阳明胃经', color: 0xff9f43, side: 'LR', pts: [
+    ['承泣', 0.04, 1.52, 0.13], ['地仓', 0.05, 1.48, 0.13], ['缺盆', 0.12, 1.34, 0.06], ['天枢', 0.10, 0.95, 0.14],
+    ['梁丘', 0.12, 0.56, 0.05], ['足三里', 0.12, 0.55, 0.04], ['丰隆', 0.12, 0.30, 0.06], ['厉兑', 0.11, 0.03, 0.14]
+  ]},
+  { id: 'sp', name: '足太阴脾经', color: 0xc792ea, side: 'LR', pts: [
+    ['隐白', 0.13, 0.03, 0.12], ['公孙', 0.12, 0.07, 0.11], ['三阴交', 0.11, 0.10, 0.10], ['阴陵泉', 0.12, 0.50, 0.04],
+    ['血海', 0.13, 0.62, 0.02], ['大横', 0.09, 0.95, 0.12], ['大包', 0.16, 1.18, 0.04]
+  ]},
+  { id: 'ht', name: '手少阴心经', color: 0xff6b81, side: 'LR', pts: [
+    ['极泉', 0.17, 1.35, 0.06], ['少海', 0.31, 1.10, 0.04], ['神门', 0.39, 0.85, 0.05], ['少冲', 0.44, 0.72, 0.04]
+  ]},
+  { id: 'si', name: '手太阳小肠经', color: 0x4dd0e1, side: 'LR', pts: [
+    ['少泽', 0.44, 0.72, 0.03], ['小海', 0.31, 1.10, 0.03], ['肩贞', 0.18, 1.34, 0.03], ['听宫', 0.07, 1.52, 0.10]
+  ]},
+  { id: 'bl', name: '足太阳膀胱经', color: 0x5c6bc0, side: 'LR', pts: [
+    ['睛明', 0.03, 1.56, 0.12], ['天柱', 0.06, 1.45, -0.02], ['肺俞', 0.10, 1.25, -0.07], ['肾俞', 0.10, 0.98, -0.07],
+    ['八髎', 0.06, 0.82, -0.06], ['委中', 0.10, 0.52, -0.05], ['承山', 0.10, 0.25, -0.06], ['昆仑', 0.11, 0.07, -0.05], ['至阴', 0.11, 0.02, -0.04]
+  ]},
+  { id: 'ki', name: '足少阴肾经', color: 0x9ccc65, side: 'LR', pts: [
+    ['涌泉', 0.11, 0.02, 0.14], ['太溪', 0.11, 0.08, 0.10], ['阴谷', 0.10, 0.52, 0.02], ['肓俞', 0.08, 0.95, -0.02], ['俞府', 0.12, 1.30, 0.06]
+  ]},
+  { id: 'pc', name: '手厥阴心包经', color: 0xf06292, side: 'LR', pts: [
+    ['天池', 0.14, 1.25, 0.08], ['曲泽', 0.30, 1.08, 0.04], ['内关', 0.39, 0.85, 0.05], ['劳宫', 0.43, 0.78, 0.05], ['中冲', 0.44, 0.72, 0.05]
+  ]},
+  { id: 'te', name: '手少阳三焦经', color: 0xffb74d, side: 'LR', pts: [
+    ['关冲', 0.44, 0.72, 0.04], ['阳池', 0.42, 0.80, 0.05], ['外关', 0.39, 0.85, 0.05], ['天井', 0.31, 1.10, 0.04], ['丝竹空', 0.06, 1.54, 0.11]
+  ]},
+  { id: 'gb', name: '足少阳胆经', color: 0x4db6ac, side: 'LR', pts: [
+    ['瞳子髎', 0.07, 1.53, 0.11], ['风池', 0.07, 1.45, -0.02], ['肩井', 0.14, 1.38, 0.00], ['环跳', 0.10, 0.86, -0.04],
+    ['阳陵泉', 0.12, 0.50, 0.03], ['悬钟', 0.11, 0.20, 0.05], ['足窍阴', 0.12, 0.03, 0.10]
+  ]},
+  { id: 'lr', name: '足厥阴肝经', color: 0x81c784, side: 'LR', pts: [
+    ['大敦', 0.12, 0.03, 0.10], ['太冲', 0.12, 0.08, 0.10], ['曲泉', 0.11, 0.52, 0.03], ['章门', 0.13, 1.05, 0.08], ['期门', 0.14, 1.25, 0.08]
+  ]}
+];
+
+/* ============ 生成经络曲线 + 穴位标签 + 气运动粒子 ============ */
+const meridianGroup = new THREE.Group();
+scene.add(meridianGroup);
+const qiGroup = new THREE.Group();
+scene.add(qiGroup);
+
+const meridianObjs = []; // 每条"单侧"一个对象
+const allLabels = [];
+
+function hex(c) { return '#' + c.toString(16).padStart(6, '0'); }
+
+MERIDIANS.forEach(m => {
+  const sides = m.side === 'M' ? [1] : [-1, 1];
+  sides.forEach(sgn => {
+    const vp = m.pts.map(p => new THREE.Vector3(p[1] * sgn, p[2], p[3]));
+    const curve = new THREE.CatmullRomCurve3(vp);
+    const geo = new THREE.TubeGeometry(curve, Math.max(24, vp.length * 8), 0.006, 8, false);
+    const mat = new THREE.MeshBasicMaterial({ color: m.color });
+    const tube = new THREE.Mesh(geo, mat);
+    meridianGroup.add(tube);
+
+    const labels = [];
+    m.pts.forEach(p => {
+      const sp = makeLabel(p[0], hex(m.color));
+      sp.position.set(p[1] * sgn, p[2] + 0.02, p[3]);
+      meridianGroup.add(sp);
+      labels.push(sp);
+      allLabels.push(sp);
+    });
+
+    // 气运动：沿曲线流动的发光粒子
+    const N = 7;
+    const qGeo = new THREE.BufferGeometry();
+    const positions = new Float32Array(N * 3);
+    const offsets = [];
+    for (let i = 0; i < N; i++) offsets.push(i / N);
+    qGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const qMat = new THREE.PointsMaterial({ color: m.color, size: 0.028, transparent: true, opacity: 0.95, depthWrite: false });
+    const pts = new THREE.Points(qGeo, qMat);
+    qiGroup.add(pts);
+
+    meridianObjs.push({ def: m, tube, labels, curve, qGeo, positions, offsets, N, sgn });
+  });
+});
+
+/* ============ 经络选择面板 ============ */
+const mList = document.getElementById('mList');
+const meridianToggles = [];
+MERIDIANS.forEach(m => {
+  const row = document.createElement('div');
+  row.className = 'mrow';
+  row.innerHTML = `<span class="mdot" style="background:${hex(m.color)}"></span>${m.name}`;
+  row.onclick = () => {
+    const objs = meridianObjs.filter(o => o.def.id === m.id);
+    const nowOn = objs[0].tube.visible;
+    objs.forEach(o => {
+      o.tube.visible = !nowOn;
+      o.labels.forEach(l => l.visible = !nowOn && labelOn);
+    });
+    row.classList.toggle('off', nowOn);
+  };
+  mList.appendChild(row);
+  meridianToggles.push(row);
+});
+
+/* ============ 控制条交互 ============ */
+let labelOn = true;
+const btnSkeleton = document.getElementById('btnSkeleton');
+const btnQi = document.getElementById('btnQi');
+const btnLabels = document.getElementById('btnLabels');
+const btnReset = document.getElementById('btnReset');
+
+btnSkeleton.onclick = () => {
+  skeletonGroup.visible = !skeletonGroup.visible;
+  btnSkeleton.classList.toggle('on', skeletonGroup.visible);
+  btnSkeleton.textContent = '🦴 骨骼：' + (skeletonGroup.visible ? '开' : '关');
+};
+btnQi.onclick = () => {
+  qiGroup.visible = !qiGroup.visible;
+  btnQi.classList.toggle('on', qiGroup.visible);
+  btnQi.textContent = '🌀 气运动：' + (qiGroup.visible ? '开' : '关');
+};
+btnLabels.onclick = () => {
+  labelOn = !labelOn;
+  allLabels.forEach(l => l.visible = labelOn);
+  btnLabels.classList.toggle('on', labelOn);
+  btnLabels.textContent = '🏷 穴位名：' + (labelOn ? '开' : '关');
+};
+btnReset.onclick = () => {
+  camera.position.set(0, 1.05, 2.5);
+  controls.target.set(0, 1.0, 0);
+  controls.update();
+};
+
+/* ============ 动画循环 ============ */
+const tmp = new THREE.Vector3();
+function animate() {
+  requestAnimationFrame(animate);
+  const t = performance.now() * 0.00018;
+  if (qiGroup.visible) {
+    meridianObjs.forEach(o => {
+      for (let i = 0; i < o.N; i++) {
+        let tt = (o.offsets[i] + t) % 1; if (tt < 0) tt += 1;
+        o.curve.getPointAt(tt, tmp);
+        o.positions[i * 3] = tmp.x; o.positions[i * 3 + 1] = tmp.y; o.positions[i * 3 + 2] = tmp.z;
+      }
+      o.qGeo.attributes.position.needsUpdate = true;
+    });
+  }
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+/* ============ 自适应（手机旋转/窗口缩放） ============ */
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+</body>
+</html>

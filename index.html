@@ -356,6 +356,7 @@
   <div class="tabs">
     <div class="tab active" data-tab="search">🔍 智能配方</div>
     <div class="tab" data-tab="dose">💊 剂量计算</div>
+    <div class="tab" data-tab="meridian">🌐 经络3D</div>
     <div class="tab" data-tab="pulse">💓 脉诊辨证</div>
     <div class="tab" data-tab="tongue">👅 舌诊辨证</div>
     <div class="tab" data-tab="tizhi">🌿 体质辨证</div>
@@ -559,6 +560,12 @@
       <div id="doseRefTable"></div>
       <div class="caution" style="margin-top:10px;">🍊 柑橘类（甜橙、柠檬、葡萄柚、佛手柑等）具光敏性，外用后 12 小时内避免日晒／紫外线。🌿 癫痫、哮喘、高血压人群使用部分精油（如迷迭香、尤加利、薄荷等）须谨慎。具体禁忌见各精油档案「注意」。</div>
     </div>
+  </section>
+
+  <!-- 经络 3D 可视化（独立页面，iframe 嵌入，紧邻剂量计算） -->
+  <section id="tab-meridian" style="display:none;">
+    <div class="hint" style="margin-bottom:8px;">🌐 可拖拽旋转、双指/滚轮缩放的 3D 人体经络模型（含穴位名、可开关骨骼、气运动）。手机端同样可触摸操作。<b>需联网</b>加载 3D 引擎。</div>
+    <iframe src="meridian3d.html" style="width:100%;height:78vh;border:0;border-radius:10px;background:#0e1116;" title="经络3D"></iframe>
   </section>
 
   <!-- 精油档案 -->
