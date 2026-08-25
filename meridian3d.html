@@ -18,7 +18,7 @@
   #loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
     text-align: center; padding: 24px; font-size: 15px; line-height: 1.7; color: #9fb2c4; }
   /* 经络选择面板 */
-  #panel { position: absolute; top: 38px; left: 10px; width: 140px; max-height: 56vh; overflow-y: auto;
+  #panel { position: absolute; top: 96px; left: 10px; width: 140px; max-height: calc(100vh - 200px); overflow-y: auto;
     background: rgba(18,24,32,.92); border: 1px solid #2a3340; border-radius: 10px; padding: 8px; }
   #panel h4 { margin: 0 0 6px; font-size: 12px; color: #9fb2c4; font-weight: 600; }
   .mrow { display: flex; align-items: center; gap: 6px; padding: 5px 6px; border-radius: 6px; cursor: pointer;
@@ -34,12 +34,29 @@
     border: 1px solid #2f3a48; background: #1a222c; color: #e8edf2; font-size: 14px; cursor: pointer; }
   .btn:active { background: #25313f; }
   .btn.on { background: #1e6f5c; border-color: #28a98c; color: #eafff7; }
+  #searchbar { position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+    width: min(360px, calc(100% - 16px)); display: flex; gap: 6px; z-index: 5; }
+  #searchInput { flex: 1; min-height: 40px; padding: 0 14px; border-radius: 20px;
+    border: 1px solid #2f3a48; background: #161d26; color: #e8edf2; font-size: 14px; outline: none; }
+  #searchInput::placeholder { color: #7d8c9a; }
+  #btnSearch { min-height: 40px; padding: 0 16px; border-radius: 20px; border: 1px solid #28a98c;
+    background: #1e6f5c; color: #eafff7; font-size: 14px; cursor: pointer; }
+  #hint { position: absolute; top: 52px; left: 0; right: 0; text-align: center;
+    font-size: 11.5px; color: #6f8296; pointer-events: none; }
+  #result { position: absolute; top: 74px; left: 50%; transform: translateX(-50%);
+    background: rgba(20,28,38,.95); border: 1px solid #28a98c; border-radius: 16px;
+    padding: 6px 14px; font-size: 13px; color: #eafff7; display: none; z-index: 6; max-width: 90%; }
 </style>
 </head>
 <body>
 <div id="app">
   <div id="canvasWrap"></div>
-  <div id="topbar">🌐 <b>经络 3D</b> · 单指拖拽旋转 · 双指捏合缩放 · 滚轮缩放</div>
+  <div id="searchbar">
+    <input id="searchInput" type="search" placeholder="搜索穴位或经络，如 足三里 / 肺经" />
+    <button id="btnSearch">定位</button>
+  </div>
+  <div id="hint">单指拖拽旋转 · 双指捏合缩放 · 滚轮缩放 · 输入名称后点「定位」自动聚焦</div>
+  <div id="result"></div>
   <div id="loading">正在加载 3D 引擎…<br/>（需联网从 CDN 加载 Three.js，请保持网络畅通）</div>
   <div id="panel"><h4>经络（点击显隐）</h4><div id="mList"></div></div>
   <div id="ctrl">
@@ -95,7 +112,7 @@ scene.add(dl2);
 
 /* ============ 文字标签（始终朝向相机、不被遮挡） ============ */
 function makeLabel(text, color = '#eaf2ff') {
-  const fs = 30, pad = 10;
+  const fs = 24, pad = 8;
   const c = document.createElement('canvas');
   const ctx = c.getContext('2d');
   ctx.font = `bold ${fs}px sans-serif`;
@@ -104,14 +121,14 @@ function makeLabel(text, color = '#eaf2ff') {
   c.width = w; c.height = h;
   ctx.font = `bold ${fs}px sans-serif`;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(8,12,18,0.92)';
+  ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(8,12,18,0.92)';
   ctx.strokeText(text, w / 2, h / 2);
   ctx.fillStyle = color; ctx.fillText(text, w / 2, h / 2);
   const tex = new THREE.CanvasTexture(c);
   tex.minFilter = THREE.LinearFilter;
   const mat = new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true });
   const sp = new THREE.Sprite(mat);
-  const sc = 0.0017;
+  const sc = 0.0015;
   sp.scale.set(w * sc, h * sc, 1);
   return sp;
 }
@@ -151,6 +168,9 @@ bodyGroup.add(segment([0, 0.96, 0], [0, 0.80, 0], 0.10, skinMat));     // 盆
   bodyGroup.add(foot);
 });
 
+/* ============ 标签登记（用于防重叠与搜索聚焦） ============ */
+const labelItems = [];
+
 /* ============ 骨骼（可开关显示） ============ */
 const skeletonGroup = new THREE.Group();
 skeletonGroup.visible = false;
@@ -184,6 +204,7 @@ boneLinks.forEach(([a, b, label]) => {
   sp.position.set((joints[a][0] + joints[b][0]) / 2, (joints[a][1] + joints[b][1]) / 2 + 0.03, (joints[a][2] + joints[b][2]) / 2);
   skeletonGroup.add(sp);
   boneNameLabels.push(sp);
+  labelItems.push({ sprite: sp, type: 'bone', world: sp.position.clone(), force: false });
 });
 Object.values(joints).forEach(p => {
   const j = new THREE.Mesh(new THREE.SphereGeometry(0.022, 12, 10), jointMat);
@@ -251,59 +272,84 @@ const qiGroup = new THREE.Group();
 scene.add(qiGroup);
 
 const meridianObjs = []; // 每条"单侧"一个对象
-const allLabels = [];
 
 function hex(c) { return '#' + c.toString(16).padStart(6, '0'); }
+
+/* 气运动：沿经络流动的"线"（发光脉冲，而非散点） */
+const flowVert = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`;
+const flowFrag = `uniform vec3 uColor; uniform float uTime; uniform float uSpeed; varying vec2 vUv;
+void main(){
+  float x = vUv.x;
+  float p = fract(x - uTime * uSpeed);
+  float head = smoothstep(0.75, 1.0, p);
+  float intensity = 0.16 + head * 1.7;
+  gl_FragColor = vec4(uColor * intensity, 1.0);
+}`;
+const dotGeo = new THREE.SphereGeometry(0.0085, 10, 8);
 
 MERIDIANS.forEach(m => {
   const sides = m.side === 'M' ? [1] : [-1, 1];
   sides.forEach(sgn => {
+    const obj = { def: m, labels: [], dots: [], sgn };
     const vp = m.pts.map(p => new THREE.Vector3(p[1] * sgn, p[2], p[3]));
     const curve = new THREE.CatmullRomCurve3(vp);
+    obj.curve = curve;
+
+    m.pts.forEach(p => {
+      // 穴位"点"
+      const dot = new THREE.Mesh(dotGeo, new THREE.MeshBasicMaterial({ color: m.color }));
+      dot.position.set(p[1] * sgn, p[2], p[3]);
+      meridianGroup.add(dot);
+      obj.dots.push(dot);
+      // 穴位名（显示在点的旁边）
+      const sp = makeLabel(p[0], hex(m.color));
+      sp.position.set(p[1] * sgn, p[2] + 0.025, p[3]);
+      meridianGroup.add(sp);
+      obj.labels.push(sp);
+      labelItems.push({ sprite: sp, type: 'acu', o: obj, world: sp.position.clone(), force: false });
+    });
+
     const geo = new THREE.TubeGeometry(curve, Math.max(24, vp.length * 8), 0.006, 8, false);
     const mat = new THREE.MeshBasicMaterial({ color: m.color });
     const tube = new THREE.Mesh(geo, mat);
     meridianGroup.add(tube);
+    obj.tube = tube;
 
-    const labels = [];
-    m.pts.forEach(p => {
-      const sp = makeLabel(p[0], hex(m.color));
-      sp.position.set(p[1] * sgn, p[2] + 0.02, p[3]);
-      meridianGroup.add(sp);
-      labels.push(sp);
-      allLabels.push(sp);
+    // 气运动：沿经络流动的发光脉冲（成线，不是球）
+    const flowGeo = new THREE.TubeGeometry(curve, 80, 0.009, 8, false);
+    const flowMat = new THREE.ShaderMaterial({
+      uniforms: { uColor: { value: new THREE.Color(m.color) }, uTime: { value: 0 }, uSpeed: { value: 0.16 } },
+      vertexShader: flowVert, fragmentShader: flowFrag,
+      transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
     });
+    const flow = new THREE.Mesh(flowGeo, flowMat);
+    qiGroup.add(flow);
+    obj.flowMat = flowMat;
 
-    // 气运动：沿曲线流动的发光粒子
-    const N = 7;
-    const qGeo = new THREE.BufferGeometry();
-    const positions = new Float32Array(N * 3);
-    const offsets = [];
-    for (let i = 0; i < N; i++) offsets.push(i / N);
-    qGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    const qMat = new THREE.PointsMaterial({ color: m.color, size: 0.028, transparent: true, opacity: 0.95, depthWrite: false });
-    const pts = new THREE.Points(qGeo, qMat);
-    qiGroup.add(pts);
-
-    meridianObjs.push({ def: m, tube, labels, curve, qGeo, positions, offsets, N, sgn });
+    meridianObjs.push(obj);
   });
 });
 
 /* ============ 经络选择面板 ============ */
 const mList = document.getElementById('mList');
 const meridianToggles = [];
+function setMeridianVisible(id, on) {
+  meridianObjs.filter(o => o.def.id === id).forEach(o => {
+    o.tube.visible = on;
+    o.dots.forEach(d => d.visible = on);
+    o.labels.forEach(l => l.visible = on);
+  });
+  const row = meridianToggles.find(r => r._id === id);
+  if (row) row.classList.toggle('off', !on);
+}
 MERIDIANS.forEach(m => {
   const row = document.createElement('div');
   row.className = 'mrow';
+  row._id = m.id;
   row.innerHTML = `<span class="mdot" style="background:${hex(m.color)}"></span>${m.name}`;
   row.onclick = () => {
     const objs = meridianObjs.filter(o => o.def.id === m.id);
-    const nowOn = objs[0].tube.visible;
-    objs.forEach(o => {
-      o.tube.visible = !nowOn;
-      o.labels.forEach(l => l.visible = !nowOn && labelOn);
-    });
-    row.classList.toggle('off', nowOn);
+    setMeridianVisible(m.id, !objs[0].tube.visible);
   };
   mList.appendChild(row);
   meridianToggles.push(row);
@@ -328,7 +374,6 @@ btnQi.onclick = () => {
 };
 btnLabels.onclick = () => {
   labelOn = !labelOn;
-  allLabels.forEach(l => l.visible = labelOn);
   btnLabels.classList.toggle('on', labelOn);
   btnLabels.textContent = '🏷 穴位名：' + (labelOn ? '开' : '关');
 };
@@ -336,7 +381,104 @@ btnReset.onclick = () => {
   camera.position.set(0, 1.05, 2.5);
   controls.target.set(0, 1.0, 0);
   controls.update();
+  clearFocus();
 };
+
+/* ============ 标签防重叠（屏幕空间贪心去重） ============ */
+function updateLabelVisibility() {
+  const items = [];
+  for (const it of labelItems) {
+    const base = it.type === 'acu' ? (it.o.tube.visible && labelOn) : (skeletonGroup.visible && labelOn);
+    if (!base) { it.sprite.visible = false; continue; }
+    const v = it.world.clone().project(camera);
+    if (v.z < -1 || v.z > 1) { it.sprite.visible = false; continue; }
+    items.push({ it, sx: (v.x * 0.5 + 0.5) * innerWidth, sy: (-v.y * 0.5 + 0.5) * innerHeight, depth: v.z });
+  }
+  items.sort((a, b) => a.depth - b.depth);
+  const placed = [];
+  const gap = 24;
+  for (const it of items) {
+    let ok = it.it.force;
+    if (!ok) {
+      for (const p of placed) {
+        if (Math.abs(it.sx - p.sx) < gap && Math.abs(it.sy - p.sy) < gap) { ok = false; break; }
+      }
+    }
+    it.it.sprite.visible = ok;
+    if (ok) placed.push(it);
+  }
+}
+
+/* ============ 搜索定位 ============ */
+const searchInput = document.getElementById('searchInput');
+const btnSearch = document.getElementById('btnSearch');
+const resultEl = document.getElementById('result');
+const hintEl = document.getElementById('hint');
+let focusItems = [];
+function clearFocus() {
+  focusItems.forEach(f => { if (f.dot) f.dot.scale.setScalar(1); if (f.labelItem) f.labelItem.force = false; });
+  focusItems = [];
+}
+function frameTo(target, dist) {
+  controls.target.copy(target);
+  const dir = new THREE.Vector3().subVectors(camera.position, controls.target);
+  if (dir.lengthSq() < 1e-6) dir.set(0, 0, 1);
+  dir.normalize().multiplyScalar(dist);
+  camera.position.copy(target).add(dir);
+  controls.update();
+}
+function highlightPoint(pos, meridianId, pointName) {
+  setMeridianVisible(meridianId, true);
+  labelOn = true;
+  btnLabels.classList.add('on');
+  btnLabels.textContent = '🏷 穴位名：开';
+  const obj = meridianObjs.find(o => o.def.id === meridianId);
+  if (obj) {
+    const idx = obj.def.pts.findIndex(p => p[0] === pointName);
+    if (idx >= 0) {
+      const dot = obj.dots[idx];
+      const li = labelItems.find(i => i.sprite === obj.labels[idx]);
+      if (dot) { dot.scale.setScalar(2.4); focusItems.push({ dot, labelItem: li }); }
+      if (li) li.force = true;
+    }
+  }
+  frameTo(pos, 0.5);
+}
+function doSearch(q) {
+  q = (q || '').trim();
+  if (!q) return;
+  clearFocus();
+  let acuHit = null, merHit = null;
+  MERIDIANS.forEach(m => {
+    const sides = m.side === 'M' ? [1] : [-1, 1];
+    m.pts.forEach(p => { if (p[0].includes(q) && !acuHit) acuHit = { m, p, sgn: 1 }; });
+    if ((m.name.includes(q) || m.id === q) && !merHit) merHit = m;
+  });
+  if (acuHit) {
+    const pos = new THREE.Vector3(acuHit.p[1] * acuHit.sgn, acuHit.p[2], acuHit.p[3]);
+    highlightPoint(pos, acuHit.m.id, acuHit.p[0]);
+    resultEl.textContent = '定位：' + acuHit.p[0] + '（' + acuHit.m.name + '）';
+    resultEl.style.display = 'block';
+  } else if (merHit) {
+    setMeridianVisible(merHit.id, true);
+    const sides = merHit.side === 'M' ? [1] : [-1, 1];
+    const box = new THREE.Box3();
+    merHit.pts.forEach(p => sides.forEach(s => box.expandByPoint(new THREE.Vector3(p[1] * s, p[2], p[3]))));
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    const dist = Math.max(size.x, size.y, size.z) * 1.6 + 0.4;
+    frameTo(center, dist);
+    resultEl.textContent = '定位经络：' + merHit.name;
+    resultEl.style.display = 'block';
+  } else {
+    resultEl.textContent = '未找到：' + q;
+    resultEl.style.display = 'block';
+  }
+  if (hintEl) hintEl.style.display = 'none';
+}
+btnSearch.onclick = () => doSearch(searchInput.value);
+searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(searchInput.value); });
+searchInput.addEventListener('input', () => { if (!searchInput.value) { resultEl.style.display = 'none'; clearFocus(); if (hintEl) hintEl.style.display = ''; } });
 
 /* ============ 动画循环 ============ */
 const tmp = new THREE.Vector3();
@@ -344,15 +486,9 @@ function animate() {
   requestAnimationFrame(animate);
   const t = performance.now() * 0.00018;
   if (qiGroup.visible) {
-    meridianObjs.forEach(o => {
-      for (let i = 0; i < o.N; i++) {
-        let tt = (o.offsets[i] + t) % 1; if (tt < 0) tt += 1;
-        o.curve.getPointAt(tt, tmp);
-        o.positions[i * 3] = tmp.x; o.positions[i * 3 + 1] = tmp.y; o.positions[i * 3 + 2] = tmp.z;
-      }
-      o.qGeo.attributes.position.needsUpdate = true;
-    });
+    meridianObjs.forEach(o => { if (o.flowMat) o.flowMat.uniforms.uTime.value = t; });
   }
+  updateLabelVisibility();
   controls.update();
   renderer.render(scene, camera);
 }
