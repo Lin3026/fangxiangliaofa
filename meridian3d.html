@@ -75,11 +75,13 @@
   </div>
 </div>
 
+<!-- 兼容垫片：老手机浏览器（如旧版 Safari）不支持 importmap 时自动 polyfill，支持则原生处理 -->
+<script async src="./libs/es-module-shims.js"></script>
 <script type="importmap">
 {
   "imports": {
-    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    "three": "./libs/three.module.js",
+    "three/addons/": "./libs/jsm/"
   }
 }
 </script>
