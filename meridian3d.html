@@ -98,6 +98,14 @@ function showStatus(msg, kind) {
   _statusEl.style.display = 'block';
   if (kind === 'ok') setTimeout(() => { _statusEl.style.display = 'none'; }, 4000);
 }
+function showStatusRetry(msg, retryFn) {
+  _statusEl.innerHTML = msg + ' <a id="retryBtn" style="color:#28a98c;cursor:pointer;text-decoration:underline;pointer-events:auto;">🔄 重试</a>';
+  _statusEl.className = 'err';
+  _statusEl.style.display = 'block';
+  _statusEl.style.pointerEvents = 'auto';
+  const btn = document.getElementById('retryBtn');
+  if (btn) btn.onclick = () => { _statusEl.style.display = 'none'; retryFn && retryFn(); };
+}
 
 /* ============ 基础场景 ============ */
 const wrap = document.getElementById('canvasWrap');
@@ -278,8 +286,9 @@ function loadRealModels() {
     bodyGroup.visible = false;
     showStatus && showStatus('✅ 外表面模型已加载', 'ok');
   }, undefined, (e) => {
-    console.error('外表面模型加载失败：', e);
-    showStatus && showStatus('❌ 外表面加载失败：' + (e && e.message || e), 'err');
+    const detail = (e && e.message) || (e && e.toString()) || String(e);
+    console.error('外表面加载失败：', e, 'URL: models/human1.fbx, 当前协议:', location.protocol);
+    showStatusRetry('❌ 外表面加载失败：' + detail + '（协议：' + location.protocol + '）', () => loadRealModels());
   });
 
   // 骨骼：加载真实骨骼，隐藏程序化骨杆保留中文骨名标签；默认隐藏，由开关控制
@@ -305,8 +314,9 @@ function loadRealModels() {
     skeletonGroup.children.forEach(c => { if (c.type === 'Mesh') c.visible = false; });
     showStatus && showStatus('✅ 骨骼模型已加载', 'ok');
   }, undefined, (e) => {
-    console.error('骨骼模型加载失败：', e);
-    showStatus && showStatus('❌ 骨骼加载失败：' + (e && e.message || e), 'err');
+    const detail = (e && e.message) || (e && e.toString()) || String(e);
+    console.error('骨骼加载失败：', e, 'URL: models/guge1.fbx, 当前协议:', location.protocol);
+    showStatusRetry('❌ 骨骼加载失败：' + detail + '（协议：' + location.protocol + '）', () => { if (realSkin) { realSkeleton = null; hasRealSkeleton = false; } loadRealModels(); });
   });
 }
 
