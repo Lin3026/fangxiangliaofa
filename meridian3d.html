@@ -55,7 +55,7 @@
     <input id="searchInput" type="search" placeholder="搜索穴位或经络，如 足三里 / 肺经" />
     <button id="btnSearch">定位</button>
   </div>
-  <div id="hint">单指拖拽旋转 · 双指捏合缩放 · 滚轮缩放 · 输入名称后点「定位」自动聚焦</div>
+  <div id="hint">默认经络全关 · 点左侧经络开启 · 拖拽旋转 / 双指捏合缩放 · 搜穴位名自动聚焦</div>
   <div id="result"></div>
   <div id="loading">正在加载 3D 引擎…<br/>（需联网从 CDN 加载 Three.js，请保持网络畅通）</div>
   <div id="panel"><h4>经络（点击显隐）</h4><div id="mList"></div></div>
@@ -285,7 +285,7 @@ void main(){
   float intensity = 0.16 + head * 1.7;
   gl_FragColor = vec4(uColor * intensity, 1.0);
 }`;
-const dotGeo = new THREE.SphereGeometry(0.0085, 10, 8);
+const dotGeo = new THREE.SphereGeometry(0.012, 12, 10);
 
 MERIDIANS.forEach(m => {
   const sides = m.side === 'M' ? [1] : [-1, 1];
@@ -326,6 +326,12 @@ MERIDIANS.forEach(m => {
     qiGroup.add(flow);
     obj.flowMat = flowMat;
 
+    // 默认全部关闭：启动哪条才显示哪条
+    tube.visible = false;
+    obj.dots.forEach(d => d.visible = false);
+    obj.labels.forEach(l => l.visible = false);
+    flow.visible = false;
+
     meridianObjs.push(obj);
   });
 });
@@ -338,6 +344,7 @@ function setMeridianVisible(id, on) {
     o.tube.visible = on;
     o.dots.forEach(d => d.visible = on);
     o.labels.forEach(l => l.visible = on);
+    if (o.flow) o.flow.visible = on;
   });
   const row = meridianToggles.find(r => r._id === id);
   if (row) row.classList.toggle('off', !on);
@@ -351,6 +358,7 @@ MERIDIANS.forEach(m => {
     const objs = meridianObjs.filter(o => o.def.id === m.id);
     setMeridianVisible(m.id, !objs[0].tube.visible);
   };
+  row.classList.add('off');
   mList.appendChild(row);
   meridianToggles.push(row);
 });
