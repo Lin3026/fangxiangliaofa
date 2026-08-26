@@ -198,67 +198,39 @@ let flowVisible = true;
 
 const fbxLoader = new FBXLoader();
 
-/* 智能 fit + 自动对齐 height 轴到 three.js Y
- * 关键思路:
- *   1. fitModel 完全忘掉用户的轴定义(X=前后/Y=左右/Z=上下)
- *   2. 看模型实际 bounding box 最长轴当作 height (人体身高 > 宽 > 厚)
- *   3. 旋转让最长轴对齐到 three.js Y (上下方向)
- *   4. 中间轴对齐到 three.js Z (前后方向，让脸朝相机)
- *   5. 缩放让身高=1.7m; 居中; 脚底 y=0
- */
+/* 按 bounding box 自动检测 height 轴 → 对齐到 three.js Y（修正版）
+ * 实测：用户口述的轴约定（x=前/y=左/右/z=上）跟 FBX 实际不符，文件最长轴是 X，
+ *   所以必须靠 bbox 自动检测，不能硬编码 AXIS_SWAP。
+ * 步骤：
+ *   1. 取最长轴=height(H)、中间=width(M)、最短=thickness(T)
+ *   2. 构造映射 cols = [T, H, M] → world X←T, world Y←H(up), world Z←M
+ *   3. 若 det<0（M/T 互换得到镜像），交换成 cols=[M,H,T] 保证 proper rotation
+ *   4. 缩放到 1.7m、居中(xz)、落地(y=min) */
 function fitAndOrient(obj, targetH=1.7){
   obj.updateMatrixWorld(true);
   const b0 = new THREE.Box3().setFromObject(obj);
   const s0 = b0.getSize(new THREE.Vector3());
-
-  /* 找最长轴(height), 中间轴(width), 最短轴(thickness) */
   const axes = [
-    {name:'x', size:s0.x, key:0},
-    {name:'y', size:s0.y, key:1},
-    {name:'z', size:s0.z, key:2}
+    {name:'x', size:s0.x},
+    {name:'y', size:s0.y},
+    {name:'z', size:s0.z}
   ];
   axes.sort((a,b) => b.size - a.size);
-  const H = axes[0].name; /* longest = height */
-  const M = axes[1].name; /* middle */
-  const T = axes[2].name; /* shortest = thickness */
-
-  /* 构造 quaternion: 让(H, M, T) → (Y, Z, X)
-   * 即: H(model) → Y(three.js), M(model) → Z(three.js 前后), T(model) → X(three.js 左右) */
-  const q = new THREE.Quaternion();
-  const m = new THREE.Matrix4();
-  let cols;
-  if (H === 'x') {
-    cols = ['y', 'z', 'x'];
-  } else if (H === 'y') {
-    cols = ['z', 'x', 'y'];
-  } else {
-    cols = ['y', 'x', 'z'];
-  }
-  /* cols[i] = three.js i 方向取自模型的哪个轴 */
-  const fromVec = {x: new THREE.Vector3(1,0,0), y: new THREE.Vector3(0,1,0), z: new THREE.Vector3(0,0,1)};
-  const toDirs = [
-    new THREE.Vector3(0,1,0),  /* up */
-    new THREE.Vector3(0,0,1),  /* front */
-    new THREE.Vector3(1,0,0)   /* right */
-  ];
-  const srcX = fromVec[cols[0]];
-  const srcY = fromVec[cols[1]];
-  const srcZ = fromVec[cols[2]];
-  m.makeBasis(srcX, srcY, srcZ);
-  q.setFromRotationMatrix(m);
-
-  obj.quaternion.copy(q);
+  const H = axes[0].name, M = axes[1].name, T = axes[2].name;
+  const fromVec = {x:new THREE.Vector3(1,0,0), y:new THREE.Vector3(0,1,0), z:new THREE.Vector3(0,0,1)};
+  let cols = [T, H, M];
+  const m = new THREE.Matrix4().makeBasis(fromVec[cols[0]], fromVec[cols[1]], fromVec[cols[2]]);
+  if (m.determinant() < 0) cols = [M, H, T], m.makeBasis(fromVec[cols[0]], fromVec[cols[1]], fromVec[cols[2]]);
+  obj.quaternion.setFromRotationMatrix(m);
   obj.scale.set(1, 1, 1);
   obj.updateMatrixWorld(true);
-
-  /* 再 fit (缩放到 targetH) */
+  /* 缩放：世界 Y 方向 = targetH(1.7m) */
   const b = new THREE.Box3().setFromObject(obj);
   const s = b.getSize(new THREE.Vector3());
   const sc = targetH / (s.y || 1);
   obj.scale.set(sc, sc, sc);
   obj.updateMatrixWorld(true);
-
-  /* 居中 + 脚底 y=0 */
+  /* 居中（xz） + 落地（y=min） */
   const nb = new THREE.Box3().setFromObject(obj);
   const nc = nb.getCenter(new THREE.Vector3());
   obj.position.x -= nc.x;
@@ -267,8 +239,8 @@ function fitAndOrient(obj, targetH=1.7){
   obj.updateMatrixWorld(true);
 }
 
-/* 朝向预设：用户 FBX 是 X=前后/Y=左右/Z=上下，AXIS_SWAP 已映射成 three.js 标准
- * 但 FBX 文件内部可能还有额外旋转 (来自源建模软件)，故提供 5 种朝向让用户挑 */
+/* 朝向预设：fitAndOrient 已按 bbox 自动对齐 height→Y，
+ * 但 FBX 源建模软件偶尔会残留额外旋转，提供 5 种朝向让用户手动校正 */
 const MODEL_ORIENTATIONS = [
   {rx: 0,             ry: 0,             rz: 0,             name: '默认'},
   {rx: Math.PI,       ry: 0,             rz: 0,             name: '上下颠倒'},
@@ -281,10 +253,6 @@ function applyOrient(){
   const o = MODEL_ORIENTATIONS[modelOrientIdx];
   modelGroup.rotation.set(o.rx, o.ry, o.rz);
 }
-
-/* 轴交换：模型 (x=前后, y=左右, z=上下) → three.js 标准
- * 用 matrix 把 (1,0,0)→(0,0,1), (0,1,0)→(1,0,0), (0,0,1)→(0,1,0) */
-const AXIS_SWAP = new THREE.Matrix4().set(0,1,0,0,  0,0,1,0,  1,0,0,0,  0,0,0,1);
 
 function loadBody(){
   return new Promise((resolve, reject)=>{
@@ -312,7 +280,7 @@ function loadBody(){
             o.castShadow = false;
           }
         });
-        /* 不再 applyMatrix4(AXIS_SWAP) — 由 fitAndOrient 自动检测 height 轴 */
+        /* 由 fitAndOrient 自动检测 height 轴并对齐到 Y（修正版 cols=[T,H,M] + det 兜底） */
         fitAndOrient(obj, 1.7);
         resolve(obj);
       },
@@ -351,7 +319,7 @@ function loadBone(){
             });
           }
         });
-        /* 不再 applyMatrix4(AXIS_SWAP) — 由 fitAndOrient 自动检测 height 轴 */
+        /* 由 fitAndOrient 自动检测 height 轴并对齐到 Y（修正版 cols=[T,H,M] + det 兜底） */
         fitAndOrient(obj, 1.7);
         obj.visible = false;
         resolve(obj);
