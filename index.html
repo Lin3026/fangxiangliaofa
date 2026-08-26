@@ -341,7 +341,7 @@
 </div>
 
 <header>
-  <h1>🌿 中医芳香理疗知识库</h1>
+  <h1>🌿 中医芳香理疗知识库 <span id="buildTag" style="font-size:11px;background:rgba(255,255,255,.2);padding:2px 6px;border-radius:8px;margin-left:4px;font-weight:400;"></span></h1>
   <p>辨证 · 脉诊 · 精油性味归经 · 对症配方自动推荐　|　输入症状/体质，或选择脉象，自动弹出精油配方</p>
 </header>
 
@@ -743,7 +743,7 @@
   });
 })();
 </script>
-<script src="data.js?v=20260826d"></script>
+<script src="data.js?v=20260826e"></script>
 <!-- 全局定义 closeEntryModal/showEntryModal：必须在 IIFE 之前，确保 HTML 内联 onclick 永远能找到 -->
 <script>
 function closeEntryModal(){
@@ -2793,6 +2793,9 @@ window.showEntryModal=showEntryModal;
   // 搜索框按 Enter 直接出方（移动端也友好）
   var qInput=document.getElementById('q');
   if(qInput){ qInput.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); runSearch(); } }); }
+
+  // 显示当前版本号（用户可肉眼判断是否最新）
+  try{ var t=document.getElementById('buildTag'); if(t) t.textContent='build 97472d7'; }catch(e){}
 
   // 初始化
   renderSysChips(); renderCloud(); runSearch(false); renderSrcBox();
