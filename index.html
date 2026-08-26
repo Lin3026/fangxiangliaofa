@@ -712,10 +712,39 @@
   </div>
 </div>
 
-<script src="data.js?v=20260826b"></script>
+<!-- 兜底：data.js 加载失败/解析错误时也能显示提示。必须在 data.js 之前！ -->
+<script>
+(function(){
+  function bootError(msg){
+    try{
+      var d=document.createElement('div');
+      d.id='_bootError';
+      d.style.cssText='position:fixed;left:0;right:0;top:0;z-index:99999;padding:14px 18px;background:#7a1f1f;color:#fff;font-size:14px;line-height:1.7;white-space:pre-wrap;word-break:break-all;box-shadow:0 2px 8px rgba(0,0,0,.3);';
+      d.textContent='⚠️ 页面初始化出错：'+(msg||'未知')+'（请截图发我）';
+      // 等待 body 存在再插入
+      var append=function(){ if(document.body) document.body.appendChild(d); else setTimeout(append,50); };
+      append();
+    }catch(e){}
+  }
+  window.__bootError=bootError;
+  // 捕获脚本加载错误（如 data.js 404）
+  window.addEventListener('error',function(e){
+    if(window.__appInited) return;
+    var src=(e&&e.target&&e.target.src)||'';
+    var msg=(e&&e.message)|| (src?'资源加载失败：'+src:'未知错误');
+    bootError(msg);
+  }, true);
+  window.addEventListener('unhandledrejection',function(e){
+    if(window.__appInited) return;
+    bootError('异步错误：'+((e&&e.reason&&e.reason.message)||(e&&e.reason)||'未知'));
+  });
+})();
+</script>
+<script src="data.js?v=20260826c"></script>
 <script>
 (function(){
   "use strict";
+  window.__appInited = true;  // 告诉错误处理器，主程序已就绪，后续错误归主程序处理
   var LS_KEY="aroma_db_v1";
 
   /* ---- 启动自愈：任何初始化错误都显示红字，而不是白屏 ---- */
