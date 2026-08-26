@@ -712,17 +712,49 @@
   </div>
 </div>
 
-<script src="data.js"></script>
+<script src="data.js?v=20260826b"></script>
 <script>
 (function(){
   "use strict";
   var LS_KEY="aroma_db_v1";
+
+  /* ---- 启动自愈：任何初始化错误都显示红字，而不是白屏 ---- */
+  function bootError(msg){
+    try{
+      var d=document.createElement('div');
+      d.style.cssText='position:fixed;left:0;right:0;top:0;z-index:99999;padding:14px 18px;background:#7a1f1f;color:#fff;font-size:14px;line-height:1.7;white-space:pre-wrap;word-break:break-all;';
+      d.textContent='⚠️ 页面初始化出错：'+msg;
+      document.body.appendChild(d);
+    }catch(e){}
+  }
+  window.addEventListener('error',function(e){
+    bootError((e&&e.message)||'未知脚本错误');
+  });
+  window.addEventListener('unhandledrejection',function(e){
+    bootError('异步错误：'+((e&&e.reason&&e.reason.message)||(e&&e.reason)||'未知'));
+  });
+
+  /* ---- 数据加载：AROMA_BASE 缺失或旧存档损坏时自动回退，绝不崩溃 ---- */
   var db={formulas:[],oils:[]};
+  function baseOf(){
+    if(!window.AROMA_BASE){ throw new Error('data.js 未加载成功（window.AROMA_BASE 不存在）'); }
+    return JSON.parse(JSON.stringify(window.AROMA_BASE));
+  }
   try{
     var saved=localStorage.getItem(LS_KEY);
-    if(saved){ db=JSON.parse(saved); }
-    else { db=JSON.parse(JSON.stringify(window.AROMA_BASE)); }
-  }catch(e){ db=JSON.parse(JSON.stringify(window.AROMA_BASE)); }
+    if(saved){
+      db=JSON.parse(saved);
+      // 旧存档结构校验：formulas/oils 必须是数组，否则视为损坏，回退内置库
+      if(!db || typeof db!=='object' || !Array.isArray(db.formulas) || !Array.isArray(db.oils)){
+        db=baseOf();
+        try{ localStorage.removeItem(LS_KEY); }catch(e){}
+      }
+    } else {
+      db=baseOf();
+    }
+  }catch(e){
+    try{ db=baseOf(); }catch(e2){ bootError('数据初始化失败：'+e2.message+'（请清除浏览器缓存后刷新）'); return; }
+  }
 
   function save(){ try{ localStorage.setItem(LS_KEY,JSON.stringify(db)); }catch(e){ console.warn("本地存储不可用（可能为 file:// 限制），本次改动仅当前会话有效。",e); } }
   window.__db=db; window.__save=save;

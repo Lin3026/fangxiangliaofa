@@ -83,6 +83,31 @@ function _m3dErr(msg){
 }
 window.addEventListener('error', function(e){ _m3dErr((e&&e.message)|| (e&&e.error) || '未知错误'); });
 window.addEventListener('unhandledrejection', function(e){ _m3dErr((e&&e.reason&&e.reason.message)|| (e&&e.reason) || '未知错误'); });
+
+/* 看门狗1：老手机浏览器不支持 ES module 时，模块脚本根本不会执行，
+   10 秒后 loading 还没被隐藏 → 提示用户升级浏览器/换浏览器 */
+setTimeout(function(){
+  var ld=document.getElementById('loading');
+  if(ld && ld.style.display!=='none'){
+    _m3dErr('浏览器过旧或 3D 引擎加载超时。请升级浏览器（Chrome/Safari 最新版）后重试；或告诉我手机型号/浏览器，我针对性优化。');
+  }
+}, 10000);
+
+/* 看门狗2：WebGL 不可用时直接提示（很多老机型/省电模式会禁用 GPU） */
+(function(){
+  try{
+    var c=document.createElement('canvas');
+    var gl=c.getContext('webgl')||c.getContext('experimental-webgl');
+    if(!gl){
+      setTimeout(function(){
+        var ld=document.getElementById('loading');
+        if(ld && ld.style.display!=='none'){
+          _m3dErr('当前浏览器未开启 WebGL（GPU），无法显示 3D。请在浏览器设置里开启「硬件加速/WebGL」后重试。');
+        }
+      }, 300);
+    }
+  }catch(e){}
+})();
 </script>
 
 <script type="module">
