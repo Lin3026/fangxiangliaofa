@@ -198,21 +198,72 @@ let flowVisible = true;
 
 const fbxLoader = new FBXLoader();
 
-/* 计算模型 bounding box 并 fit 到目标 1.7m 高 + 脚底 y=0
- * 关键: 先 updateMatrixWorld(true) 才能准确算 Box3（特别是 applyMatrix4 之后） */
-function fitModel(obj, targetH=1.7){
+/* 智能 fit + 自动对齐 height 轴到 three.js Y
+ * 关键思路:
+ *   1. fitModel 完全忘掉用户的轴定义(X=前后/Y=左右/Z=上下)
+ *   2. 看模型实际 bounding box 最长轴当作 height (人体身高 > 宽 > 厚)
+ *   3. 旋转让最长轴对齐到 three.js Y (上下方向)
+ *   4. 中间轴对齐到 three.js Z (前后方向，让脸朝相机)
+ *   5. 缩放让身高=1.7m; 居中; 脚底 y=0
+ */
+function fitAndOrient(obj, targetH=1.7){
   obj.updateMatrixWorld(true);
-  const box = new THREE.Box3().setFromObject(obj);
-  const size = box.getSize(new THREE.Vector3());
-  const scale = targetH / (size.y || 1);
-  obj.scale.multiplyScalar(scale);
-  /* fit 完后重新计算（scale 已变） */
+  const b0 = new THREE.Box3().setFromObject(obj);
+  const s0 = b0.getSize(new THREE.Vector3());
+
+  /* 找最长轴(height), 中间轴(width), 最短轴(thickness) */
+  const axes = [
+    {name:'x', size:s0.x, key:0},
+    {name:'y', size:s0.y, key:1},
+    {name:'z', size:s0.z, key:2}
+  ];
+  axes.sort((a,b) => b.size - a.size);
+  const H = axes[0].name; /* longest = height */
+  const M = axes[1].name; /* middle */
+  const T = axes[2].name; /* shortest = thickness */
+
+  /* 构造 quaternion: 让(H, M, T) → (Y, Z, X)
+   * 即: H(model) → Y(three.js), M(model) → Z(three.js 前后), T(model) → X(three.js 左右) */
+  const q = new THREE.Quaternion();
+  const m = new THREE.Matrix4();
+  let cols;
+  if (H === 'x') {
+    cols = ['y', 'z', 'x'];
+  } else if (H === 'y') {
+    cols = ['z', 'x', 'y'];
+  } else {
+    cols = ['y', 'x', 'z'];
+  }
+  /* cols[i] = three.js i 方向取自模型的哪个轴 */
+  const fromVec = {x: new THREE.Vector3(1,0,0), y: new THREE.Vector3(0,1,0), z: new THREE.Vector3(0,0,1)};
+  const toDirs = [
+    new THREE.Vector3(0,1,0),  /* up */
+    new THREE.Vector3(0,0,1),  /* front */
+    new THREE.Vector3(1,0,0)   /* right */
+  ];
+  const srcX = fromVec[cols[0]];
+  const srcY = fromVec[cols[1]];
+  const srcZ = fromVec[cols[2]];
+  m.makeBasis(srcX, srcY, srcZ);
+  q.setFromRotationMatrix(m);
+
+  obj.quaternion.copy(q);
+  obj.scale.set(1, 1, 1);
   obj.updateMatrixWorld(true);
+
+  /* 再 fit (缩放到 targetH) */
+  const b = new THREE.Box3().setFromObject(obj);
+  const s = b.getSize(new THREE.Vector3());
+  const sc = targetH / (s.y || 1);
+  obj.scale.set(sc, sc, sc);
+  obj.updateMatrixWorld(true);
+
+  /* 居中 + 脚底 y=0 */
   const nb = new THREE.Box3().setFromObject(obj);
   const nc = nb.getCenter(new THREE.Vector3());
   obj.position.x -= nc.x;
   obj.position.z -= nc.z;
-  obj.position.y -= nb.min.y; /* 脚底 y=0 */
+  obj.position.y -= nb.min.y;
   obj.updateMatrixWorld(true);
 }
 
@@ -261,9 +312,8 @@ function loadBody(){
             o.castShadow = false;
           }
         });
-        obj.applyMatrix4(AXIS_SWAP);
-        obj.updateMatrixWorld(true);
-        fitModel(obj, 1.7);
+        /* 不再 applyMatrix4(AXIS_SWAP) — 由 fitAndOrient 自动检测 height 轴 */
+        fitAndOrient(obj, 1.7);
         resolve(obj);
       },
       (xhr)=>{
@@ -301,9 +351,8 @@ function loadBone(){
             });
           }
         });
-        obj.applyMatrix4(AXIS_SWAP);
-        obj.updateMatrixWorld(true);
-        fitModel(obj, 1.7);
+        /* 不再 applyMatrix4(AXIS_SWAP) — 由 fitAndOrient 自动检测 height 轴 */
+        fitAndOrient(obj, 1.7);
         obj.visible = false;
         resolve(obj);
       },
