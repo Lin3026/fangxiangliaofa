@@ -2797,6 +2797,16 @@ window.showEntryModal=showEntryModal;
   // 显示当前版本号（用户可肉眼判断是否最新）
   try{ var t=document.getElementById('buildTag'); if(t) t.textContent='build b539581'; }catch(e){}
 
+  // URL 加 ?mb=1 跳过须知弹窗（便于调试/截图/分享特定步骤截图）
+  try{
+    if(location.search && location.search.indexOf('mb=1')>=0){
+      setTimeout(function(){
+        var m=document.getElementById('entryMask');
+        if(m) m.style.display='none';
+      }, 80);
+    }
+  }catch(e){}
+
   // 初始化
   renderSysChips(); renderCloud(); runSearch(false); renderSrcBox();
   renderPulseGrids();
