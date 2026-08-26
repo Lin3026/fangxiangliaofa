@@ -75,6 +75,7 @@
     <button id="bPoints" class="on">⦿ 穴位点</button>
     <button id="bLabels" class="on">🏷 穴位名</button>
     <button id="bFlow" class="on">🌀 气流动</button>
+    <button id="bOrient" title="切换模型朝向(上下/前后/镜像)">🔄 朝向 1/5</button>
     <button id="bReset" style="margin-left:auto;">↺ 复位</button>
   </div>
 </div>
@@ -152,6 +153,9 @@ const stage = document.getElementById('stage');
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#0e1116');
 
+/* 坐标轴辅助(红X绿Y蓝Z=1.5m): 帮用户判断当前朝向对不对 */
+scene.add(new THREE.AxesHelper(1.5));
+
 const camera = new THREE.PerspectiveCamera(38, stage.clientWidth/stage.clientHeight, 0.05, 100);
 camera.position.set(2.0, 1.0, 2.8);
 
@@ -194,19 +198,37 @@ let flowVisible = true;
 
 const fbxLoader = new FBXLoader();
 
-/* 计算模型 bounding box 并 fit 到目标 1.7m 高 + 脚底 y=0 */
+/* 计算模型 bounding box 并 fit 到目标 1.7m 高 + 脚底 y=0
+ * 关键: 先 updateMatrixWorld(true) 才能准确算 Box3（特别是 applyMatrix4 之后） */
 function fitModel(obj, targetH=1.7){
+  obj.updateMatrixWorld(true);
   const box = new THREE.Box3().setFromObject(obj);
   const size = box.getSize(new THREE.Vector3());
-  const center = box.getCenter(new THREE.Vector3());
-  const minY = box.min.y;
   const scale = targetH / (size.y || 1);
   obj.scale.multiplyScalar(scale);
-  /* fit 完后重新算 */
-  box.setFromObject(obj);
-  obj.position.x -= box.getCenter(new THREE.Vector3()).x;
-  obj.position.z -= box.getCenter(new THREE.Vector3()).z;
-  obj.position.y -= box.min.y; /* 脚底 y=0 */
+  /* fit 完后重新计算（scale 已变） */
+  obj.updateMatrixWorld(true);
+  const nb = new THREE.Box3().setFromObject(obj);
+  const nc = nb.getCenter(new THREE.Vector3());
+  obj.position.x -= nc.x;
+  obj.position.z -= nc.z;
+  obj.position.y -= nb.min.y; /* 脚底 y=0 */
+  obj.updateMatrixWorld(true);
+}
+
+/* 朝向预设：用户 FBX 是 X=前后/Y=左右/Z=上下，AXIS_SWAP 已映射成 three.js 标准
+ * 但 FBX 文件内部可能还有额外旋转 (来自源建模软件)，故提供 5 种朝向让用户挑 */
+const MODEL_ORIENTATIONS = [
+  {rx: 0,             ry: 0,             rz: 0,             name: '默认'},
+  {rx: Math.PI,       ry: 0,             rz: 0,             name: '上下颠倒'},
+  {rx: 0,             ry: Math.PI,       rz: 0,             name: '前后翻转'},
+  {rx: 0,             ry: 0,             rz: Math.PI,       name: '左右镜像'},
+  {rx: Math.PI/2,     ry: 0,             rz: 0,             name: '立起来(X转90°)'}
+];
+let modelOrientIdx = 0;
+function applyOrient(){
+  const o = MODEL_ORIENTATIONS[modelOrientIdx];
+  modelGroup.rotation.set(o.rx, o.ry, o.rz);
 }
 
 /* 轴交换：模型 (x=前后, y=左右, z=上下) → three.js 标准
@@ -478,6 +500,15 @@ function setupMeridians(){
     camera.position.set(2.0,1.0,2.8);
     controls.update();
     showStatus('视角已复位');
+  };
+  /* 朝向切换按钮：循环 5 种模型朝向 */
+  const bOrient = document.getElementById('bOrient');
+  bOrient.onclick = ()=>{
+    modelOrientIdx = (modelOrientIdx + 1) % MODEL_ORIENTATIONS.length;
+    applyOrient();
+    const o = MODEL_ORIENTATIONS[modelOrientIdx];
+    bOrient.textContent = '🔄 朝向 '+(modelOrientIdx+1)+'/'+MODEL_ORIENTATIONS.length+' · '+o.name;
+    showStatus('朝向你跟着点击对的那个，看 X红 Y绿 Z蓝 三色坐标轴箭头方向');
   };
 
   /* 搜索 */
