@@ -3,679 +3,421 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>经络 3D 可视化</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<title>经络穴位图</title>
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; overflow: hidden;
     font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: #0e1116; color: #e8edf2; -webkit-tap-highlight-color: transparent; }
-  #app { position: fixed; inset: 0; }
-  #canvasWrap { position: absolute; inset: 0; touch-action: none; }
-  #topbar { position: absolute; top: 0; left: 0; right: 0; padding: 8px 12px;
-    font-size: 13px; color: #9fb2c4; background: linear-gradient(#0e1116cc, #0e111600);
-    pointer-events: none; }
-  #topbar b { color: #e8edf2; }
-  #loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-    text-align: center; padding: 24px; font-size: 15px; line-height: 1.7; color: #9fb2c4; }
-  /* 经络选择面板 */
-  #panel { position: absolute; top: 96px; left: 10px; width: 140px; max-height: calc(100vh - 200px); overflow-y: auto;
-    background: rgba(18,24,32,.92); border: 1px solid #2a3340; border-radius: 10px; padding: 8px; }
-  #panel h4 { margin: 0 0 6px; font-size: 12px; color: #9fb2c4; font-weight: 600; }
-  .mrow { display: flex; align-items: center; gap: 6px; padding: 5px 6px; border-radius: 6px; cursor: pointer;
-    font-size: 12.5px; user-select: none; }
-  .mrow:hover { background: #1d2733; }
-  .mrow.off { opacity: .4; }
-  .mdot { width: 11px; height: 11px; border-radius: 50%; flex: 0 0 auto; }
-  /* 底部控制条（大按钮，适合触摸） */
-  #ctrl { position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-wrap: wrap; gap: 8px;
-    justify-content: center; padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
-    background: linear-gradient(#0e111600, #0e1116dd); }
-  .btn { min-height: 44px; padding: 0 16px; border-radius: 22px;
-    border: 1px solid #2f3a48; background: #1a222c; color: #e8edf2; font-size: 14px; cursor: pointer; }
-  .btn:active { background: #25313f; }
-  .btn.on { background: #1e6f5c; border-color: #28a98c; color: #eafff7; }
-  #searchbar { position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
-    width: min(360px, calc(100% - 16px)); display: flex; gap: 6px; z-index: 5; }
-  #searchInput { flex: 1; min-height: 40px; padding: 0 14px; border-radius: 20px;
-    border: 1px solid #2f3a48; background: #161d26; color: #e8edf2; font-size: 14px; outline: none; }
-  #searchInput::placeholder { color: #7d8c9a; }
-  #btnSearch { min-height: 40px; padding: 0 16px; border-radius: 20px; border: 1px solid #28a98c;
-    background: #1e6f5c; color: #eafff7; font-size: 14px; cursor: pointer; }
-  #hint { position: absolute; top: 52px; left: 0; right: 0; text-align: center;
-    font-size: 11.5px; color: #6f8296; pointer-events: none; }
-  #status { position: absolute; top: 96px; left: 50%; transform: translateX(-50%);
-    max-width: 90%; padding: 6px 12px; font-size: 12px; border-radius: 6px;
-    background: rgba(20,28,38,.95); border: 1px solid #2f3a48; color: #9fb2c4;
-    pointer-events: none; z-index: 10; white-space: pre-wrap; word-break: break-all; }
-  #status.ok { border-color: #28a98c; color: #eafff7; }
-  #status.err { border-color: #e74c3c; color: #ffb8ae; font-weight: 600; }
-  #result { position: absolute; top: 74px; left: 50%; transform: translateX(-50%);
-    background: rgba(20,28,38,.95); border: 1px solid #28a98c; border-radius: 16px;
-    padding: 6px 14px; font-size: 13px; color: #eafff7; display: none; z-index: 6; max-width: 90%; }
+    background: #f4f7f5; color: #2b3a34; -webkit-tap-highlight-color: transparent; }
+  #app { position: fixed; inset: 0; display: flex; flex-direction: column; }
+
+  /* 顶部：标题 + 搜索 */
+  header { padding: 8px 12px; background: #2f8f6f; color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.08); }
+  header h1 { margin: 0; font-size: 16px; font-weight: 700; }
+  #searchbar { display: flex; gap: 6px; margin-top: 6px; }
+  #searchInput { flex: 1; min-height: 36px; padding: 0 12px; border-radius: 18px;
+    border: 1px solid rgba(255,255,255,.4); background: rgba(255,255,255,.15); color: #fff;
+    font-size: 14px; outline: none; backdrop-filter: blur(4px); }
+  #searchInput::placeholder { color: rgba(255,255,255,.7); }
+  #btnSearch { min-height: 36px; padding: 0 14px; border-radius: 18px; border: 0;
+    background: #fff; color: #2f8f6f; font-size: 14px; font-weight: 600; cursor: pointer; }
+
+  /* 主视图区 */
+  #stage { flex: 1; position: relative; overflow: hidden; background: #fafdfb; }
+  #meridianSvg { width: 100%; height: 100%; display: block; touch-action: pinch-zoom; }
+
+  /* 穴位名称 tooltip */
+  .ptip { position: absolute; background: rgba(20,28,38,.95); color: #fff; font-size: 12px;
+    padding: 4px 8px; border-radius: 6px; pointer-events: none; z-index: 10;
+    white-space: nowrap; transform: translate(-50%, -120%); opacity: 0; transition: opacity .15s; }
+  .ptip.show { opacity: 1; }
+
+  /* 状态提示 */
+  #status { position: absolute; top: 8px; right: 8px; padding: 4px 10px;
+    background: rgba(40,55,48,.92); color: #eafff7; font-size: 12px; border-radius: 14px;
+    pointer-events: none; opacity: 0; transition: opacity .2s; z-index: 10; max-width: 70%; }
+  #status.show { opacity: 1; }
+
+  /* 控制条 */
+  #ctrl { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px;
+    justify-content: center; background: #fff; border-top: 1px solid #e2eae5; }
+  .btn { min-height: 36px; padding: 0 12px; border-radius: 18px;
+    border: 1px solid #c5d3cc; background: #fff; color: #2b3a34; font-size: 13px; cursor: pointer; }
+  .btn.on { background: #1e6f5c; border-color: #1e6f5c; color: #eafff7; }
+  .btn:active { background: #25313f; color: #fff; }
+  .btn.on:active { background: #28a98c; }
+
+  /* 经络列表 */
+  #panel { position: absolute; top: 8px; left: 8px; max-height: 50%; overflow-y: auto;
+    background: rgba(255,255,255,.96); border: 1px solid #e2eae5; border-radius: 10px;
+    padding: 4px; box-shadow: 0 4px 12px rgba(0,0,0,.08); width: 140px; z-index: 5; }
+  #panel h4 { margin: 4px 6px; font-size: 12px; color: #6b7d74; font-weight: 600; }
+  .mrow { display: flex; align-items: center; gap: 6px; padding: 5px 6px; border-radius: 6px;
+    cursor: pointer; font-size: 12.5px; user-select: none; }
+  .mrow:hover { background: #eef4f1; }
+  .mrow.off { opacity: .35; }
+  .mdot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; }
+  .mrow.off .mdot { background: #999 !important; }
 </style>
 </head>
 <body>
 <div id="app">
-  <div id="canvasWrap"></div>
-  <div id="searchbar">
-    <input id="searchInput" type="search" placeholder="搜索穴位或经络，如 足三里 / 肺经" />
-    <button id="btnSearch">定位</button>
+  <header>
+    <h1>🌿 人体经络穴位图（2D 版）</h1>
+    <div id="searchbar">
+      <input id="searchInput" type="search" placeholder="搜索穴位或经络，如 足三里 / 肺经" />
+      <button id="btnSearch">定位</button>
+    </div>
+  </header>
+  <div id="stage">
+    <svg id="meridianSvg" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid meet">
+      <!-- 人体轮廓（简化的火柴人/侧身） -->
+      <g id="body" fill="none" stroke="#cfd8d2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <!-- 头 -->
+        <ellipse cx="200" cy="60" rx="22" ry="26" />
+        <!-- 颈 -->
+        <path d="M 188 84 Q 200 92 212 84" />
+        <!-- 躯干（侧面） -->
+        <path d="M 200 92 L 195 150 L 198 220 L 196 290 L 200 360 L 198 420 L 202 500 L 200 540" />
+        <!-- 肩膀+手臂（左右各画一侧） -->
+        <path d="M 196 100 Q 165 110 145 150 L 138 220 Q 132 270 128 320 L 130 380" />
+        <path d="M 204 100 Q 235 110 255 150 L 262 220 Q 268 270 272 320 L 270 380" />
+        <!-- 臀部+腿 -->
+        <path d="M 200 500 Q 180 510 175 550 L 172 640 Q 170 700 172 760 L 174 790" />
+        <path d="M 200 500 Q 220 510 225 550 L 228 640 Q 230 700 228 760 L 226 790" />
+        <!-- 脚（简化） -->
+        <path d="M 165 790 L 192 790" />
+        <path d="M 208 790 L 235 790" />
+      </g>
+      <!-- 14 条经络的线和穴位会动态插入到这里 -->
+      <g id="meridianLayer"></g>
+    </svg>
+    <div id="ptip" class="ptip"></div>
+    <div id="status"></div>
+    <div id="panel">
+      <h4>经络（点击显隐）</h4>
+      <div id="mList"></div>
+    </div>
   </div>
-  <div id="hint">默认经络全关 · 点左侧经络开启 · 拖拽旋转 / 双指捏合缩放 · 搜穴位名自动聚焦</div>
-  <div id="status" style="display:none"></div>
-  <div id="result"></div>
-  <div id="loading">正在加载 3D 模型…<br/>（首次需下载约 12MB，请稍候，加载完可旋转/缩放）</div>
-  <div id="panel"><h4>经络（点击显隐）</h4><div id="mList"></div></div>
   <div id="ctrl">
-    <button class="btn" id="btnSkeleton">🦴 骨骼：关</button>
-    <button class="btn on" id="btnQi">🌀 气运动：开</button>
-    <button class="btn on" id="btnLabels">🏷 穴位名：开</button>
-    <button class="btn" id="btnReset">↺ 复位视角</button>
-    <button class="btn on" id="btnSkin">👤 皮肤：透明</button>
+    <button class="btn on" id="btnLabels">🏷 穴位名</button>
+    <button class="btn on" id="btnPoints">⦿ 穴位点</button>
+    <button class="btn on" id="btnFlow">🌀 气运动</button>
+    <button class="btn" id="btnView">正面/背面</button>
+    <button class="btn" id="btnReset">↺ 复位</button>
   </div>
 </div>
 
 <script>
-/* 防御：模块若加载/解析失败，直接在画面显示错误，避免手机上静默空白 */
-function _m3dErr(msg){
-  var s=document.getElementById('loading');
-  if(s){ s.style.display='block'; s.style.color='#ff8a8a'; s.innerHTML='⚠️ 3D 加载出错：'+msg+'<br/>请截图发我以便定位'; }
-}
-window.addEventListener('error', function(e){ _m3dErr((e&&e.message)|| (e&&e.error) || '未知错误'); });
-window.addEventListener('unhandledrejection', function(e){ _m3dErr((e&&e.reason&&e.reason.message)|| (e&&e.reason) || '未知错误'); });
-
-/* 看门狗1：老手机浏览器不支持 ES module 时，模块脚本根本不会执行，
-   10 秒后 loading 还没被隐藏 → 提示用户升级浏览器/换浏览器 */
-setTimeout(function(){
-  var ld=document.getElementById('loading');
-  if(ld && ld.style.display!=='none'){
-    _m3dErr('浏览器过旧或 3D 引擎加载超时。请升级浏览器（Chrome/Safari 最新版）后重试；或告诉我手机型号/浏览器，我针对性优化。');
-  }
-}, 10000);
-
-/* 看门狗2：WebGL 不可用时直接提示（很多老机型/省电模式会禁用 GPU） */
-(function(){
-  try{
-    var c=document.createElement('canvas');
-    var gl=c.getContext('webgl')||c.getContext('experimental-webgl');
-    if(!gl){
-      setTimeout(function(){
-        var ld=document.getElementById('loading');
-        if(ld && ld.style.display!=='none'){
-          _m3dErr('当前浏览器未开启 WebGL（GPU），无法显示 3D。请在浏览器设置里开启「硬件加速/WebGL」后重试。');
-        }
-      }, 300);
-    }
-  }catch(e){}
-})();
-</script>
-
-<script type="module">
-import * as THREE from './libs/three.module.js';
-import { OrbitControls } from './libs/jsm/controls/OrbitControls.js';
-import { FBXLoader } from './libs/jsm/loaders/FBXLoader.js';
-
-document.getElementById('loading').style.display = 'none';
-
-/* 状态提示：模型加载成功/失败/网络问题都直观显示在画面上 */
-const _statusEl = document.getElementById('status');
-function showStatus(msg, kind) {
-  _statusEl.textContent = msg;
-  _statusEl.className = kind || '';
-  _statusEl.style.display = 'block';
-  if (kind === 'ok') setTimeout(() => { _statusEl.style.display = 'none'; }, 4000);
-}
-function showStatusRetry(msg, retryFn) {
-  _statusEl.innerHTML = msg + ' <a id="retryBtn" style="color:#28a98c;cursor:pointer;text-decoration:underline;pointer-events:auto;">🔄 重试</a>';
-  _statusEl.className = 'err';
-  _statusEl.style.display = 'block';
-  _statusEl.style.pointerEvents = 'auto';
-  const btn = document.getElementById('retryBtn');
-  if (btn) btn.onclick = () => { _statusEl.style.display = 'none'; retryFn && retryFn(); };
-}
-
-/* ============ 基础场景 ============ */
-const wrap = document.getElementById('canvasWrap');
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0e1116);
-
-const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.05, 100);
-camera.position.set(0, 1.05, 2.5);
-
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.setSize(innerWidth, innerHeight);
-wrap.appendChild(renderer.domElement);
-
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(0, 1.0, 0);
-controls.enableDamping = true;
-controls.dampingFactor = 0.08;
-controls.minDistance = 0.7;
-controls.maxDistance = 7;
-
-scene.add(new THREE.AmbientLight(0xffffff, 0.9));
-const dl = new THREE.DirectionalLight(0xffffff, 0.7);
-dl.position.set(2, 3, 2.5);
-scene.add(dl);
-const dl2 = new THREE.DirectionalLight(0x88aaff, 0.3);
-dl2.position.set(-2, 1, -2);
-scene.add(dl2);
-
-/* ============ 文字标签（始终朝向相机、不被遮挡） ============ */
-function makeLabel(text, color = '#eaf2ff') {
-  const fs = 24, pad = 8;
-  const c = document.createElement('canvas');
-  const ctx = c.getContext('2d');
-  ctx.font = `bold ${fs}px sans-serif`;
-  const w = Math.ceil(ctx.measureText(text).width) + pad * 2;
-  const h = fs + pad * 2;
-  c.width = w; c.height = h;
-  ctx.font = `bold ${fs}px sans-serif`;
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(8,12,18,0.92)';
-  ctx.strokeText(text, w / 2, h / 2);
-  ctx.fillStyle = color; ctx.fillText(text, w / 2, h / 2);
-  const tex = new THREE.CanvasTexture(c);
-  tex.minFilter = THREE.LinearFilter;
-  const mat = new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true });
-  const sp = new THREE.Sprite(mat);
-  const sc = 0.0015;
-  sp.scale.set(w * sc, h * sc, 1);
-  return sp;
-}
-
-/* ============ 通用：两点间的"杆/肢段" ============ */
-function segment(posA, posB, radius, material) {
-  const a = new THREE.Vector3(posA[0], posA[1], posA[2]);
-  const b = new THREE.Vector3(posB[0], posB[1], posB[2]);
-  const dir = new THREE.Vector3().subVectors(b, a);
-  const len = dir.length();
-  const geo = new THREE.CapsuleGeometry(radius, Math.max(0.001, len - 2 * radius), 4, 8);
-  const m = new THREE.Mesh(geo, material);
-  m.position.copy(a).add(b).multiplyScalar(0.5);
-  if (len > 1e-5) m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
-  return m;
-}
-
-/* ============ 程序化"示意人体"（半透明，作为底） ============ */
-const bodyGroup = new THREE.Group();
-scene.add(bodyGroup);
-const skinMat = new THREE.MeshPhongMaterial({ color: 0xd2a892, transparent: true, opacity: 0.13, depthWrite: false, shininess: 10 });
-
-const head = new THREE.Mesh(new THREE.SphereGeometry(0.105, 24, 18), skinMat);
-head.position.set(0, 1.60, 0);
-bodyGroup.add(head);
-bodyGroup.add(segment([0, 1.46, 0], [0, 1.40, 0], 0.04, skinMat));      // 颈
-bodyGroup.add(segment([0, 1.36, 0], [0, 1.02, 0], 0.115, skinMat));    // 胸腹
-bodyGroup.add(segment([0, 0.96, 0], [0, 0.80, 0], 0.10, skinMat));     // 盆
-[-1, 1].forEach(s => {
-  bodyGroup.add(segment([0.18 * s, 1.36, 0], [0.34 * s, 1.08, 0], 0.034, skinMat)); // 上臂
-  bodyGroup.add(segment([0.34 * s, 1.05, 0], [0.43 * s, 0.82, 0], 0.030, skinMat)); // 前臂
-  bodyGroup.add(segment([0.43 * s, 0.79, 0], [0.45 * s, 0.70, 0], 0.026, skinMat)); // 手
-  bodyGroup.add(segment([0.09 * s, 0.78, 0], [0.11 * s, 0.50, 0.01], 0.05, skinMat)); // 大腿
-  bodyGroup.add(segment([0.11 * s, 0.48, 0.01], [0.11 * s, 0.10, 0.02], 0.04, skinMat)); // 小腿
-  const foot = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.035, 0.16), skinMat);
-  foot.position.set(0.11 * s, 0.035, 0.06);
-  bodyGroup.add(foot);
-});
-
-/* ============ 标签登记（用于防重叠与搜索聚焦） ============ */
-const labelItems = [];
-
-/* ============ 骨骼（可开关显示） ============ */
-const skeletonGroup = new THREE.Group();
-skeletonGroup.visible = false;
-scene.add(skeletonGroup);
-const boneMat = new THREE.MeshPhongMaterial({ color: 0xe9e4d6 });
-const jointMat = new THREE.MeshPhongMaterial({ color: 0xf3efe2 });
-
-const joints = {
-  head: [0, 1.60, 0], neck: [0, 1.44, -0.01], chest: [0, 1.22, -0.03],
-  spine: [0, 1.00, -0.05], pelvis: [0, 0.84, -0.04],
-  L_shoulder: [-0.17, 1.36, 0], R_shoulder: [0.17, 1.36, 0],
-  L_elbow: [-0.33, 1.08, 0], R_elbow: [0.33, 1.08, 0],
-  L_wrist: [-0.44, 0.82, 0], R_wrist: [0.44, 0.82, 0],
-  L_hip: [-0.09, 0.82, 0], R_hip: [0.09, 0.82, 0],
-  L_knee: [-0.11, 0.48, 0.01], R_knee: [0.11, 0.48, 0.01],
-  L_ankle: [-0.11, 0.07, 0.02], R_ankle: [0.11, 0.07, 0.02]
-};
-const boneLinks = [
-  ['head', 'neck', '颈椎'], ['neck', 'chest', '胸椎上段'], ['chest', 'spine', '胸椎下段'],
-  ['spine', 'pelvis', '腰椎/骶骨'], ['chest', 'L_shoulder', '左锁骨'], ['chest', 'R_shoulder', '右锁骨'],
-  ['L_shoulder', 'L_elbow', '左肱骨'], ['L_elbow', 'L_wrist', '左前臂骨'],
-  ['R_shoulder', 'R_elbow', '右肱骨'], ['R_elbow', 'R_wrist', '右前臂骨'],
-  ['pelvis', 'L_hip', '左髂骨'], ['pelvis', 'R_hip', '右髂骨'],
-  ['L_hip', 'L_knee', '左股骨'], ['L_knee', 'L_ankle', '左胫腓骨'],
-  ['R_hip', 'R_knee', '右股骨'], ['R_knee', 'R_ankle', '右胫腓骨']
-];
-const boneNameLabels = [];
-boneLinks.forEach(([a, b, label]) => {
-  skeletonGroup.add(segment(joints[a], joints[b], 0.018, boneMat));
-  const sp = makeLabel(label, '#fff3d6');
-  sp.position.set((joints[a][0] + joints[b][0]) / 2, (joints[a][1] + joints[b][1]) / 2 + 0.03, (joints[a][2] + joints[b][2]) / 2);
-  skeletonGroup.add(sp);
-  boneNameLabels.push(sp);
-  labelItems.push({ sprite: sp, type: 'bone', world: sp.position.clone(), force: false });
-});
-Object.values(joints).forEach(p => {
-  const j = new THREE.Mesh(new THREE.SphereGeometry(0.022, 12, 10), jointMat);
-  j.position.set(p[0], p[1], p[2]);
-  skeletonGroup.add(j);
-});
-
-/* ============ 真实 3D 模型（外表面 + 骨骼）替换程序化 ============ */
-/* 用户提供 models/human1.fbx（外表面）、models/guge1.fbx（骨骼）。
-   已确认两模型均为站立人形、米级（≈1 米高）；FBX 体积仅为 GLB 的 ≈1/4，更适合 Pages。
-   自动对齐（自适应轴向，兼容 Y-up 或 Z-up 导出）：
-   等比缩放到身高 1.8、脚底 y=0、左右/前后居中，与现有经络坐标系一致。 */
-const fbxLoader = new FBXLoader();
-let realSkin = null, realSkeleton = null, hasRealSkeleton = false;
-
-function alignModel(obj, targetH = 1.8) {
-  obj.updateMatrixWorld(true);
-  let box = new THREE.Box3().setFromObject(obj);
-  const size = new THREE.Vector3(); box.getSize(size);
-  const ext = [size.x, size.y, size.z];
-  const maxI = ext.indexOf(Math.max(...ext)); // 最长边视为"身高"方向
-  obj.scale.setScalar(targetH / ext[maxI]);
-  // 若身高轴不在 Y，旋转到 Y（兼容 FBX 默认 Z-up 导出）
-  if (maxI === 2) obj.rotation.x = -Math.PI / 2;     // Z-up -> Y-up
-  else if (maxI === 0) obj.rotation.z = Math.PI / 2; // X-up -> Y-up
-  obj.updateMatrixWorld(true);
-  box = new THREE.Box3().setFromObject(obj);
-  const c = new THREE.Vector3(); box.getCenter(c);
-  obj.position.x -= c.x;
-  obj.position.z -= c.z;
-  obj.position.y -= box.min.y; // 脚底落到 y=0
-  obj.updateMatrixWorld(true);
-}
-
-function loadRealModels() {
-  // 外表面：适度半透明让经络/穴位可见；高 emissive 让贴图提亮不被深色背景吞没
-  fbxLoader.load('models/human1.fbx', (obj) => {
-    realSkin = obj;
-    obj.traverse(o => {
-      if (o.isMesh && o.material) {
-        const mat = o.material;
-        // 保留原始贴图（带皮肤纹理）+ 高 emissive 让贴图自发光，避免 #0e1116 背景吞没
-        mat.transparent = true;
-        mat.opacity = 0.78;
-        mat.depthWrite = true;
-        mat.side = THREE.DoubleSide;
-        mat.color = new THREE.Color(0xffffff);        // 贴图颜色不被基础色压暗
-        mat.emissive = new THREE.Color(0xdddddd);     // 高自发光，把贴图照亮
-        mat.emissiveIntensity = 0.55;
-        mat.emissiveMap = mat.map;                    // 用贴图作为发光贴图，整体亮度+细节都保留
-        mat.needsUpdate = true;
-        o.frustumCulled = false;
-        o.userData.transparentMode = true;
-      }
-    });
-    alignModel(realSkin);
-    scene.add(realSkin);
-    bodyGroup.visible = false;
-    showStatus && showStatus('✅ 外表面模型已加载（透明皮肤）', 'ok');
-  }, undefined, (e) => {
-    const detail = (e && e.message) || (e && e.toString()) || String(e);
-    console.error('外表面加载失败：', e, 'URL: models/human1.fbx, 当前协议:', location.protocol);
-    showStatusRetry('❌ 外表面加载失败：' + detail + '（协议：' + location.protocol + '）', () => loadRealModels());
-  });
-
-  // 骨骼：加载真实骨骼，隐藏程序化骨杆保留中文骨名标签；默认隐藏，由开关控制
-  fbxLoader.load('models/guge1.fbx', (obj) => {
-    realSkeleton = obj;
-    obj.traverse(o => {
-      if (o.isMesh && o.material) {
-        const mat = o.material;
-        mat.transparent = true;
-        mat.opacity = 0.92;
-        mat.color = new THREE.Color(0xffffff);
-        mat.emissive = new THREE.Color(0xfff3d6);
-        mat.emissiveIntensity = 0.6;
-        mat.emissiveMap = mat.map;
-        mat.depthWrite = true;
-        mat.side = THREE.DoubleSide;
-        mat.needsUpdate = true;
-        o.frustumCulled = false;
-      }
-    });
-    alignModel(realSkeleton);
-    realSkeleton.visible = false;
-    scene.add(realSkeleton);
-    hasRealSkeleton = true;
-    skeletonGroup.children.forEach(c => { if (c.type === 'Mesh') c.visible = false; });
-    showStatus && showStatus('✅ 骨骼模型已加载', 'ok');
-  }, undefined, (e) => {
-    const detail = (e && e.message) || (e && e.toString()) || String(e);
-    console.error('骨骼加载失败：', e, 'URL: models/guge1.fbx, 当前协议:', location.protocol);
-    // 常见原因提示：预览面板无法访问 models/ 目录
-    const hint = location.host.startsWith('127.0.0.1:6022')
-      ? '（提示：你正在用预览面板，它只能服务单个 HTML 文件，请双击 start_server.bat 或推到 GitHub Pages 加载骨骼）'
-      : '';
-    showStatusRetry('❌ 骨骼加载失败：' + detail + '（协议：' + location.protocol + '）' + hint, () => { if (realSkin) { realSkeleton = null; hasRealSkeleton = false; } loadRealModels(); });
-  });
-}
-
-/* ============ 经络数据（14 条：十二正经 + 任脉 + 督脉） ============ */
-/* pts 格式：[穴位名, x, y, z]；side: 'M'=中线单条, 'LR'=左右对称各一条 */
+/* ============ 经络数据（每条经络：3D 坐标 [x, y, z]，y 是高度，z 正=前 负=后） ============
+   坐标系：x 0~0.5 横向，y 0~1.7 高度（0=脚底），z -0.10~+0.14 前后
+   投影到 SVG viewBox(0 0 400 800)：
+     svgX = (x / 0.5) * 400 = x * 800
+     svgY = (1 - y / 1.7) * 800
+     z 决定显示前/背（按钮切换） */
 const MERIDIANS = [
-  { id: 'ren', name: '任脉', color: 0xff5fa2, side: 'M', pts: [
-    ['会阴', 0, 0.06, 0.10], ['曲骨', 0, 0.78, 0.13], ['关元', 0, 0.88, 0.13], ['气海', 0, 0.95, 0.13],
-    ['神阙', 0, 1.00, 0.14], ['中脘', 0, 1.10, 0.13], ['膻中', 0, 1.32, 0.12], ['天突', 0, 1.45, 0.10], ['承浆', 0, 1.50, 0.10]
+  { id:'ren', name:'任脉', color:'#ff5fa2', side:'M', pts:[
+    ['会阴',0,0.06,0.10],['曲骨',0,0.78,0.13],['关元',0,0.88,0.13],['气海',0,0.95,0.13],
+    ['神阙',0,1.00,0.14],['中脘',0,1.10,0.13],['膻中',0,1.32,0.12],['天突',0,1.45,0.10],['承浆',0,1.50,0.10]
   ]},
-  { id: 'du', name: '督脉', color: 0xffd24a, side: 'M', pts: [
-    ['长强', 0, 0.12, -0.10], ['命门', 0, 1.00, -0.10], ['大椎', 0, 1.42, -0.04], ['风府', 0, 1.55, -0.03],
-    ['百会', 0, 1.70, 0], ['印堂', 0, 1.58, 0.10], ['水沟', 0, 1.50, 0.12]
+  { id:'du', name:'督脉', color:'#ffd24a', side:'M', pts:[
+    ['长强',0,0.12,-0.10],['命门',0,1.00,-0.10],['大椎',0,1.42,-0.04],['风府',0,1.55,-0.03],
+    ['百会',0,1.70,0],['印堂',0,1.58,0.10],['水沟',0,1.50,0.12]
   ]},
-  { id: 'lu', name: '手太阴肺经', color: 0x6fd3ff, side: 'LR', pts: [
-    ['中府', 0.16, 1.30, 0.10], ['尺泽', 0.30, 1.08, 0.02], ['列缺', 0.38, 0.86, 0.06], ['太渊', 0.40, 0.84, 0.04], ['少商', 0.45, 0.72, 0.04]
+  { id:'lu', name:'手太阴肺经', color:'#6fd3ff', side:'LR', pts:[
+    ['中府',0.16,1.30,0.10],['尺泽',0.30,1.08,0.02],['列缺',0.38,0.86,0.06],['太渊',0.40,0.84,0.04],['少商',0.45,0.72,0.04]
   ]},
-  { id: 'li', name: '手阳明大肠经', color: 0x7CFC00, side: 'LR', pts: [
-    ['商阳', 0.45, 0.72, 0.04], ['合谷', 0.42, 0.80, 0.06], ['曲池', 0.32, 1.08, 0.04], ['肩髃', 0.18, 1.36, 0.02], ['迎香', 0.04, 1.50, 0.13]
+  { id:'li', name:'手阳明大肠经', color:'#7CFC00', side:'LR', pts:[
+    ['商阳',0.45,0.72,0.04],['合谷',0.42,0.80,0.06],['曲池',0.32,1.08,0.04],['肩髃',0.18,1.36,0.02],['迎香',0.04,1.50,0.13]
   ]},
-  { id: 'st', name: '足阳明胃经', color: 0xff9f43, side: 'LR', pts: [
-    ['承泣', 0.04, 1.52, 0.13], ['地仓', 0.05, 1.48, 0.13], ['缺盆', 0.12, 1.34, 0.06], ['天枢', 0.10, 0.95, 0.14],
-    ['梁丘', 0.12, 0.56, 0.05], ['足三里', 0.12, 0.55, 0.04], ['丰隆', 0.12, 0.30, 0.06], ['厉兑', 0.11, 0.03, 0.14]
+  { id:'st', name:'足阳明胃经', color:'#ff9f43', side:'LR', pts:[
+    ['承泣',0.04,1.52,0.13],['地仓',0.05,1.48,0.13],['缺盆',0.12,1.34,0.06],['天枢',0.10,0.95,0.14],
+    ['梁丘',0.12,0.56,0.05],['足三里',0.12,0.55,0.04],['丰隆',0.12,0.30,0.06],['厉兑',0.11,0.03,0.14]
   ]},
-  { id: 'sp', name: '足太阴脾经', color: 0xc792ea, side: 'LR', pts: [
-    ['隐白', 0.13, 0.03, 0.12], ['公孙', 0.12, 0.07, 0.11], ['三阴交', 0.11, 0.10, 0.10], ['阴陵泉', 0.12, 0.50, 0.04],
-    ['血海', 0.13, 0.62, 0.02], ['大横', 0.09, 0.95, 0.12], ['大包', 0.16, 1.18, 0.04]
+  { id:'sp', name:'足太阴脾经', color:'#c792ea', side:'LR', pts:[
+    ['隐白',0.13,0.03,0.12],['公孙',0.12,0.07,0.11],['三阴交',0.11,0.10,0.10],['阴陵泉',0.12,0.50,0.04],
+    ['血海',0.13,0.62,0.02],['大横',0.09,0.95,0.12],['大包',0.16,1.18,0.04]
   ]},
-  { id: 'ht', name: '手少阴心经', color: 0xff6b81, side: 'LR', pts: [
-    ['极泉', 0.17, 1.35, 0.06], ['少海', 0.31, 1.10, 0.04], ['神门', 0.39, 0.85, 0.05], ['少冲', 0.44, 0.72, 0.04]
+  { id:'ht', name:'手少阴心经', color:'#ff6b81', side:'LR', pts:[
+    ['极泉',0.17,1.35,0.06],['少海',0.31,1.10,0.04],['神门',0.39,0.85,0.05],['少冲',0.44,0.72,0.04]
   ]},
-  { id: 'si', name: '手太阳小肠经', color: 0x4dd0e1, side: 'LR', pts: [
-    ['少泽', 0.44, 0.72, 0.03], ['小海', 0.31, 1.10, 0.03], ['肩贞', 0.18, 1.34, 0.03], ['听宫', 0.07, 1.52, 0.10]
+  { id:'si', name:'手太阳小肠经', color:'#4dd0e1', side:'LR', pts:[
+    ['少泽',0.44,0.72,0.03],['小海',0.31,1.10,0.03],['肩贞',0.18,1.34,0.03],['听宫',0.07,1.52,0.10]
   ]},
-  { id: 'bl', name: '足太阳膀胱经', color: 0x5c6bc0, side: 'LR', pts: [
-    ['睛明', 0.03, 1.56, 0.12], ['天柱', 0.06, 1.45, -0.02], ['肺俞', 0.10, 1.25, -0.07], ['肾俞', 0.10, 0.98, -0.07],
-    ['八髎', 0.06, 0.82, -0.06], ['委中', 0.10, 0.52, -0.05], ['承山', 0.10, 0.25, -0.06], ['昆仑', 0.11, 0.07, -0.05], ['至阴', 0.11, 0.02, -0.04]
+  { id:'bl', name:'足太阳膀胱经', color:'#5c6bc0', side:'LR', pts:[
+    ['睛明',0.03,1.56,0.12],['天柱',0.06,1.45,-0.02],['肺俞',0.10,1.25,-0.07],['肾俞',0.10,0.98,-0.07],
+    ['八髎',0.06,0.82,-0.06],['委中',0.10,0.52,-0.05],['承山',0.10,0.25,-0.06],['昆仑',0.11,0.07,-0.05],['至阴',0.11,0.02,-0.04]
   ]},
-  { id: 'ki', name: '足少阴肾经', color: 0x9ccc65, side: 'LR', pts: [
-    ['涌泉', 0.11, 0.02, 0.14], ['太溪', 0.11, 0.08, 0.10], ['阴谷', 0.10, 0.52, 0.02], ['肓俞', 0.08, 0.95, -0.02], ['俞府', 0.12, 1.30, 0.06]
+  { id:'ki', name:'足少阴肾经', color:'#9ccc65', side:'LR', pts:[
+    ['涌泉',0.11,0.02,0.14],['太溪',0.11,0.08,0.10],['阴谷',0.10,0.52,0.02],['肓俞',0.08,0.95,-0.02],['俞府',0.12,1.30,0.06]
   ]},
-  { id: 'pc', name: '手厥阴心包经', color: 0xf06292, side: 'LR', pts: [
-    ['天池', 0.14, 1.25, 0.08], ['曲泽', 0.30, 1.08, 0.04], ['内关', 0.39, 0.85, 0.05], ['劳宫', 0.43, 0.78, 0.05], ['中冲', 0.44, 0.72, 0.05]
+  { id:'pc', name:'手厥阴心包经', color:'#f06292', side:'LR', pts:[
+    ['天池',0.14,1.25,0.08],['曲泽',0.30,1.08,0.04],['内关',0.39,0.85,0.05],['劳宫',0.43,0.78,0.05],['中冲',0.44,0.72,0.05]
   ]},
-  { id: 'te', name: '手少阳三焦经', color: 0xffb74d, side: 'LR', pts: [
-    ['关冲', 0.44, 0.72, 0.04], ['阳池', 0.42, 0.80, 0.05], ['外关', 0.39, 0.85, 0.05], ['天井', 0.31, 1.10, 0.04], ['丝竹空', 0.06, 1.54, 0.11]
+  { id:'te', name:'手少阳三焦经', color:'#ffb74d', side:'LR', pts:[
+    ['关冲',0.44,0.72,0.04],['阳池',0.42,0.80,0.05],['外关',0.39,0.85,0.05],['天井',0.31,1.10,0.04],['丝竹空',0.06,1.54,0.11]
   ]},
-  { id: 'gb', name: '足少阳胆经', color: 0x4db6ac, side: 'LR', pts: [
-    ['瞳子髎', 0.07, 1.53, 0.11], ['风池', 0.07, 1.45, -0.02], ['肩井', 0.14, 1.38, 0.00], ['环跳', 0.10, 0.86, -0.04],
-    ['阳陵泉', 0.12, 0.50, 0.03], ['悬钟', 0.11, 0.20, 0.05], ['足窍阴', 0.12, 0.03, 0.10]
+  { id:'gb', name:'足少阳胆经', color:'#4db6ac', side:'LR', pts:[
+    ['瞳子髎',0.07,1.53,0.11],['风池',0.07,1.45,-0.02],['肩井',0.14,1.38,0.00],['环跳',0.10,0.86,-0.04],
+    ['阳陵泉',0.12,0.50,0.03],['悬钟',0.11,0.20,0.05],['足窍阴',0.12,0.03,0.10]
   ]},
-  { id: 'lr', name: '足厥阴肝经', color: 0x81c784, side: 'LR', pts: [
-    ['大敦', 0.12, 0.03, 0.10], ['太冲', 0.12, 0.08, 0.10], ['曲泉', 0.11, 0.52, 0.03], ['章门', 0.13, 1.05, 0.08], ['期门', 0.14, 1.25, 0.08]
+  { id:'lr', name:'足厥阴肝经', color:'#81c784', side:'LR', pts:[
+    ['大敦',0.12,0.03,0.10],['太冲',0.12,0.08,0.10],['曲泉',0.11,0.52,0.03],['章门',0.13,1.05,0.08],['期门',0.14,1.25,0.08]
   ]}
 ];
 
-/* ============ 生成经络曲线 + 穴位标签 + 气运动粒子 ============ */
-const meridianGroup = new THREE.Group();
-scene.add(meridianGroup);
-const qiGroup = new THREE.Group();
-scene.add(qiGroup);
+/* ============ 状态 ============ */
+let viewMode = 'front'; // 'front' | 'back'
+let showLabels = true;
+let showPoints = true;
+let flowEnabled = true;
+let visibleMeridians = new Set(MERIDIANS.map(m => m.id)); // 默认显示全部 14 条经络
+const SVG_NS = 'http://www.w3.org/2000/svg';
 
-const meridianObjs = []; // 每条"单侧"一个对象
-
-function hex(c) { return '#' + c.toString(16).padStart(6, '0'); }
-
-/* 气运动：沿经络流动的"线"（发光脉冲，而非散点） */
-const flowVert = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`;
-const flowFrag = `uniform vec3 uColor; uniform float uTime; uniform float uSpeed; varying vec2 vUv;
-void main(){
-  float x = vUv.x;
-  float p = fract(x - uTime * uSpeed);
-  float head = smoothstep(0.75, 1.0, p);
-  float intensity = 0.16 + head * 1.7;
-  gl_FragColor = vec4(uColor * intensity, 1.0);
-}`;
-const dotGeo = new THREE.SphereGeometry(0.012, 12, 10);
-
-MERIDIANS.forEach(m => {
-  const sides = m.side === 'M' ? [1] : [-1, 1];
-  sides.forEach(sgn => {
-    const obj = { def: m, labels: [], dots: [], sgn };
-    const vp = m.pts.map(p => new THREE.Vector3(p[1] * sgn, p[2], p[3]));
-    const curve = new THREE.CatmullRomCurve3(vp);
-    obj.curve = curve;
-
-    m.pts.forEach(p => {
-      // 穴位"点"
-      const dot = new THREE.Mesh(dotGeo, new THREE.MeshBasicMaterial({ color: m.color }));
-      dot.position.set(p[1] * sgn, p[2], p[3]);
-      meridianGroup.add(dot);
-      obj.dots.push(dot);
-      // 穴位名（显示在点的旁边）
-      const sp = makeLabel(p[0], hex(m.color));
-      sp.position.set(p[1] * sgn, p[2] + 0.025, p[3]);
-      meridianGroup.add(sp);
-      obj.labels.push(sp);
-      labelItems.push({ sprite: sp, type: 'acu', o: obj, world: sp.position.clone(), force: false });
-    });
-
-    const geo = new THREE.TubeGeometry(curve, Math.max(24, vp.length * 8), 0.006, 8, false);
-    const mat = new THREE.MeshBasicMaterial({ color: m.color });
-    const tube = new THREE.Mesh(geo, mat);
-    meridianGroup.add(tube);
-    obj.tube = tube;
-
-    // 气运动：沿经络流动的发光脉冲（成线，不是球）
-    const flowGeo = new THREE.TubeGeometry(curve, 80, 0.009, 8, false);
-    const QI_COLOR = 0xff3b30; // 气运动统一用红色，不与任何经络配色冲突
-    const flowMat = new THREE.ShaderMaterial({
-      uniforms: { uColor: { value: new THREE.Color(QI_COLOR) }, uTime: { value: 0 }, uSpeed: { value: 0.16 } },
-      vertexShader: flowVert, fragmentShader: flowFrag,
-      transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
-    });
-    const flow = new THREE.Mesh(flowGeo, flowMat);
-    qiGroup.add(flow);
-    obj.flowMat = flowMat;
-
-    // 默认全部关闭：启动哪条才显示哪条
-    tube.visible = false;
-    obj.dots.forEach(d => d.visible = false);
-    obj.labels.forEach(l => l.visible = false);
-    flow.visible = false;
-
-    meridianObjs.push(obj);
-  });
-});
-
-/* ============ 经络选择面板 ============ */
-const mList = document.getElementById('mList');
-const meridianToggles = [];
-function setMeridianVisible(id, on) {
-  meridianObjs.filter(o => o.def.id === id).forEach(o => {
-    o.tube.visible = on;
-    o.dots.forEach(d => d.visible = on);
-    o.labels.forEach(l => l.visible = on);
-    if (o.flow) o.flow.visible = on;
-  });
-  const row = meridianToggles.find(r => r._id === id);
-  if (row) row.classList.toggle('off', !on);
+/* 把 3D 坐标投影到 SVG 2D 坐标 */
+function proj(x, y, z, sideSign) {
+  // sideSign: 1=右, -1=左
+  const sx = (x * sideSign * 0.5 + 0.5) * 400; // 中心 200，0=左边缘
+  const sy = (1 - y / 1.7) * 800;
+  return { x: sx, y: sy, z };
 }
+
+/* ============ 初始化经络列表 ============ */
+const mList = document.getElementById('mList');
 MERIDIANS.forEach(m => {
   const row = document.createElement('div');
   row.className = 'mrow';
-  row._id = m.id;
-  row.innerHTML = `<span class="mdot" style="background:${hex(m.color)}"></span>${m.name}`;
-  row.onclick = () => {
-    const objs = meridianObjs.filter(o => o.def.id === m.id);
-    setMeridianVisible(m.id, !objs[0].tube.visible);
-  };
-  row.classList.add('off');
+  row.dataset.id = m.id;
+  row.innerHTML = `<span class="mdot" style="background:${m.color}"></span><span>${m.name}</span>`;
+  row.onclick = function() { toggleMeridian(m.id); };
   mList.appendChild(row);
-  meridianToggles.push(row);
 });
 
-/* ============ 控制条交互 ============ */
-let labelOn = true;
-const btnSkeleton = document.getElementById('btnSkeleton');
-const btnQi = document.getElementById('btnQi');
-const btnLabels = document.getElementById('btnLabels');
-const btnReset = document.getElementById('btnReset');
-const btnSkin = document.getElementById('btnSkin');
+/* ============ 渲染经络（按当前 viewMode） ============ */
+const layer = document.getElementById('meridianLayer');
+let meridianNodes = []; // { id, line, points, dots, labels, flow }
 
-let skeletonOn = false;
-btnSkeleton.onclick = () => {
-  skeletonOn = !skeletonOn;
-  if (realSkeleton) realSkeleton.visible = skeletonOn;
-  skeletonGroup.visible = skeletonOn; // 控制程序化骨杆(无真实时) + 中文骨名标签
-  btnSkeleton.classList.toggle('on', skeletonOn);
-  btnSkeleton.textContent = '🦴 骨骼：' + (skeletonOn ? '开' : '关');
-};
-btnQi.onclick = () => {
-  qiGroup.visible = !qiGroup.visible;
-  btnQi.classList.toggle('on', qiGroup.visible);
-  btnQi.textContent = '🌀 气运动：' + (qiGroup.visible ? '开' : '关');
-};
-btnLabels.onclick = () => {
-  labelOn = !labelOn;
-  btnLabels.classList.toggle('on', labelOn);
-  btnLabels.textContent = '🏷 穴位名：' + (labelOn ? '开' : '关');
-};
-/* 皮肤透明度切换：透明看经络 vs 实体看清模型细节 */
-let skinTransparent = true;
-btnSkin.onclick = () => {
-  skinTransparent = !skinTransparent;
-  if (realSkin) {
-    realSkin.traverse(o => {
-      if (o.isMesh && o.material) {
-        o.material.opacity = skinTransparent ? 0.55 : 0.98;
-        o.material.needsUpdate = true;
-      }
-    });
-  }
-  btnSkin.classList.toggle('on', skinTransparent);
-  btnSkin.textContent = '👤 皮肤：' + (skinTransparent ? '透明' : '实体');
-};
-btnReset.onclick = () => {
-  camera.position.set(0, 1.05, 2.5);
-  controls.target.set(0, 1.0, 0);
-  controls.update();
-  clearFocus();
-};
+function renderMeridians() {
+  layer.innerHTML = '';
+  meridianNodes = [];
 
-/* ============ 标签防重叠（屏幕空间贪心去重） ============ */
-function updateLabelVisibility() {
-  const items = [];
-  for (const it of labelItems) {
-    const base = it.type === 'acu' ? (it.o.tube.visible && labelOn) : (skeletonGroup.visible && labelOn);
-    if (!base) { it.sprite.visible = false; continue; }
-    const v = it.world.clone().project(camera);
-    if (v.z < -1 || v.z > 1) { it.sprite.visible = false; continue; }
-    items.push({ it, sx: (v.x * 0.5 + 0.5) * innerWidth, sy: (-v.y * 0.5 + 0.5) * innerHeight, depth: v.z });
-  }
-  items.sort((a, b) => a.depth - b.depth);
-  const placed = [];
-  const gap = 24;
-  for (const it of items) {
-    let ok = it.it.force;
-    if (!ok) {
-      for (const p of placed) {
-        if (Math.abs(it.sx - p.sx) < gap && Math.abs(it.sy - p.sy) < gap) { ok = false; break; }
-      }
-    }
-    it.it.sprite.visible = ok;
-    if (ok) placed.push(it);
-  }
-}
-
-/* ============ 搜索定位 ============ */
-const searchInput = document.getElementById('searchInput');
-const btnSearch = document.getElementById('btnSearch');
-const resultEl = document.getElementById('result');
-const hintEl = document.getElementById('hint');
-let focusItems = [];
-function clearFocus() {
-  focusItems.forEach(f => { if (f.dot) f.dot.scale.setScalar(1); if (f.labelItem) f.labelItem.force = false; });
-  focusItems = [];
-}
-function frameTo(target, dist) {
-  controls.target.copy(target);
-  const dir = new THREE.Vector3().subVectors(camera.position, controls.target);
-  if (dir.lengthSq() < 1e-6) dir.set(0, 0, 1);
-  dir.normalize().multiplyScalar(dist);
-  camera.position.copy(target).add(dir);
-  controls.update();
-}
-function highlightPoint(pos, meridianId, pointName) {
-  setMeridianVisible(meridianId, true);
-  labelOn = true;
-  btnLabels.classList.add('on');
-  btnLabels.textContent = '🏷 穴位名：开';
-  const obj = meridianObjs.find(o => o.def.id === meridianId);
-  if (obj) {
-    const idx = obj.def.pts.findIndex(p => p[0] === pointName);
-    if (idx >= 0) {
-      const dot = obj.dots[idx];
-      const li = labelItems.find(i => i.sprite === obj.labels[idx]);
-      if (dot) { dot.scale.setScalar(2.4); focusItems.push({ dot, labelItem: li }); }
-      if (li) li.force = true;
-    }
-  }
-  frameTo(pos, 0.5);
-}
-function doSearch(q) {
-  q = (q || '').trim();
-  if (!q) return;
-  clearFocus();
-  let acuHit = null, merHit = null;
   MERIDIANS.forEach(m => {
-    const sides = m.side === 'M' ? [1] : [-1, 1];
-    m.pts.forEach(p => { if (p[0].includes(q) && !acuHit) acuHit = { m, p, sgn: 1 }; });
-    if ((m.name.includes(q) || m.id === q) && !merHit) merHit = m;
+    const sides = m.side === 'M' ? [1] : [1, -1]; // 中线只画一次，两侧画左右
+    sides.forEach(sideSign => {
+      const g = document.createElementNS(SVG_NS, 'g');
+      g.setAttribute('data-mid', m.id);
+      g.setAttribute('data-side', sideSign);
+
+      // 决定透明度：viewMode='front' 时 z<0 用 0.35 透明度（半透明，提示在背面）
+      // viewMode='back' 时 z>0 用 0.35
+      // 'all' 时全部实色
+      const firstZ = m.pts[0][3];
+      const belongFront = firstZ >= 0;
+      let opa = 1;
+      if (viewMode === 'front' && !belongFront) opa = 0.35;
+      if (viewMode === 'back' && belongFront) opa = 0.35;
+
+      // 投影所有点
+      const projPts = m.pts.map(p => proj(p[1], p[2], p[3], sideSign));
+
+      // 经络线（path）
+      const line = document.createElementNS(SVG_NS, 'path');
+      const d = projPts.map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
+      line.setAttribute('d', d);
+      line.setAttribute('fill', 'none');
+      line.setAttribute('stroke', m.color);
+      line.setAttribute('stroke-width', '2');
+      line.setAttribute('stroke-linecap', 'round');
+      line.setAttribute('stroke-linejoin', 'round');
+      line.setAttribute('opacity', opa === 1 ? '0.9' : '0.4');
+      g.appendChild(line);
+
+      // 穴位圆点
+      const dots = [];
+      const labels = [];
+      projPts.forEach((p, i) => {
+        const pt = m.pts[i];
+        const dot = document.createElementNS(SVG_NS, 'circle');
+        dot.setAttribute('cx', p.x);
+        dot.setAttribute('cy', p.y);
+        dot.setAttribute('r', '4');
+        dot.setAttribute('fill', '#fff');
+        dot.setAttribute('stroke', m.color);
+        dot.setAttribute('stroke-width', '2');
+        dot.style.cursor = 'pointer';
+        dot.addEventListener('click', function(e) {
+          e.stopPropagation();
+          showPointTip(p.x, p.y, pt[0] + ' · ' + m.name);
+        });
+        g.appendChild(dot);
+        dots.push(dot);
+
+        // 穴位名标签
+        const lbl = document.createElementNS(SVG_NS, 'text');
+        lbl.setAttribute('x', p.x + 6);
+        lbl.setAttribute('y', p.y - 4);
+        lbl.setAttribute('font-size', '10');
+        lbl.setAttribute('fill', '#2b3a34');
+        lbl.setAttribute('font-weight', '600');
+        lbl.setAttribute('paint-order', 'stroke');
+        lbl.setAttribute('stroke', '#fff');
+        lbl.setAttribute('stroke-width', '3');
+        lbl.textContent = pt[0];
+        g.appendChild(lbl);
+        labels.push(lbl);
+      });
+
+      // 气运动：沿线流动的虚线
+      const flow = document.createElementNS(SVG_NS, 'path');
+      flow.setAttribute('d', d);
+      flow.setAttribute('fill', 'none');
+      flow.setAttribute('stroke', m.color);
+      flow.setAttribute('stroke-width', '4');
+      flow.setAttribute('stroke-linecap', 'round');
+      flow.setAttribute('stroke-dasharray', '12 14');
+      flow.setAttribute('opacity', opa === 1 ? '0.7' : '0.3');
+      if (!flowEnabled) flow.style.display = 'none';
+      g.appendChild(flow);
+
+      layer.appendChild(g);
+      meridianNodes.push({ id: m.id, side: sideSign, g, line, dots, labels, flow });
+    });
   });
-  if (acuHit) {
-    const pos = new THREE.Vector3(acuHit.p[1] * acuHit.sgn, acuHit.p[2], acuHit.p[3]);
-    highlightPoint(pos, acuHit.m.id, acuHit.p[0]);
-    resultEl.textContent = '定位：' + acuHit.p[0] + '（' + acuHit.m.name + '）';
-    resultEl.style.display = 'block';
-  } else if (merHit) {
-    setMeridianVisible(merHit.id, true);
-    const sides = merHit.side === 'M' ? [1] : [-1, 1];
-    const box = new THREE.Box3();
-    merHit.pts.forEach(p => sides.forEach(s => box.expandByPoint(new THREE.Vector3(p[1] * s, p[2], p[3]))));
-    const center = box.getCenter(new THREE.Vector3());
-    const size = box.getSize(new THREE.Vector3());
-    const dist = Math.max(size.x, size.y, size.z) * 1.6 + 0.4;
-    frameTo(center, dist);
-    resultEl.textContent = '定位经络：' + merHit.name;
-    resultEl.style.display = 'block';
-  } else {
-    resultEl.textContent = '未找到：' + q;
-    resultEl.style.display = 'block';
-  }
-  if (hintEl) hintEl.style.display = 'none';
+
+  applyVisibility();
+  applyLabels();
+  applyPoints();
+  applyFlow();
 }
-btnSearch.onclick = () => doSearch(searchInput.value);
-searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(searchInput.value); });
-searchInput.addEventListener('input', () => { if (!searchInput.value) { resultEl.style.display = 'none'; clearFocus(); if (hintEl) hintEl.style.display = ''; } });
 
-/* ============ 动画循环 ============ */
-const tmp = new THREE.Vector3();
-function animate() {
-  requestAnimationFrame(animate);
-  const t = performance.now() * 0.00018;
-  if (qiGroup.visible) {
-    meridianObjs.forEach(o => { if (o.flowMat) o.flowMat.uniforms.uTime.value = t; });
-  }
-  updateLabelVisibility();
-  controls.update();
-  renderer.render(scene, camera);
+function applyVisibility() {
+  meridianNodes.forEach(n => {
+    if (visibleMeridians.has(n.id)) {
+      n.g.style.display = '';
+      // 给列表行加高亮
+      const row = mList.querySelector(`[data-id="${n.id}"]`);
+      if (row) row.classList.remove('off');
+    } else {
+      n.g.style.display = 'none';
+      const row = mList.querySelector(`[data-id="${n.id}"]`);
+      if (row) row.classList.add('off');
+    }
+  });
 }
-animate();
 
-/* 加载用户提供的真实 3D 模型（异步，加载完自动替换程序化人体/骨骼） */
-loadRealModels();
+function applyLabels() {
+  meridianNodes.forEach(n => { n.labels.forEach(l => l.style.display = showLabels ? '' : 'none'); });
+}
+function applyPoints() {
+  meridianNodes.forEach(n => { n.dots.forEach(d => d.style.display = showPoints ? '' : 'none'); });
+}
+function applyFlow() {
+  meridianNodes.forEach(n => { n.flow.style.display = flowEnabled ? '' : 'none'; });
+}
 
-/* ============ 自适应（手机旋转/窗口缩放） ============ */
-addEventListener('resize', () => {
-  camera.aspect = innerWidth / innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
+function toggleMeridian(id) {
+  if (visibleMeridians.has(id)) visibleMeridians.delete(id);
+  else visibleMeridians.add(id);
+  applyVisibility();
+}
+
+/* ============ 穴位提示 ============ */
+const ptip = document.getElementById('ptip');
+function showPointTip(svgX, svgY, text) {
+  const svg = document.getElementById('meridianSvg');
+  const rect = svg.getBoundingClientRect();
+  // svgX/Y 是 viewBox 坐标 (0-400, 0-800)，需转成屏幕坐标
+  const scaleX = rect.width / 400;
+  const scaleY = rect.height / 800;
+  ptip.style.left = (svgX * scaleX) + 'px';
+  ptip.style.top = (svgY * scaleY) + 'px';
+  ptip.textContent = text;
+  ptip.classList.add('show');
+  clearTimeout(showPointTip._t);
+  showPointTip._t = setTimeout(() => ptip.classList.remove('show'), 2500);
+}
+document.getElementById('stage').addEventListener('click', function(e) {
+  if (e.target.tagName !== 'circle' && e.target.tagName !== 'text') ptip.classList.remove('show');
 });
+
+/* ============ 状态提示 ============ */
+const statusEl = document.getElementById('status');
+function showStatus(msg) {
+  statusEl.textContent = msg;
+  statusEl.classList.add('show');
+  clearTimeout(showStatus._t);
+  showStatus._t = setTimeout(() => statusEl.classList.remove('show'), 2500);
+}
+
+/* ============ 气运动动画（CSS keyframes 模拟） ============ */
+const flowStyle = document.createElement('style');
+flowStyle.textContent = `
+@keyframes flowMove { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -26; } }
+#meridianLayer path[stroke-dasharray] { animation: flowMove 1.2s linear infinite; }
+`;
+document.head.appendChild(flowStyle);
+
+/* ============ 按钮 ============ */
+document.getElementById('btnLabels').onclick = function() {
+  showLabels = !showLabels; this.classList.toggle('on', showLabels); applyLabels();
+};
+document.getElementById('btnPoints').onclick = function() {
+  showPoints = !showPoints; this.classList.toggle('on', showPoints); applyPoints();
+};
+document.getElementById('btnFlow').onclick = function() {
+  flowEnabled = !flowEnabled; this.classList.toggle('on', flowEnabled); applyFlow();
+};
+document.getElementById('btnView').onclick = function() {
+  viewMode = viewMode === 'front' ? 'back' : 'front';
+  showStatus('已切换到' + (viewMode === 'front' ? '正面' : '背面') + '视图');
+  renderMeridians();
+};
+document.getElementById('btnReset').onclick = function() {
+  visibleMeridians.clear();
+  renderMeridians();
+  showStatus('已复位');
+};
+
+/* ============ 搜索 ============ */
+function doSearch() {
+  const q = (document.getElementById('searchInput').value || '').trim();
+  if (!q) { showStatus('请输入穴位或经络名'); return; }
+  // 优先匹配穴位名
+  for (const m of MERIDIANS) {
+    if (m.name.includes(q) || m.id === q.toLowerCase()) {
+      visibleMeridians.clear();
+      visibleMeridians.add(m.id);
+      applyVisibility();
+      // 找到第一个穴位显示
+      const firstPt = m.pts[0];
+      const p = proj(firstPt[1], firstPt[2], firstPt[3], 1);
+      showPointTip(p.x, p.y, m.name + ' · ' + m.pts.length + ' 穴');
+      showStatus('已定位：' + m.name);
+      return;
+    }
+  }
+  // 再匹配穴位
+  for (const m of MERIDIANS) {
+    const hit = m.pts.find(pt => pt[0].includes(q));
+    if (hit) {
+      visibleMeridians.clear();
+      visibleMeridians.add(m.id);
+      applyVisibility();
+      const p = proj(hit[1], hit[2], hit[3], 1);
+      showPointTip(p.x, p.y, hit[0] + ' · ' + m.name);
+      showStatus('已定位穴位：' + hit[0]);
+      return;
+    }
+  }
+  showStatus('未找到：' + q);
+}
+document.getElementById('btnSearch').onclick = doSearch;
+document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+/* ============ 启动 ============ */
+renderMeridians();
+showStatus('点击左侧经络名开启显示 · 点穴位看名称');
 </script>
 </body>
 </html>
