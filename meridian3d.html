@@ -64,7 +64,7 @@
   <div id="hint">默认经络全关 · 点左侧经络开启 · 拖拽旋转 / 双指捏合缩放 · 搜穴位名自动聚焦</div>
   <div id="status" style="display:none"></div>
   <div id="result"></div>
-  <div id="loading">正在加载 3D 引擎…<br/>（需联网从 CDN 加载 Three.js，请保持网络畅通）</div>
+  <div id="loading">正在加载 3D 模型…<br/>（首次需下载约 12MB，请稍候，加载完可旋转/缩放）</div>
   <div id="panel"><h4>经络（点击显隐）</h4><div id="mList"></div></div>
   <div id="ctrl">
     <button class="btn" id="btnSkeleton">🦴 骨骼：关</button>
@@ -75,21 +75,20 @@
   </div>
 </div>
 
-<!-- 兼容垫片：老手机浏览器（如旧版 Safari）不支持 importmap 时自动 polyfill，支持则原生处理 -->
-<script async src="./libs/es-module-shims.js"></script>
-<script type="importmap">
-{
-  "imports": {
-    "three": "./libs/three.module.js",
-    "three/addons/": "./libs/jsm/"
-  }
+<script>
+/* 防御：模块若加载/解析失败，直接在画面显示错误，避免手机上静默空白 */
+function _m3dErr(msg){
+  var s=document.getElementById('loading');
+  if(s){ s.style.display='block'; s.style.color='#ff8a8a'; s.innerHTML='⚠️ 3D 加载出错：'+msg+'<br/>请截图发我以便定位'; }
 }
+window.addEventListener('error', function(e){ _m3dErr((e&&e.message)|| (e&&e.error) || '未知错误'); });
+window.addEventListener('unhandledrejection', function(e){ _m3dErr((e&&e.reason&&e.reason.message)|| (e&&e.reason) || '未知错误'); });
 </script>
 
 <script type="module">
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+import * as THREE from './libs/three.module.js';
+import { OrbitControls } from './libs/jsm/controls/OrbitControls.js';
+import { FBXLoader } from './libs/jsm/loaders/FBXLoader.js';
 
 document.getElementById('loading').style.display = 'none';
 
