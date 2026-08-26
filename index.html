@@ -741,6 +741,19 @@
 })();
 </script>
 <script src="data.js?v=20260826c"></script>
+<!-- 全局定义 closeEntryModal/showEntryModal：必须在 IIFE 之前，确保 HTML 内联 onclick 永远能找到 -->
+<script>
+function closeEntryModal(){
+  var m=document.getElementById('entryMask');
+  if(m) m.style.display='none';
+}
+function showEntryModal(){
+  var m=document.getElementById('entryMask');
+  if(m) m.style.display='flex';
+}
+window.closeEntryModal=closeEntryModal;
+window.showEntryModal=showEntryModal;
+</script>
 <script>
 (function(){
   "use strict";
