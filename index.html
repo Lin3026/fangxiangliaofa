@@ -2753,7 +2753,7 @@ window.showEntryModal=showEntryModal;
   /* ---- tab 切换 ---- */
   function goTab(tab){
     document.querySelectorAll(".tab").forEach(function(x){ x.classList.remove("active"); if(x.getAttribute("data-tab")===tab) x.classList.add("active"); });
-    ["search","dose","pulse","tongue","tizhi","oils","hydro","lib"].forEach(function(t){
+    ["search","dose","meridian","pulse","tongue","tizhi","oils","hydro","lib"].forEach(function(t){
       var el=document.getElementById("tab-"+t); if(el) el.style.display=(t===tab)?"block":"none";
     });
     if(tab==="oils") renderOils();
