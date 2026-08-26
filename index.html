@@ -743,7 +743,7 @@
   });
 })();
 </script>
-<script src="data.js?v=20260826e"></script>
+<script src="data.js?v=20260826f"></script>
 <!-- 全局定义 closeEntryModal/showEntryModal：必须在 IIFE 之前，确保 HTML 内联 onclick 永远能找到 -->
 <script>
 function closeEntryModal(){
@@ -2795,7 +2795,7 @@ window.showEntryModal=showEntryModal;
   if(qInput){ qInput.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); runSearch(); } }); }
 
   // 显示当前版本号（用户可肉眼判断是否最新）
-  try{ var t=document.getElementById('buildTag'); if(t) t.textContent='build 97472d7'; }catch(e){}
+  try{ var t=document.getElementById('buildTag'); if(t) t.textContent='build b539581'; }catch(e){}
 
   // 初始化
   renderSysChips(); renderCloud(); runSearch(false); renderSrcBox();
