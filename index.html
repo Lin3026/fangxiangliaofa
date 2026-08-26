@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 <title>中医芳香理疗知识库</title>
 <style>
   :root{
@@ -740,7 +743,7 @@
   });
 })();
 </script>
-<script src="data.js?v=20260826c"></script>
+<script src="data.js?v=20260826d"></script>
 <!-- 全局定义 closeEntryModal/showEntryModal：必须在 IIFE 之前，确保 HTML 内联 onclick 永远能找到 -->
 <script>
 function closeEntryModal(){
@@ -758,6 +761,8 @@ window.showEntryModal=showEntryModal;
 (function(){
   "use strict";
   window.__appInited = true;  // 告诉错误处理器，主程序已就绪，后续错误归主程序处理
+  // 立刻显式显示 tab-search（确保用户看到的默认页面是「智能配方」），即使后续 IIFE 内部任何 throw 也不影响
+  try{ goTab("search"); }catch(e){}
   var LS_KEY="aroma_db_v1";
 
   /* ---- 启动自愈：任何初始化错误都显示红字，而不是白屏 ---- */
