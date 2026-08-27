@@ -33,6 +33,9 @@
   #ctrl button{background:#0b0e12;color:var(--txt);border:1px solid var(--line);padding:7px 11px;border-radius:7px;cursor:pointer;font-size:12.5px;}
   #ctrl button.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
   #ctrl button:hover{border-color:var(--accent);}
+  #ctrl .yawCtl{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);padding:0 10px 0 4px;border-left:1px solid var(--line);margin-left:4px;}
+  #ctrl .yawCtl input[type=range]{width:170px;accent-color:var(--accent);cursor:pointer;}
+  #ctrl .yawCtl #yawVal{color:var(--accent);font-weight:600;min-width:46px;text-align:right;font-variant-numeric:tabular-nums;}
   #status{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:#fff;padding:8px 16px;border-radius:18px;font-size:12.5px;backdrop-filter:blur(6px);border:1px solid var(--line);opacity:0;pointer-events:none;transition:opacity .3s;z-index:10;white-space:nowrap;max-width:80%;text-align:center;}
   #status.show{opacity:1;}
   #status.err{background:rgba(190,40,40,.7);border-color:#a04040;}
@@ -79,6 +82,7 @@
     <button id="bLabels" class="on">🏷 穴位名</button>
     <button id="bFlow" class="on">🌀 气流动</button>
     <button id="bOrient" title="切换模型朝向(上下/前后/镜像)">🔄 朝向 1/5</button>
+    <label class="yawCtl">顺时针微调 <input id="yawSlider" type="range" min="-180" max="180" step="1" value="30" /> <span id="yawVal">30°</span></label>
     <button id="bReset">↺ 复位</button>
   </div>
 </div>
@@ -259,10 +263,23 @@ let modelOrientIdx = 0;
 /* 默认整体绕 Y 轴顺时针转 30°（正 Y 旋转 = 屏幕视角下顺时针），
  * 让人体正面更朝向相机（用户反馈当前偏侧面）。仍可继续用「朝向」按钮微调 */
 const BASE_YAW = THREE.MathUtils.degToRad(30);
+let userYaw = BASE_YAW;            // 用户用滑块实时微调的偏航角(弧度)
 function applyOrient(){
   const o = MODEL_ORIENTATIONS[modelOrientIdx];
-  world.rotation.set(o.rx, o.ry + BASE_YAW, o.rz);
+  world.rotation.set(o.rx, o.ry + userYaw, o.rz);
 }
+/* 朝向微调滑块：实时改变 world.rotation.y，旁边显示当前度数 */
+(function(){
+  const slider = document.getElementById('yawSlider');
+  const val = document.getElementById('yawVal');
+  slider.value = Math.round(THREE.MathUtils.radToDeg(userYaw));
+  val.textContent = slider.value + '°';
+  slider.addEventListener('input', ()=>{
+    userYaw = THREE.MathUtils.degToRad(parseFloat(slider.value));
+    val.textContent = slider.value + '°';
+    applyOrient();
+  });
+})();
 
 function loadBody(){
   return new Promise((resolve, reject)=>{
