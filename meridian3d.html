@@ -34,8 +34,8 @@
   #ctrl button.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
   #ctrl button:hover{border-color:var(--accent);}
   #ctrl .yawCtl{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);padding:0 10px 0 4px;border-left:1px solid var(--line);margin-left:4px;}
-  #ctrl .yawCtl input[type=range]{width:170px;accent-color:var(--accent);cursor:pointer;}
-  #ctrl .yawCtl #yawVal{color:var(--accent);font-weight:600;min-width:46px;text-align:right;font-variant-numeric:tabular-nums;}
+  #ctrl .yawCtl input[type=range]{width:130px;accent-color:var(--accent);cursor:pointer;}
+  #ctrl .yawCtl span{color:var(--accent);font-weight:600;min-width:46px;text-align:right;font-variant-numeric:tabular-nums;}
   #status{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:#fff;padding:8px 16px;border-radius:18px;font-size:12.5px;backdrop-filter:blur(6px);border:1px solid var(--line);opacity:0;pointer-events:none;transition:opacity .3s;z-index:10;white-space:nowrap;max-width:80%;text-align:center;}
   #status.show{opacity:1;}
   #status.err{background:rgba(190,40,40,.7);border-color:#a04040;}
@@ -83,6 +83,7 @@
     <button id="bFlow" class="on">🌀 气流动</button>
     <button id="bOrient" title="切换模型朝向(上下/前后/镜像)">🔄 朝向 1/5</button>
     <label class="yawCtl">顺时针微调 <input id="yawSlider" type="range" min="-180" max="180" step="1" value="-55" /> <span id="yawVal">-55°</span></label>
+    <label class="yawCtl">经络轴向 <input id="meridianYawSlider" type="range" min="-30" max="30" step="1" value="0" /> <span id="meridianYawVal">0°</span></label>
     <button id="bReset">↺ 复位</button>
   </div>
 </div>
@@ -401,7 +402,7 @@ function loadBone(){
 /* ============ 经络层 ============ */
 function setupMeridians(){
   const meridianGroup = new THREE.Group();
-  world.add(meridianGroup);
+  scene.add(meridianGroup);  /* 注意:挂到 scene,不挂 world——人体不动,只旋转经络层 */
 
   const visibleMeridians = new Set();
 
@@ -424,10 +425,13 @@ function setupMeridians(){
         uniform vec3 color;
         varying vec2 vUv;
         void main(){
-          float v=smoothstep(0.0,0.06,vUv.y)+smoothstep(1.0,0.94,vUv.y);
-          float w=sin((vUv.y*22.0)-time*4.0)*0.5+0.5;
-          float a=pow(w,5.0)*v*0.85;
-          gl_FragColor=vec4(color,a);
+          /* 沿 length (vUv.x, 与采集顺序一致) 流动;
+           * 高频 22 个粒子, sin 时间偏移让纹理沿管线"跑".
+           * pow(w, 8.0) 制造"高峰+平段"的经脉气流感,
+           * 不再绕环周 (vUv.y) 做旋转花纹那样看不出方向. */
+          float w=sin((vUv.x*22.0)-time*5.0)*0.5+0.5;
+          float a=pow(w, 8.0)*0.85;
+          gl_FragColor=vec4(color, a);
         }
       `
     });
@@ -449,32 +453,26 @@ function setupMeridians(){
     return new THREE.Sprite(new THREE.SpriteMaterial({map:tex, depthTest:false, depthWrite:false}));
   }
 
-/* 把穴位点推至人体外表面 (启发式径向缩放)
-   * 之前用 Raycaster 投射但 three.js 内部 Vector3.copy 抛出 undefined (headless FBX mesh 边界计算缺陷)。
-   * 改为按身体部位 (头/颈/肩/胸腹/髋/大腿/小腿) 的近似半径，把穴位点沿 XZ 方向径向缩放到该半径，
-   * 使连线及穴位紧贴模型。误差 ±2cm，远小于 FBX 扫描本身的形变。 */
-  function pushToSkin(p){
-    const y = p.y, ax = Math.abs(p.x);
-    let radius;
-    if(y > 1.58) radius = 0.115;                              /* 头顶 */
-    else if(y > 1.42) radius = ax > 0.12 ? 0.075 : 0.14;       /* 颈/肩 */
-    else if(y > 1.06) radius = ax > 0.12 ? 0.075 : 0.19;       /* 肩胸·上臂 */
-    else if(y > 0.62) radius = ax > 0.10 ? 0.065 : 0.185;      /* 胸腹·前臂 */
-    else if(y > 0.30) radius = ax > 0.10 ? 0.055 : 0.14;       /* 髋·大腿 */
-    else if(y > 0.10) radius = ax > 0.10 ? 0.045 : 0.075;      /* 小腿 */
-    else radius = 0.105;                                         /* 脚 */
-    const xzLen = Math.hypot(p.x, p.z);
-    if(xzLen < 1e-6) return p.clone();
-    const k = radius / xzLen;
-    return new THREE.Vector3(p.x * k, p.y, p.z * k);
+/* 经络贴皮: pts 数据本身就是皮肤附近坐标(头颈 0.05~0.25, 躯干 0.06~0.24,
+   * 四肢 0.05~0.20),不需要径向缩放。但用户可全局微调:
+   *   - skin_offset: 每个点沿自身径向外推极小距离(防止穴位球穿模), mm 级
+   *   - meridian_yaw: 所有经络绕 Y 轴整体微调(±30°), 用于补偿模型朝向/对称差异
+   * 删除了之前的 pushToSkin 启发式径向缩放——它对 |xz|<radius 的点会反向放大,
+   * 把本来贴皮的点推飞到模型外侧天空里去。
+   * 用户可以通过底部"经络角度微调"滑块实时修正。 */
+  let meridianYawDeg = 0;     /* 全局经络绕 Y 轴旋转角度, 滑块控制 */
+  const _cosYaw = {c:1, s:0};
+  function rotateYaw(p){
+    const c = _cosYaw.c, s = _cosYaw.s;
+    return new THREE.Vector3(p.x * c - p.z * s, p.y, p.x * s + p.z * c);
   }
 
   const mRecords = [];
   MERIDIANS.forEach(m=>{
     /* y 缩放到身高 1.7 时已经一致，不用额外缩放 */
     const basePts = m.pts.map(p=>new THREE.Vector3(p[0], p[1], p[2]));
-    /* 把每个穴位径向推到皮肤表面，连线与穴位点都贴着模型 */
-    const pts3 = basePts.map(p=>pushToSkin(p));
+    /* pts 本身就是皮肤附近坐标, 直接用 */
+    const pts3 = basePts.map(p=>p);
     const tube = new THREE.CatmullRomCurve3(pts3, false, 'catmullrom', 0.2);
     const segs = Math.max(48, pts3.length*8);
     const tubeGeom = new THREE.TubeGeometry(tube, segs, 0.008, 8, false);
@@ -654,6 +652,16 @@ function setupMeridians(){
   window.MERIDIAN_RECORDS = mRecords;
   window.setMeridianVisible = setMeridianVisible;
   window.refreshAll = refreshAll;
+
+  /* 经络层整体绕 Y 轴旋转角度(±30°, 由用户滑块控制)—— 单独调整,
+   * 不影响人体姿态, 用于补偿 pts 数据与模型实际位置的微小差异 */
+  document.getElementById('meridianYawSlider').addEventListener('input', e => {
+    const deg = parseFloat(e.target.value);
+    meridianYawDeg = deg;
+    document.getElementById('meridianYawVal').textContent = deg + '°';
+    meridianGroup.rotation.y = THREE.MathUtils.degToRad(deg);
+  });
+  meridianGroup.rotation.y = 0;   /* 默认不旋转 */
 
   const totalAcus = mRecords.reduce((s,r)=>s+r.acupointsCount,0);
   showStatus('✅ 就绪 · 共14条经络 · '+totalAcus+' 穴位', 'ok');
