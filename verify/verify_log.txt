@@ -1,0 +1,50 @@
+▶ 导航到: http://127.0.0.1:8931/meridian3d.html?v=1787843622190
+
+========== 验证报告 ==========
+皮肤三角面数: 76037
+人体模型加载: true
+当前经络对齐角: 0°
+骨骼命名节点: 1 示例: tripo_node_1b97e970
+骨骼名标签生成: 19
+骨骼 mesh 结构:
+  1. tripo_node_1b97e970  tris=78168  bb=[-0.7,0,-0.51 ~ 0.67,1.7,0.49]
+
+-- 贴合前(手工坐标到皮肤的平均距离, 米) --
+  lu  手太阴肺经      avg=0.0485 min=0.0033 max=0.1087
+  pc  手厥阴心包经     avg=0.0394 min=0.0035 max=0.109
+  ht  手少阴心经      avg=0.0311 min=0.0025 max=0.0835
+  li  手阳明大肠经     avg=0.096 min=0.0116 max=0.1718
+  te  手少阳三焦经     avg=0.0822 min=0.0028 max=0.1547
+  si  手太阳小肠经     avg=0.0793 min=0.0024 max=0.1278
+  sp  足太阴脾经      avg=0.0361 min=0.0033 max=0.1291
+  lr  足厥阴肝经      avg=0.0336 min=0.0003 max=0.1316
+  ki  足少阴肾经      avg=0.0432 min=0.0016 max=0.0881
+  st  足阳明胃经      avg=0.0441 min=0.0012 max=0.1186
+  gb  足少阳胆经      avg=0.0462 min=0.0001 max=0.1181
+  bl  足太阳膀胱经     avg=0.0531 min=0.0003 max=0.1031
+  ren 任脉(前正中)    avg=0.024 min=0.0016 max=0.0617
+  du  督脉(后正中)    avg=0.0279 min=0.0022 max=0.0791
+
+-- 贴合后(应≈0.012 = 12mm 偏移) --
+  lu  手太阴肺经      avg=0.012 min=0.0119 max=0.012
+  pc  手厥阴心包经     avg=0.0118 min=0.0092 max=0.012
+  ht  手少阴心经      avg=0.0117 min=0.0048 max=0.012
+  li  手阳明大肠经     avg=0.012 min=0.012 max=0.012
+  te  手少阳三焦经     avg=0.0117 min=0.0033 max=0.012
+  si  手太阳小肠经     avg=0.012 min=0.012 max=0.012
+  sp  足太阴脾经      avg=0.011 min=0.0011 max=0.012
+  lr  足厥阴肝经      avg=0.0119 min=0.01 max=0.012
+  ki  足少阴肾经      avg=0.0117 min=0.0076 max=0.012
+  st  足阳明胃经      avg=0.0115 min=0.0016 max=0.012
+  gb  足少阳胆经      avg=0.0117 min=0.0063 max=0.012
+  bl  足太阳膀胱经     avg=0.0119 min=0.0111 max=0.012
+  ren 任脉(前正中)    avg=0.0117 min=0.0016 max=0.012
+  du  督脉(后正中)    avg=0.0116 min=0.0011 max=0.012
+
+状态栏: 显示骨骼名
+
+-- 控制台错误/警告 --
+  WARNING: THREE.FBXLoader: %s map is not supported in three.js, skipping texture. ShininessExponent
+  WARNING: THREE.FBXLoader: %s map is not supported in three.js, skipping texture. ReflectionFactor
+  WARNING: THREE.FBXLoader: %s map is not supported in three.js, skipping texture. ShininessExponent
+  WARNING: THREE.FBXLoader: %s map is not supported in three.js, skipping texture. ReflectionFactor
