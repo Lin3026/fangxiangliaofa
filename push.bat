@@ -28,6 +28,9 @@ if errorlevel 1 (
 ) else (
   echo.
   echo PUSH OK.
+  echo.
+  echo >>> IMPORTANT: Browser may show CACHED old page. <<<
+  echo >>> Press Ctrl+Shift+R (or Cmd+Shift+R) on the site to hard-refresh. <<<
 )
 
 REM Always clean up proxy
