@@ -78,12 +78,15 @@
   <div id="ctrl">
     <button id="bBody" class="on">👤 外表面</button>
     <button id="bBone">🦴 骨骼</button>
+    <button id="bBoneLabels">🏷 骨骼名</button>
     <button id="bPoints" class="on">⦿ 穴位点</button>
     <button id="bLabels" class="on">🏷 穴位名</button>
     <button id="bFlow" class="on">🌀 气流动</button>
+    <button id="bSnap" title="把每条经络投到最近的皮肤表面并贴合（表面投影）">🩹 自动贴合</button>
     <button id="bOrient" title="切换模型朝向(上下/前后/镜像)">🔄 朝向 1/5</button>
     <label class="yawCtl">顺时针微调 <input id="yawSlider" type="range" min="-180" max="180" step="1" value="-55" /> <span id="yawVal">-55°</span></label>
-    <label class="yawCtl">经络轴向 <input id="meridianYawSlider" type="range" min="-30" max="30" step="1" value="0" /> <span id="meridianYawVal">0°</span></label>
+    <label class="yawCtl">经络对齐 <input id="meridianYawSlider" type="range" min="-90" max="90" step="1" value="0" /> <span id="meridianYawVal">0°</span></label>
+    <label class="yawCtl">贴合偏移 <input id="offsetSlider" type="range" min="0" max="30" step="1" value="12" /> <span id="offsetVal">12mm</span></label>
     <button id="bReset">↺ 复位</button>
   </div>
 </div>
@@ -363,6 +366,100 @@ function loadBone(){
   });
 }
 
+/* ============ 皮肤贴合（表面投影 / surface snapping） ============
+ * 原理：不靠 UV 裁剪+蒙皮（那是给"骨骼驱动网格动画"用的），而是把经络采样点
+ * 投影到"最近的皮肤三角面"上，再沿表面法线外推极小距离（mm 级），
+ * 使线条逐点紧贴皮肤。这能解决全局旋转修不了的"不同部位各自偏差"。
+ * 计算在"人体自身空间"（body space = 去掉 world 旋转后的世界）进行，
+ * 结果与 userYaw/朝向无关，人体怎么转经络都贴着皮。
+ */
+let _skinSnapCache = null;
+function buildSkinSnap(){
+  if(_skinSnapCache) return _skinSnapCache;
+  world.updateMatrixWorld(true);
+  const invW = world.matrixWorld.clone().invert();
+  const tris = [];
+  if(bodyMesh){
+    bodyMesh.updateMatrixWorld(true);
+    bodyMesh.traverse(o=>{
+      if(!o.isMesh || !o.geometry) return;
+      const g = o.geometry, pos = g.attributes.position;
+      if(!pos) return;
+      const toBody = invW.clone().multiply(o.matrixWorld);
+      const vA=new THREE.Vector3(),vB=new THREE.Vector3(),vC=new THREE.Vector3();
+      const idx = g.index;
+      const triCount = idx ? idx.count/3 : pos.count/3;
+      for(let t=0;t<triCount;t++){
+        let ia,ib,ic;
+        if(idx){ ia=idx.getX(t*3); ib=idx.getX(t*3+1); ic=idx.getX(t*3+2); }
+        else { ia=t*3; ib=t*3+1; ic=t*3+2; }
+        vA.fromBufferAttribute(pos,ia).applyMatrix4(toBody);
+        vB.fromBufferAttribute(pos,ib).applyMatrix4(toBody);
+        vC.fromBufferAttribute(pos,ic).applyMatrix4(toBody);
+        tris.push([vA.clone(), vB.clone(), vC.clone()]);
+      }
+    });
+  }
+  /* 空间哈希：按三角面重心分桶，查询时只检查邻近桶 */
+  const cell = 0.12, hash = new Map();
+  const key=(x,y,z)=>Math.floor(x/cell)+'_'+Math.floor(y/cell)+'_'+Math.floor(z/cell);
+  tris.forEach(tr=>{
+    const cx=(tr[0].x+tr[1].x+tr[2].x)/3, cy=(tr[0].y+tr[1].y+tr[2].y)/3, cz=(tr[0].z+tr[1].z+tr[2].z)/3;
+    const k=key(cx,cy,cz);
+    if(!hash.has(k)) hash.set(k,[]);
+    hash.get(k).push(tr);
+  });
+  _skinSnapCache = {tris, hash, cell, key};
+  return _skinSnapCache;
+}
+/* 点到三角形最近点（Ericson 标准算法），返回 {p:Vector3} */
+function closestOnTri(p, a, b, c){
+  const ab=b.clone().sub(a), ac=c.clone().sub(a), ap=p.clone().sub(a);
+  const d1=ab.dot(ap), d2=ac.dot(ap);
+  if(d1<=0&&d2<=0) return {p:a.clone()};
+  const bp=p.clone().sub(b);
+  const d3=ab.dot(bp), d4=ac.dot(bp);
+  if(d3>=0&&d4<=d3) return {p:b.clone()};
+  const vc=d1*d4-d3*d2;
+  if(vc<=0&&d1>=0&&d3<=0){ const v=d1/(d1-d3); return {p:a.clone().add(ab.multiplyScalar(v))}; }
+  const cp=p.clone().sub(c);
+  const d5=ab.dot(cp), d6=ac.dot(cp);
+  if(d6>=0&&d5<=d6) return {p:c.clone()};
+  const vb=d5*d2-d1*d6;
+  if(vb<=0&&d2>=0&&d6<=0){ const w=d2/(d2-d6); return {p:a.clone().add(ac.multiplyScalar(w))}; }
+  const va=d3*d6-d5*d4;
+  if(va<=0&&(d4-d3)>=0&&(d5-d6)>=0){ const w=(d4-d3)/((d4-d3)+(d5-d6)); return {p:b.clone().add(c.clone().sub(b).multiplyScalar(w))}; }
+  const denom=1/(va+vb+vc), v=vb*denom, w=vc*denom;
+  return {p:a.clone().add(ab.multiplyScalar(v)).add(ac.multiplyScalar(w))};
+}
+/* 在皮肤网格上找 pt 的最近点（世界/人体空间一致），返回 {point, normal} 或 null */
+function snapToSkin(pt, snap){
+  const c=snap.cell;
+  let best=null, bestD=Infinity, bestTri=null;
+  for(let r=0;r<=3;r++){
+    const minX=Math.floor((pt.x-r*c)/c), maxX=Math.floor((pt.x+r*c)/c);
+    const minY=Math.floor((pt.y-r*c)/c), maxY=Math.floor((pt.y+r*c)/c);
+    const minZ=Math.floor((pt.z-r*c)/c), maxZ=Math.floor((pt.z+r*c)/c);
+    for(let ix=minX;ix<=maxX;ix++)
+      for(let iy=minY;iy<=maxY;iy++)
+        for(let iz=minZ;iz<=maxZ;iz++){
+          const arr=snap.hash.get(ix+'_'+iy+'_'+iz);
+          if(!arr) continue;
+          for(const tr of arr){
+            const r2=closestOnTri(pt, tr[0], tr[1], tr[2]);
+            const dd=pt.distanceToSquared(r2.p);
+            if(dd<bestD){ bestD=dd; best=r2.p.clone(); bestTri=tr; }
+          }
+        }
+  }
+  if(!best || !bestTri) return null;
+  /* 法线取命中三角面的面法线，方向统一"背离身体中心(0,0.85,0)"（朝体外） */
+  const e1=bestTri[1].clone().sub(bestTri[0]), e2=bestTri[2].clone().sub(bestTri[0]);
+  const n=e1.cross(e2).normalize();
+  if(n.dot(best.clone().sub(new THREE.Vector3(0,0.85,0)))<0) n.negate();
+  return {point:best, normal:n};
+}
+
 (async function(){
   let loadedBody = false, loadedBone = false;
   try{
@@ -402,7 +499,9 @@ function loadBone(){
 /* ============ 经络层 ============ */
 function setupMeridians(){
   const meridianGroup = new THREE.Group();
-  scene.add(meridianGroup);  /* 注意:挂到 scene,不挂 world——人体不动,只旋转经络层 */
+  /* 关键修正：经络层挂到 world（与人体同一父组），人体旋转时经络一起转，不再漂移。
+   * 经络与人体的"相对角度"由下方 meridianYawDeg（"经络对齐"滑块）单独控制。 */
+  world.add(meridianGroup);
 
   const visibleMeridians = new Set();
 
@@ -453,19 +552,15 @@ function setupMeridians(){
     return new THREE.Sprite(new THREE.SpriteMaterial({map:tex, depthTest:false, depthWrite:false}));
   }
 
-/* 经络贴皮: pts 数据本身就是皮肤附近坐标(头颈 0.05~0.25, 躯干 0.06~0.24,
-   * 四肢 0.05~0.20),不需要径向缩放。但用户可全局微调:
-   *   - skin_offset: 每个点沿自身径向外推极小距离(防止穴位球穿模), mm 级
-   *   - meridian_yaw: 所有经络绕 Y 轴整体微调(±30°), 用于补偿模型朝向/对称差异
-   * 删除了之前的 pushToSkin 启发式径向缩放——它对 |xz|<radius 的点会反向放大,
-   * 把本来贴皮的点推飞到模型外侧天空里去。
-   * 用户可以通过底部"经络角度微调"滑块实时修正。 */
-  let meridianYawDeg = 0;     /* 全局经络绕 Y 轴旋转角度, 滑块控制 */
-  const _cosYaw = {c:1, s:0};
-  function rotateYaw(p){
-    const c = _cosYaw.c, s = _cosYaw.s;
-    return new THREE.Vector3(p.x * c - p.z * s, p.y, p.x * s + p.z * c);
-  }
+  /* 经络相对人体的偏航(由"经络对齐"滑块控制,±90°):
+   * meridianGroup 已挂到 world(与人体一起旋转),此角度只用于补偿
+   * pts 手写坐标与模型正面的残差。贴皮时也按此角度先把点转到
+   * 人体空间再投影,保证滑块调整后仍能重新贴合。 */
+  let meridianYawDeg = 0;
+  const rotY = (p, deg)=>{
+    const a=THREE.MathUtils.degToRad(deg), c=Math.cos(a), s=Math.sin(a);
+    return new THREE.Vector3(p.x*c - p.z*s, p.y, p.x*s + p.z*c);
+  };
 
   const mRecords = [];
   MERIDIANS.forEach(m=>{
@@ -514,7 +609,7 @@ function setupMeridians(){
     meridianGroup.add(ptsGroup);
     meridianGroup.add(labelsGroup);
 
-    mRecords.push({id:m.id, name:m.name, color:m.color, tubeMesh, flowMesh, ptsGroup, labelsGroup, acupoints:m.acupoints, tube, acupointsCount:m.acupoints.length});
+    mRecords.push({id:m.id, name:m.name, color:m.color, tubeMesh, flowMesh, ptsGroup, labelsGroup, acupoints:m.acupoints, tube, acupointsCount:m.acupoints.length, basePts, baseCurve:tube});
   });
 
   function setMeridianVisible(id, on){
@@ -564,6 +659,7 @@ function setupMeridians(){
   document.getElementById('bBone').onclick = ()=>{
     boneVisible = !boneVisible;
     if(boneMesh) boneMesh.visible = boneVisible;
+    if(boneLabelGroup) boneLabelGroup.visible = boneVisible && boneLabelsOn;
     document.getElementById('bBone').classList.toggle('on', boneVisible);
     showStatus(boneVisible?'显示骨骼':'隐藏骨骼');
   };
@@ -652,16 +748,167 @@ function setupMeridians(){
   window.MERIDIAN_RECORDS = mRecords;
   window.setMeridianVisible = setMeridianVisible;
   window.refreshAll = refreshAll;
+  window.__m3d = {
+    mRecords, meridianGroup,
+    getYaw: ()=>meridianYawDeg,
+    setYaw: (deg)=>{ meridianYawDeg=deg; meridianGroup.rotation.y=THREE.MathUtils.degToRad(deg); },
+    runSnap, revertSnap, buildSkinSnap, snapToSkin, rotY,
+    setMeridianVisible,
+    getBody: ()=>bodyMesh,
+    getBone: ()=>boneMesh,
+    getBoneLabels: ()=>boneLabelGroup,
+    getStatus: ()=>document.getElementById('status').textContent
+  };
 
-  /* 经络层整体绕 Y 轴旋转角度(±30°, 由用户滑块控制)—— 单独调整,
-   * 不影响人体姿态, 用于补偿 pts 数据与模型实际位置的微小差异 */
+  /* 经络层相对人体的偏航(±90°, "经络对齐"滑块)—— 只修残差角度;
+   * meridianGroup 已随 world 与人体一起旋转, 不再需要补偿全局朝向 */
   document.getElementById('meridianYawSlider').addEventListener('input', e => {
     const deg = parseFloat(e.target.value);
     meridianYawDeg = deg;
     document.getElementById('meridianYawVal').textContent = deg + '°';
     meridianGroup.rotation.y = THREE.MathUtils.degToRad(deg);
+    if(snapOn) runSnap(parseFloat(document.getElementById('offsetSlider').value)/1000);
   });
-  meridianGroup.rotation.y = 0;   /* 默认不旋转 */
+  meridianGroup.rotation.y = THREE.MathUtils.degToRad(meridianYawDeg);   /* 默认 0 */
+
+  /* ============ 自动贴合（表面投影） ============ */
+  let snapOn = false;
+  /* 用一组点(人体空间→经络局部)重建整条经络的管线/流动/穴位/标签 */
+  function rebuild(r, curve){
+    const segs = Math.max(48, (curve.points?curve.points.length:16)*4);
+    if(r.tubeMesh.geometry) r.tubeMesh.geometry.dispose();
+    r.tubeMesh.geometry = new THREE.TubeGeometry(curve, segs, 0.008, 8, false);
+    if(r.flowMesh.geometry) r.flowMesh.geometry.dispose();
+    r.flowMesh.geometry = new THREE.TubeGeometry(curve, segs, 0.014, 12, false);
+    r.tube = curve;
+    const baseLen = r.basePts.length, acN = r.acupoints.length;
+    r.ptsGroup.children.forEach((sphere, i)=>{
+      const t = (i<baseLen) ? i/(baseLen-1) : (acN===1?0.5:i/(acN-1));
+      const pos = curve.getPoint(t);
+      sphere.position.copy(pos);
+      const lab = r.labelsGroup.children[i];
+      if(lab) lab.position.set(pos.x, pos.y+0.03, pos.z);
+    });
+  }
+  /* 每条经络: 沿原曲线密集采样 → 按 meridianYaw 转到人体空间 → 投影到最近皮肤面 →
+   * 沿法线外推 off 米 → 转回经络局部坐标 → 重建管线 */
+  function runSnap(off){
+    const skin = buildSkinSnap();
+    if(!skin.tris.length){ showStatus('⚠️ 皮肤网格为空, 无法贴合','err'); return; }
+    mRecords.forEach(r=>{
+      const baseCurve = r.baseCurve;
+      const N = 32;                                  /* 每条经络采样 33 个点, 管线更顺滑 */
+      const snapped = [];
+      for(let i=0;i<=N;i++){
+        const P = baseCurve.getPoint(i/N);           /* 人体空间采样点 */
+        const Q = rotY(P, meridianYawDeg);           /* 转到渲染时的实际朝向 */
+        const S = snapToSkin(Q, skin);
+        if(!S){ snapped.push(rotY(P, -meridianYawDeg)); continue; }
+        snapped.push(rotY(S.point.clone().add(S.normal.clone().multiplyScalar(off)), -meridianYawDeg));
+      }
+      const curve = new THREE.CatmullRomCurve3(snapped, false, 'catmullrom', 0.2);
+      rebuild(r, curve);
+    });
+    showStatus('✅ 已贴合皮肤（偏移 '+Math.round(off*1000)+'mm · 逐点投影）','ok');
+  }
+  function revertSnap(){
+    mRecords.forEach(r=> rebuild(r, r.baseCurve));
+    showStatus('↩ 已恢复手工坐标');
+  }
+  document.getElementById('bSnap').onclick = ()=>{
+    snapOn = !snapOn;
+    document.getElementById('bSnap').classList.toggle('on', snapOn);
+    if(snapOn) runSnap(parseFloat(document.getElementById('offsetSlider').value)/1000);
+    else revertSnap();
+  };
+  document.getElementById('offsetSlider').addEventListener('input', e=>{
+    const mm = parseFloat(e.target.value);
+    document.getElementById('offsetVal').textContent = mm + 'mm';
+    if(snapOn) runSnap(mm/1000);
+  });
+
+  /* ============ 骨骼名标签 ============
+   * 骨骼模型往往不命名(AI 生成的整体网格),采用两套策略:
+   * 1) 模型有 ≥3 个 mesh 且各自带名字 → 直接显示模型自带名字
+   * 2) 模型是整体网格(1~2 mesh,像 guge1.fbx)→ 按标准人体解剖部位
+   *    自动标注 19 个核心骨头名(颅/颈/肩胛/胸/肱/腰/骨盆/尺桡/腕掌/
+   *    股/胫腓/跗),body space 固定坐标定位,与骨骼模型对齐显示。 */
+  let boneLabelsBuilt=false, boneLabelGroup=null, boneLabelsOn=false;
+  /* 标准 1.7m 人体解剖学标签(body space, x 左右, y 身高, z 前后) */
+  const ANATOMY_BONES = [
+    ['颅骨',         0,    1.60,  0.06],
+    ['颈椎',         0,    1.46, -0.03],
+    ['锁/肩胛骨',    0,    1.33, -0.10],
+    ['胸骨',         0,    1.20,  0.10],
+    ['胸椎',         0,    1.18, -0.12],
+    ['肱骨(左)',    -0.24,  1.05,  0   ],
+    ['肱骨(右)',     0.24,  1.05,  0   ],
+    ['腰椎',         0,    0.95, -0.12],
+    ['尺/桡骨(左)', -0.27,  0.82,  0   ],
+    ['尺/桡骨(右)',  0.27,  0.82,  0   ],
+    ['骨盆/髋骨',    0,    0.72,  0   ],
+    ['腕/掌骨(左)', -0.31,  0.60,  0   ],
+    ['腕/掌骨(右)',  0.31,  0.60,  0   ],
+    ['股骨(左)',    -0.13,  0.45,  0   ],
+    ['股骨(右)',     0.13,  0.45,  0   ],
+    ['胫/腓骨(左)', -0.13,  0.18,  0   ],
+    ['胫/腓骨(右)',  0.13,  0.18,  0   ],
+    ['跗骨/足(左)', -0.12,  0.04,  0.10],
+    ['跗骨/足(右)',  0.12,  0.04,  0.10]
+  ];
+  function buildBoneLabels(){
+    if(boneLabelsBuilt) return;
+    boneLabelGroup = new THREE.Group();
+    world.add(boneLabelGroup);                       /* 挂 world: 人体怎么转标签怎么转 */
+    let count = 0;
+    if(boneMesh){
+      /* 判断骨骼模型是分块命名 还是 整体网格 */
+      let meshCount = 0, namedCount = 0;
+      boneMesh.traverse(o=>{
+        if(!o.isMesh || !o.geometry) return;
+        meshCount++;
+        const nm = (o.name||'').trim();
+        if(nm && /[\u4e00-\u9fa5a-zA-Z]/.test(nm) && !/^(group|null|object\d*)$/i.test(nm)) namedCount++;
+      });
+      if(namedCount >= 3){
+        /* 策略 1: 模型自带足够多命名 → 用模型名字 */
+        boneMesh.updateMatrixWorld(true);
+        const invW = world.matrixWorld.clone().invert();
+        const tmp = new THREE.Vector3();
+        boneMesh.traverse(o=>{
+          const nm=(o.name||'').trim();
+          if(!nm || !/[\u4e00-\u9fa5a-zA-Z]/.test(nm) || /^(group|null|object\d*)$/i.test(nm)) return;
+          if(!(o.isBone||o.isMesh)) return;
+          tmp.setFromMatrixPosition(invW.clone().multiply(o.matrixWorld));
+          const sprite = makeLabel(nm, 'ffe9b0');
+          sprite.position.copy(tmp);
+          sprite.scale.set(0.18, 0.045, 1);
+          boneLabelGroup.add(sprite);
+          count++;
+        });
+        showStatus('🦴 骨骼（模型自带名）'+count+' 个 · 点「骨骼名」开关显示', 'ok');
+      } else {
+        /* 策略 2: 整体骨骼网格(AI 生成常见)→ 自动按解剖部位标注 */
+        ANATOMY_BONES.forEach(([nm, x, y, z])=>{
+          const sprite = makeLabel(nm, 'ffe9b0');
+          sprite.position.set(x, y, z);
+          sprite.scale.set(0.18, 0.045, 1);
+          boneLabelGroup.add(sprite);
+          count++;
+        });
+        showStatus('🦴 骨骼模型无分块命名,已自动按解剖部位标注 '+count+' 块骨头(颅/颈/肩胛/胸/肱/腰/骨盆/尺桡/腕掌/股/胫腓/跗) · 点「骨骼名」显示', 'ok');
+      }
+    }
+    boneLabelsBuilt = true;
+    boneLabelGroup.visible = false;
+  }
+  document.getElementById('bBoneLabels').onclick = ()=>{
+    buildBoneLabels();
+    boneLabelsOn = !boneLabelsOn;
+    document.getElementById('bBoneLabels').classList.toggle('on', boneLabelsOn);
+    if(boneLabelGroup) boneLabelGroup.visible = boneLabelsOn && boneVisible;
+    showStatus(boneLabelsOn?'显示骨骼名':'隐藏骨骼名');
+  };
 
   const totalAcus = mRecords.reduce((s,r)=>s+r.acupointsCount,0);
   showStatus('✅ 就绪 · 共14条经络 · '+totalAcus+' 穴位', 'ok');
