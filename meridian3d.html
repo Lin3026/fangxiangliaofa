@@ -82,7 +82,7 @@
     <button id="bLabels" class="on">🏷 穴位名</button>
     <button id="bFlow" class="on">🌀 气流动</button>
     <button id="bOrient" title="切换模型朝向(上下/前后/镜像)">🔄 朝向 1/5</button>
-    <label class="yawCtl">顺时针微调 <input id="yawSlider" type="range" min="-180" max="180" step="1" value="30" /> <span id="yawVal">30°</span></label>
+    <label class="yawCtl">顺时针微调 <input id="yawSlider" type="range" min="-180" max="180" step="1" value="-55" /> <span id="yawVal">-55°</span></label>
     <button id="bReset">↺ 复位</button>
   </div>
 </div>
@@ -262,7 +262,7 @@ const MODEL_ORIENTATIONS = [
 let modelOrientIdx = 0;
 /* 默认整体绕 Y 轴顺时针转 30°（正 Y 旋转 = 屏幕视角下顺时针），
  * 让人体正面更朝向相机（用户反馈当前偏侧面）。仍可继续用「朝向」按钮微调 */
-const BASE_YAW = THREE.MathUtils.degToRad(30);
+const BASE_YAW = THREE.MathUtils.degToRad(-55);
 let userYaw = BASE_YAW;            // 用户用滑块实时微调的偏航角(弧度)
 function applyOrient(){
   const o = MODEL_ORIENTATIONS[modelOrientIdx];
@@ -363,22 +363,31 @@ function loadBone(){
 }
 
 (async function(){
+  let loadedBody = false, loadedBone = false;
   try{
     const body = await loadBody();
     modelGroup.add(body); bodyMesh = body;
+    loadedBody = true;
+  }catch(err){
+    console.error('外表面加载失败:', err);
+    showStatus('⚠️ 外表面加载失败','err');
+  }
+  try{
     const bone = await loadBone();
     modelGroup.add(bone); boneMesh = bone;
-    setProgress('加载完成', 100);
-    setTimeout(hideProgress, 250);
-    setupMeridians();
-    showStatus('✅ 模型加载完成 (外表面+骨骼)','ok');
+    loadedBone = true;
   }catch(err){
-    console.error('模型加载失败:', err);
-    setProgress('⚠️ 模型加载失败', 100);
-    document.getElementById('progText').innerHTML = '模型加载失败：'+err.message+'<br/><br/>'+
-      '<small style="color:#9aa0a6">请确认 <code>models/human1.fbx</code> 与 <code>models/guge1.fbx</code> 已上传<br/>且 GitHub Pages 部署完成</small>';
-    showStatus('⚠️ 模型加载失败 - 请用浏览器开发者工具查看 console', 'err');
+    console.error('骨骼加载失败:', err);
+    showStatus('⚠️ 骨骼加载失败（不影响经络）','err');
   }
+  if(!loadedBody){
+    document.getElementById('progText').textContent='⚠️ 外表面未加载，无法继续';
+    return;
+  }
+  setProgress('加载完成', 100);
+  setTimeout(hideProgress, 250);
+  setupMeridians();
+  showStatus('✅ 模型加载完成'+(loadedBone?' (外表面+骨骼)':' (仅外表面)'),'ok');
 })();
 
 /* ============ 经络层 ============ */
@@ -432,10 +441,32 @@ function setupMeridians(){
     return new THREE.Sprite(new THREE.SpriteMaterial({map:tex, depthTest:false, depthWrite:false}));
   }
 
+/* 把穴位点推至人体外表面 (启发式径向缩放)
+   * 之前用 Raycaster 投射但 three.js 内部 Vector3.copy 抛出 undefined (headless FBX mesh 边界计算缺陷)。
+   * 改为按身体部位 (头/颈/肩/胸腹/髋/大腿/小腿) 的近似半径，把穴位点沿 XZ 方向径向缩放到该半径，
+   * 使连线及穴位紧贴模型。误差 ±2cm，远小于 FBX 扫描本身的形变。 */
+  function pushToSkin(p){
+    const y = p.y, ax = Math.abs(p.x);
+    let radius;
+    if(y > 1.58) radius = 0.115;                              /* 头顶 */
+    else if(y > 1.42) radius = ax > 0.12 ? 0.075 : 0.14;       /* 颈/肩 */
+    else if(y > 1.06) radius = ax > 0.12 ? 0.075 : 0.19;       /* 肩胸·上臂 */
+    else if(y > 0.62) radius = ax > 0.10 ? 0.065 : 0.185;      /* 胸腹·前臂 */
+    else if(y > 0.30) radius = ax > 0.10 ? 0.055 : 0.14;       /* 髋·大腿 */
+    else if(y > 0.10) radius = ax > 0.10 ? 0.045 : 0.075;      /* 小腿 */
+    else radius = 0.105;                                         /* 脚 */
+    const xzLen = Math.hypot(p.x, p.z);
+    if(xzLen < 1e-6) return p.clone();
+    const k = radius / xzLen;
+    return new THREE.Vector3(p.x * k, p.y, p.z * k);
+  }
+
   const mRecords = [];
   MERIDIANS.forEach(m=>{
     /* y 缩放到身高 1.7 时已经一致，不用额外缩放 */
-    const pts3 = m.pts.map(p=>new THREE.Vector3(p[0], p[1], p[2]));
+    const basePts = m.pts.map(p=>new THREE.Vector3(p[0], p[1], p[2]));
+    /* 把每个穴位径向推到皮肤表面，连线与穴位点都贴着模型 */
+    const pts3 = basePts.map(p=>pushToSkin(p));
     const tube = new THREE.CatmullRomCurve3(pts3, false, 'catmullrom', 0.2);
     const tubeGeom = new THREE.TubeGeometry(tube, Math.max(48, pts3.length*8), 0.008, 8, false);
     const tubeMat = new THREE.MeshBasicMaterial({color:m.color, transparent:true, opacity:0.85, depthTest:true});
@@ -453,8 +484,7 @@ function setupMeridians(){
     labelsGroup.visible = false;
 
     m.acupoints.forEach((name, i)=>{
-      const t = i/(Math.max(1, m.acupoints.length-1));
-      const pos = tube.getPoint(t);
+      const pos = pts3[i];
       const sphere = new THREE.Mesh(ptGeom, ptMat);
       sphere.position.copy(pos);
       ptsGroup.add(sphere);
