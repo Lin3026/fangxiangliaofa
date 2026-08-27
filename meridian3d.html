@@ -386,8 +386,16 @@ function loadBone(){
   }
   setProgress('加载完成', 100);
   setTimeout(hideProgress, 250);
-  setupMeridians();
-  showStatus('✅ 模型加载完成'+(loadedBone?' (外表面+骨骼)':' (仅外表面)'),'ok');
+  try{
+    setupMeridians();
+    /* 关键：模型加载完成后立刻应用一次默认朝向(滑块默认值 -55°),
+     * 否则只能等用户主动拖滑块或点朝向按钮才生效。 */
+    if(typeof applyOrient === 'function') applyOrient();
+    showStatus('✅ 模型加载完成'+(loadedBone?' (外表面+骨骼)':' (仅外表面)'),'ok');
+  }catch(err){
+    console.error('经络层初始化失败:', err);
+    showStatus('⚠️ 经络层初始化失败：'+err.message, 'err');
+  }
 })();
 
 /* ============ 经络层 ============ */
@@ -468,13 +476,14 @@ function setupMeridians(){
     /* 把每个穴位径向推到皮肤表面，连线与穴位点都贴着模型 */
     const pts3 = basePts.map(p=>pushToSkin(p));
     const tube = new THREE.CatmullRomCurve3(pts3, false, 'catmullrom', 0.2);
-    const tubeGeom = new THREE.TubeGeometry(tube, Math.max(48, pts3.length*8), 0.008, 8, false);
+    const segs = Math.max(48, pts3.length*8);
+    const tubeGeom = new THREE.TubeGeometry(tube, segs, 0.008, 8, false);
     const tubeMat = new THREE.MeshBasicMaterial({color:m.color, transparent:true, opacity:0.85, depthTest:true});
     const tubeMesh = new THREE.Mesh(tubeGeom, tubeMat);
     tubeMesh.visible = false;
     meridianGroup.add(tubeMesh);
 
-    const flowMesh = new THREE.Mesh(new THREE.TubeGeometry(tube, Math.max(48, pts3.length*8), 0.014, 12, false), makeFlowMat());
+    const flowMesh = new THREE.Mesh(new THREE.TubeGeometry(tube, segs, 0.014, 12, false), makeFlowMat());
     flowMesh.visible = false;
     meridianGroup.add(flowMesh);
 
@@ -483,8 +492,17 @@ function setupMeridians(){
     const labelsGroup = new THREE.Group();
     labelsGroup.visible = false;
 
+    /* 穴位数常大于线点数：越界时用 t=i/(N-1) 沿管线插值取点，绝不返回 undefined */
+    const acN = m.acupoints.length;
     m.acupoints.forEach((name, i)=>{
-      const pos = pts3[i];
+      let pos;
+      if(i < pts3.length){
+        pos = pts3[i];
+      }else{
+        const t = acN === 1 ? 0.5 : i / (acN - 1);
+        pos = tube.getPoint(t);
+      }
+      if(!pos){ return; }   /* 双重保险 */
       const sphere = new THREE.Mesh(ptGeom, ptMat);
       sphere.position.copy(pos);
       ptsGroup.add(sphere);
