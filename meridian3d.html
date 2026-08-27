@@ -13,7 +13,8 @@
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;height:100%;background:var(--bg);color:var(--txt);font:14px/1.5 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;overflow:hidden;}
-  #app{display:flex;height:100vh;width:100%;overflow:hidden;}
+  #app{display:flex;flex-direction:column;height:100vh;width:100%;overflow:hidden;}
+  #main{display:flex;flex:1;min-height:0;overflow:hidden;}
   #side{width:260px;min-width:260px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:10px 12px;gap:10px;overflow:auto;}
   #stage{flex:1;position:relative;overflow:hidden;}
   canvas{display:block;}
@@ -28,7 +29,7 @@
   .mRow.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:600;}
   .mRow .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;background:var(--c);box-shadow:0 0 6px var(--c);}
   .mRow .meta{margin-left:auto;color:var(--muted);font-size:11px;}
-  #ctrl{padding:10px 12px;background:var(--panel);border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:6px;}
+  #ctrl{padding:10px 12px;background:var(--panel);border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;}
   #ctrl button{background:#0b0e12;color:var(--txt);border:1px solid var(--line);padding:7px 11px;border-radius:7px;cursor:pointer;font-size:12.5px;}
   #ctrl button.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
   #ctrl button:hover{border-color:var(--accent);}
@@ -50,25 +51,27 @@
 </head>
 <body>
 <div id="app">
-  <aside id="side">
-    <div>
-      <h2>经络 · 搜索</h2>
-      <div id="search">
-        <input id="searchInput" type="text" placeholder="搜穴位/经络名…" />
-        <button id="searchClear" title="清空">✕</button>
+  <div id="main">
+    <aside id="side">
+      <div>
+        <h2>经络 · 搜索</h2>
+        <div id="search">
+          <input id="searchInput" type="text" placeholder="搜穴位/经络名…" />
+          <button id="searchClear" title="清空">✕</button>
+        </div>
+        <div id="searchHint" style="font-size:11px;color:var(--muted);margin-top:4px;min-height:14px;"></div>
       </div>
-      <div id="searchHint" style="font-size:11px;color:var(--muted);margin-top:4px;min-height:14px;"></div>
-    </div>
-    <div>
-      <h2>经络列表（点击切换）</h2>
-      <div class="mList" id="mList"></div>
-    </div>
-  </aside>
-  <main id="stage">
-    <div id="status"></div>
-    <div id="progress"><div id="progText">正在加载 3D 模型…</div><div class="pb"><span id="progBar"></span></div></div>
-    <div id="info">提示：<b>鼠标左键</b>旋转 · <b>右键</b>平移 · <b>滚轮</b>缩放</div>
-  </main>
+      <div>
+        <h2>经络列表（点击切换）</h2>
+        <div class="mList" id="mList"></div>
+      </div>
+    </aside>
+    <main id="stage">
+      <div id="status"></div>
+      <div id="progress"><div id="progText">正在加载 3D 模型…</div><div class="pb"><span id="progBar"></span></div></div>
+      <div id="info">提示：<b>鼠标左键</b>旋转 · <b>右键</b>平移 · <b>滚轮</b>缩放</div>
+    </main>
+  </div>
   <div id="ctrl">
     <button id="bBody" class="on">👤 外表面</button>
     <button id="bBone">🦴 骨骼</button>
@@ -76,7 +79,7 @@
     <button id="bLabels" class="on">🏷 穴位名</button>
     <button id="bFlow" class="on">🌀 气流动</button>
     <button id="bOrient" title="切换模型朝向(上下/前后/镜像)">🔄 朝向 1/5</button>
-    <button id="bReset" style="margin-left:auto;">↺ 复位</button>
+    <button id="bReset">↺ 复位</button>
   </div>
 </div>
 
@@ -186,7 +189,11 @@ rimLight.position.set(0, 2, -3); scene.add(rimLight);
  * 转换: 让模型 (x,y,z) → three.js (y, z, x)  (轴交换 + 重新 fit 到 1.7m)
  */
 const modelGroup = new THREE.Group();
-scene.add(modelGroup);
+/* world 组：把人体模型 + 经络层放进同一个父组，统一绕 Y 轴旋转，
+ * 这样旋转后穴位经络仍与人体对齐（不会各转各的） */
+const world = new THREE.Group();
+world.add(modelGroup);
+scene.add(world);
 
 let bodyMesh = null;
 let boneMesh = null;
@@ -249,9 +256,12 @@ const MODEL_ORIENTATIONS = [
   {rx: Math.PI/2,     ry: 0,             rz: 0,             name: '立起来(X转90°)'}
 ];
 let modelOrientIdx = 0;
+/* 默认整体绕 Y 轴顺时针转 30°（正 Y 旋转 = 屏幕视角下顺时针），
+ * 让人体正面更朝向相机（用户反馈当前偏侧面）。仍可继续用「朝向」按钮微调 */
+const BASE_YAW = THREE.MathUtils.degToRad(30);
 function applyOrient(){
   const o = MODEL_ORIENTATIONS[modelOrientIdx];
-  modelGroup.rotation.set(o.rx, o.ry, o.rz);
+  world.rotation.set(o.rx, o.ry + BASE_YAW, o.rz);
 }
 
 function loadBody(){
@@ -357,7 +367,7 @@ function loadBone(){
 /* ============ 经络层 ============ */
 function setupMeridians(){
   const meridianGroup = new THREE.Group();
-  scene.add(meridianGroup);
+  world.add(meridianGroup);
 
   const visibleMeridians = new Set();
 
