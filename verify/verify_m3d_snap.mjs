@@ -156,6 +156,14 @@ const report = await evaluate(`(async () => {
   await new Promise(r=>setTimeout(r, 800));
   const after = d.mRecords.map(r=>({id:r.id, name:r.name, ...stats(r.tube)}));
 
+  // 真实穴位坐标覆盖探针: 对比每条经络首/末点 + 点数, 验证 acu_real.js 是否真正生效
+  const ptsSample = d.mRecords.map(r=>{
+    const h = r.basePts[0], t = r.basePts[r.basePts.length-1];
+    return { id:r.id, n:r.basePts.length,
+      head:[+h.x.toFixed(4),+h.y.toFixed(4),+h.z.toFixed(4)],
+      tail:[+t.x.toFixed(4),+t.y.toFixed(4),+t.z.toFixed(4)] };
+  });
+
   // 骨骼命名检查
   const boneNames = [];
   if(d.getBone()){
@@ -204,7 +212,7 @@ const report = await evaluate(`(async () => {
   try{ detailed = d.computeDetailedPositions(); }catch(e){ detailed = {error:String(e)}; }
 
   return {
-    before, after,
+    before, after, ptsSample,
     anatomy, detailed,
     skinTris: skin.tris.length,
     boneNames: boneNames.slice(0, 40),
@@ -281,6 +289,10 @@ report.before.forEach(r=>console.log('  ' + r.id.padEnd(3), r.name.padEnd(10), '
 console.log('\n-- 贴合后(应≈0.012 = 12mm 偏移) --');
 report.after.forEach(r=>console.log('  ' + r.id.padEnd(3), r.name.padEnd(10), 'avg=' + r.avg, 'min=' + r.min, 'max=' + r.max));
 console.log('\n状态栏:', report.status);
+
+console.log('\n-- 真实穴位坐标覆盖探针 (basePts 首/末点 + 点数) --');
+console.log('  期望: ren 首≈[0.0005,0.9526,0.0699](下腹) 末≈[0.0002,1.6738,0.0546](下巴); st 首≈[-0.032,1.747,0.033](脸) 末≈[-0.109,0,0.124](脚趾)');
+report.ptsSample.forEach(r=>console.log('  '+r.id.padEnd(3)+' n='+String(r.n).padStart(2)+'  head=['+r.head.join(',')+']  tail=['+r.tail.join(',')+']'));
 
 if (consoleErrors.length) {
   console.log('\n-- 控制台错误/警告 --');
