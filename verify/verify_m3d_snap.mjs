@@ -199,10 +199,13 @@ const report = await evaluate(`(async () => {
   // 自动探测的骨骼标签坐标
   let anatomy = null;
   try{ anatomy = d.computeAnatomyPositions(); }catch(e){ anatomy = {error:String(e)}; }
+  // 详细模式(脊柱分节 + 面骨)
+  let detailed = null;
+  try{ detailed = d.computeDetailedPositions(); }catch(e){ detailed = {error:String(e)}; }
 
   return {
     before, after,
-    anatomy,
+    anatomy, detailed,
     skinTris: skin.tris.length,
     boneNames: boneNames.slice(0, 40),
     boneNameCount: boneNames.length,
@@ -235,6 +238,19 @@ await sleep(1200);
 const shot2 = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
 writeFileSync('C:/Users/1/WorkBuddy/fangxiangliaofa/verify/m3d_bones_only.png', Buffer.from(shot2.data, 'base64'));
 
+// 第三张: 详细模式(脊柱分节 + 面骨)
+await evaluate(`(()=>{
+  const d = window.__m3d;
+  const btn = document.getElementById('bBoneDetail');
+  if(btn) btn.click();          // 切到详细
+  const grp = d.getBoneLabels();
+  if(grp) grp.visible = true;
+  return 'ok';
+})()`);
+await sleep(1200);
+const shot3 = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
+writeFileSync('C:/Users/1/WorkBuddy/fangxiangliaofa/verify/m3d_bones_detail.png', Buffer.from(shot3.data, 'base64'));
+
 console.log('\n========== 验证报告 ==========');
 console.log('皮肤三角面数:', report.skinTris);
 console.log('人体模型加载:', report.hasBody);
@@ -245,6 +261,14 @@ if(report.boneStruct){
   console.log('骨骼 mesh 结构:');
   report.boneStruct.forEach((m,i)=>console.log('  '+(i+1)+'. '+m.name+'  tris='+m.tris+'  bb=['+m.min.join(',')+' ~ '+m.max.join(',')+']'));
 }
+if(report.detailed && !report.detailed.error && report.detailed.length){
+  console.log('\n-- 详细模式: 脊柱分节 + 颅面细骨 (x=前后 y=身高 z=左右) --');
+  report.detailed.forEach(([nm,x,y,z])=>console.log('  '+nm.padEnd(12)+' x='+String(x).padStart(6)+'  y='+String(y).padStart(5)+'  z='+String(z).padStart(6)));
+  console.log('  合计: '+report.detailed.length+' 个标签');
+} else {
+  console.log('\n详细模式探测失败:', report.detailed && report.detailed.error);
+}
+
 if(report.anatomy && !report.anatomy.error && report.anatomy.length){
   console.log('\n-- 自动探测的骨骼标签坐标 (x=前后 y=身高 z=左右) --');
   report.anatomy.forEach(([nm,x,y,z])=>console.log('  '+nm.padEnd(12)+' x='+String(x).padStart(6)+'  y='+y+'  z='+String(z).padStart(6)));

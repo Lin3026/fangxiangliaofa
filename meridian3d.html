@@ -79,6 +79,7 @@
     <button id="bBody" class="on">👤 外表面</button>
     <button id="bBone">🦴 骨骼</button>
     <button id="bBoneLabels">🏷 骨骼名</button>
+    <button id="bBoneDetail" title="切换骨骼标注详细度：大部位 ↔ 脊柱分节(C1-C7/T1-T12/L1-L5)+颅面细骨">🔍 细分</button>
     <button id="bPoints" class="on">⦿ 穴位点</button>
     <button id="bLabels" class="on">🏷 穴位名</button>
     <button id="bFlow" class="on">🌀 气流动</button>
@@ -764,6 +765,7 @@ function setupMeridians(){
     getBone: ()=>boneMesh,
     getBoneLabels: ()=>boneLabelGroup,
     computeAnatomyPositions,
+    computeDetailedPositions,
     getStatus: ()=>document.getElementById('status').textContent
   };
 
@@ -916,8 +918,105 @@ function setupMeridians(){
     });
     return out.length ? out : null;
   }
-  function buildBoneLabels(){
-    if(boneLabelsBuilt) return;
+
+  /* ★★ 详细模式: 脊柱分节(C1-C7/T1-T12/L1-L5) + 面部细骨
+   * 说明: 骨骼模型是整体网格(无椎骨层级), 这里用"骨度分寸法"沿背部正中线
+   * 按固定节数推算每节椎骨位置——原理同中医定位背俞穴
+   * (如 T7 平肩胛下角、L4 平髂嵴)。属于解剖学近似, 非模型精确数据。 */
+  function computeDetailedPositions(){
+    const skin = buildSkinSnap();
+    if(!skin || !skin.tris.length) return null;
+    const pts = [];
+    skin.tris.forEach(t=>{ pts.push(t[0], t[1], t[2]); });
+    /* 背部正中线(棘突): 该高度 z≈0 附近最靠后(x 最小)的点,
+     * 并强制 z=0 —— 椎骨棘突就在正中线上, 不能让 z 随机漂 */
+    const backAt = (y, zTol)=>{
+      const band = pts.filter(p=>Math.abs(p.y-y)<0.03 && Math.abs(p.z)<(zTol||0.06));
+      if(!band.length) return null;
+      let minX=Infinity;
+      band.forEach(p=>{ if(p.x<minX) minX=p.x; });
+      return {x:minX, y:y, z:0};
+    };
+    /* 躯干侧面(锁骨/肋骨/髂骨): 限制 z 在躯干宽度内, 排除手臂末端和正中线 */
+    const flankAt = (y, sign, front)=>{
+      const band = pts.filter(p=>Math.abs(p.y-y)<0.04 && sign*p.z>0.06 && sign*p.z<0.22);
+      if(!band.length) return null;
+      let best=null, cmp = front ? -Infinity : Infinity;
+      band.forEach(p=>{ if(front ? p.x>cmp : p.x<cmp){ cmp=p.x; best=p; } });
+      return best;
+    };
+    /* 面部/前方: 该高度上 z 居中且最靠前(x 最大)的点 */
+    const frontAt = (y, zTol)=>{
+      const band = pts.filter(p=>Math.abs(p.y-y)<0.035 && Math.abs(p.z)<(zTol||0.05));
+      if(!band.length) return null;
+      let best=null, maxX=-Infinity;
+      band.forEach(p=>{ if(p.x>maxX){ maxX=p.x; best=p; } });
+      return best;
+    };
+    /* 侧面(颧骨/肋骨等): 指定 z 半区里最靠前的点 */
+    const sideFrontAt = (y, sign)=>{
+      const band = pts.filter(p=>Math.abs(p.y-y)<0.035 && sign*p.z>0.02);
+      if(!band.length) return null;
+      let best=null, maxX=-Infinity;
+      band.forEach(p=>{ if(p.x>maxX){ maxX=p.x; best=p; } });
+      return best;
+    };
+    /* 侧后方(肩胛骨等): 指定 z 半区里最靠后的点 */
+    const sideBackAt = (y, sign)=>{
+      const band = pts.filter(p=>Math.abs(p.y-y)<0.04 && sign*p.z>0.02);
+      if(!band.length) return null;
+      let best=null, minX=Infinity;
+      band.forEach(p=>{ if(p.x<minX){ minX=p.x; best=p; } });
+      return best;
+    };
+    const out=[];
+    const add=(name,p)=>{ if(p) out.push([name, +p.x.toFixed(3), +p.y.toFixed(3), +p.z.toFixed(3)]); };
+    /* === 脊柱分节(骨度分寸法, 基于 1.7m 身高解剖比例) === */
+    const seg=(n, y0, y1)=>{                 /* 在 y0→y1 之间均分 n 节 */
+      const arr=[]; for(let i=0;i<n;i++) arr.push(y0 + (y1-y0)*i/(n-1));
+      return arr;
+    };
+    seg(7,  1.50, 1.43).forEach((y,i)=>add('C'+(i+1)+'颈椎', backAt(y)));   /* 颈椎 7 节 */
+    seg(12, 1.41, 1.15).forEach((y,i)=>add('T'+(i+1)+'胸椎', backAt(y)));   /* 胸椎 12 节 */
+    seg(5,  1.13, 0.92).forEach((y,i)=>add('L'+(i+1)+'腰椎', backAt(y)));   /* 腰椎 5 节 */
+    add('骶骨', backAt(0.86));
+    add('尾骨', backAt(0.80));
+    /* === 颅面细骨 === */
+    add('顶骨',   frontAt(1.66, 0.07));
+    add('额骨',   frontAt(1.62, 0.07));
+    add('鼻骨',   frontAt(1.58, 0.025));   /* 鼻梁正中, z 容差小 */
+    add('上颌骨', frontAt(1.53, 0.05));
+    add('下颌骨', frontAt(1.48, 0.06));
+    add('颧骨(右)', sideFrontAt(1.55, +1));
+    add('颧骨(左)', sideFrontAt(1.55, -1));
+    add('枕骨',   backAt(1.60, 0.06));      /* 后脑 */
+    add('颞骨(右)', sideFrontAt(1.60, +1));
+    add('颞骨(左)', sideFrontAt(1.60, -1));
+    /* === 躯干其他 === */
+    add('胸骨柄', frontAt(1.28, 0.05));
+    add('胸骨体', frontAt(1.20, 0.05));
+    add('剑突',   frontAt(1.08, 0.04));
+    add('肋骨(右)', flankAt(1.20, +1, true));
+    add('肋骨(左)', flankAt(1.20, -1, true));
+    add('锁骨(右)', flankAt(1.34, +1, true));
+    add('锁骨(左)', flankAt(1.34, -1, true));
+    add('肩胛骨(右)', sideBackAt(1.30, +1));
+    add('肩胛骨(左)', sideBackAt(1.30, -1));
+    add('髂骨(右)', flankAt(0.85, +1, true));
+    add('髂骨(左)', flankAt(0.85, -1, true));
+    return out.length ? out : null;
+  }
+
+  let boneDetail = false;    /* false=简单(19大部位)  true=详细(分节椎骨+面骨) */
+  function buildBoneLabels(force){
+    if(boneLabelsBuilt && !force) return;
+    /* 重建: 先清掉旧标签释放显存 */
+    if(boneLabelGroup){
+      boneLabelGroup.children.forEach(s=>{
+        if(s.material){ if(s.material.map) s.material.map.dispose(); s.material.dispose(); }
+      });
+      world.remove(boneLabelGroup);
+    }
     boneLabelGroup = new THREE.Group();
     world.add(boneLabelGroup);                       /* 挂 world: 人体怎么转标签怎么转 */
     let count = 0;
@@ -948,23 +1047,31 @@ function setupMeridians(){
         });
         showStatus('🦴 骨骼（模型自带名）'+count+' 个 · 点「骨骼名」开关显示', 'ok');
       } else {
-        /* 策略 2: 整体骨骼网格(AI 生成常见)→ 优先自动探测解剖部位坐标 */
-        let positions = null, auto = false;
-        try{ positions = computeAnatomyPositions(); }catch(e){ positions = null; }
-        if(positions && positions.length >= 8){ auto = true; }
-        else { positions = ANATOMY_BONES; }          /* 探测失败才用静态兜底 */
+        /* 策略 2: 整体骨骼网格(AI 生成常见)→ 按详细度选择坐标来源 */
+        let positions = null, kind = '';
+        if(boneDetail){
+          try{ positions = computeDetailedPositions(); }catch(e){ positions = null; }
+          if(positions && positions.length >= 10){ kind = '详细·骨度分寸法推算'; }
+        }
+        if(!positions){
+          try{ positions = computeAnatomyPositions(); }catch(e){ positions = null; }
+          if(positions && positions.length >= 8){ kind = boneDetail ? '大部位(详细推算失败)' : '自动探测'; }
+        }
+        if(!positions){ positions = ANATOMY_BONES; kind = '标准坐标兜底'; }
+        /* 详细模式标签缩小, 避免 40+ 个标签糊成一片 */
+        const sx = boneDetail ? 0.13 : 0.18, sy = boneDetail ? 0.032 : 0.045;
         positions.forEach(([nm, x, y, z])=>{
           const sprite = makeLabel(nm, 'ffe9b0');
           sprite.position.set(x, y, z);
-          sprite.scale.set(0.18, 0.045, 1);
+          sprite.scale.set(sx, sy, 1);
           boneLabelGroup.add(sprite);
           count++;
         });
-        showStatus('🦴 骨骼模型无分块命名,已'+(auto?'自动探测':'按标准坐标')+'标注 '+count+' 块骨头(颅/颈/肩胛/胸/肱/腰/骨盆/尺桡/腕掌/股/胫腓/跗) · 点「骨骼名」显示', 'ok');
+        showStatus('🦴 骨骼标签 '+count+' 个 ['+kind+'] · 点「骨骼名」显示', 'ok');
       }
     }
     boneLabelsBuilt = true;
-    boneLabelGroup.visible = false;
+    boneLabelGroup.visible = boneVisible && boneLabelsOn;
   }
   document.getElementById('bBoneLabels').onclick = ()=>{
     buildBoneLabels();
@@ -972,6 +1079,15 @@ function setupMeridians(){
     document.getElementById('bBoneLabels').classList.toggle('on', boneLabelsOn);
     if(boneLabelGroup) boneLabelGroup.visible = boneLabelsOn && boneVisible;
     showStatus(boneLabelsOn?'显示骨骼名':'隐藏骨骼名');
+  };
+  /* 细分开关: 简单(19 大部位) ↔ 详细(脊柱分节 C1-C7/T1-T12/L1-L5 + 颅面细骨) */
+  document.getElementById('bBoneDetail').onclick = ()=>{
+    boneDetail = !boneDetail;
+    document.getElementById('bBoneDetail').classList.toggle('on', boneDetail);
+    buildBoneLabels(true);                    /* 强制重建标签 */
+    showStatus(boneDetail
+      ? '🔍 详细模式: 脊柱分节(C1-C7/T1-T12/L1-L5) + 颅面细骨(鼻骨/颧骨/下颌…)，为骨度分寸法推算位置'
+      : '🔍 简单模式: 19 个大部位');
   };
 
   const totalAcus = mRecords.reduce((s,r)=>s+r.acupointsCount,0);
