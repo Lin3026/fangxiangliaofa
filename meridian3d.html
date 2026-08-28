@@ -763,6 +763,7 @@ function setupMeridians(){
     getBody: ()=>bodyMesh,
     getBone: ()=>boneMesh,
     getBoneLabels: ()=>boneLabelGroup,
+    computeAnatomyPositions,
     getStatus: ()=>document.getElementById('status').textContent
   };
 
@@ -840,28 +841,81 @@ function setupMeridians(){
    *    自动标注 19 个核心骨头名(颅/颈/肩胛/胸/肱/腰/骨盆/尺桡/腕掌/
    *    股/胫腓/跗),body space 固定坐标定位,与骨骼模型对齐显示。 */
   let boneLabelsBuilt=false, boneLabelGroup=null, boneLabelsOn=false;
-  /* 标准 1.7m 人体解剖学标签(body space, x 左右, y 身高, z 前后) */
+  /* 兜底用的静态坐标(仅在自动探测失败时使用)。
+   * 注意人体空间轴向: x=前后(+前/-后), y=身高, z=左右(+右/-左) */
   const ANATOMY_BONES = [
-    ['颅骨',         0,    1.60,  0.06],
-    ['颈椎',         0,    1.46, -0.03],
-    ['锁/肩胛骨',    0,    1.33, -0.10],
-    ['胸骨',         0,    1.20,  0.10],
-    ['胸椎',         0,    1.18, -0.12],
-    ['肱骨(左)',    -0.24,  1.05,  0   ],
-    ['肱骨(右)',     0.24,  1.05,  0   ],
-    ['腰椎',         0,    0.95, -0.12],
-    ['尺/桡骨(左)', -0.27,  0.82,  0   ],
-    ['尺/桡骨(右)',  0.27,  0.82,  0   ],
-    ['骨盆/髋骨',    0,    0.72,  0   ],
-    ['腕/掌骨(左)', -0.31,  0.60,  0   ],
-    ['腕/掌骨(右)',  0.31,  0.60,  0   ],
-    ['股骨(左)',    -0.13,  0.45,  0   ],
-    ['股骨(右)',     0.13,  0.45,  0   ],
-    ['胫/腓骨(左)', -0.13,  0.18,  0   ],
-    ['胫/腓骨(右)',  0.13,  0.18,  0   ],
-    ['跗骨/足(左)', -0.12,  0.04,  0.10],
-    ['跗骨/足(右)',  0.12,  0.04,  0.10]
+    ['颅骨',       0.02, 1.62,  0   ],
+    ['颈椎',      -0.02, 1.47,  0   ],
+    ['锁/肩胛骨', -0.06, 1.36,  0   ],
+    ['胸骨',       0.09, 1.20,  0   ],
+    ['胸椎',      -0.09, 1.18,  0   ],
+    ['腰椎',      -0.10, 0.98,  0   ],
+    ['骨盆/髋骨',  0,    0.76,  0   ],
+    ['肱骨(右)',   0,    1.42,  0.35],
+    ['肱骨(左)',   0,    1.42, -0.35],
+    ['尺/桡骨(右)',0,    1.38,  0.55],
+    ['尺/桡骨(左)',0,    1.38, -0.55],
+    ['腕/掌骨(右)',0,    1.35,  0.72],
+    ['腕/掌骨(左)',0,    1.35, -0.72],
+    ['股骨(右)',   0,    0.50,  0.13],
+    ['股骨(左)',   0,    0.50, -0.13],
+    ['胫/腓骨(右)',0,    0.22,  0.13],
+    ['胫/腓骨(左)',0,    0.22, -0.13],
+    ['跗骨/足(右)',0.06, 0.05,  0.13],
+    ['跗骨/足(左)',0.06, 0.05, -0.13]
   ];
+  /* ★ 自动探测解剖部位坐标(优先用, 硬编码只作兜底)
+   * 直接从皮肤网格按"高度带 + 方向"取点, 永远贴合当前模型,
+   * 不会再因为轴向约定写反而错位。人体空间轴向: x=前后, y=身高, z=左右 */
+  function computeAnatomyPositions(){
+    const skin = buildSkinSnap();
+    if(!skin || !skin.tris.length) return null;
+    const pts = [];
+    skin.tris.forEach(t=>{ pts.push(t[0], t[1], t[2]); });
+    const band = (y, tol)=> pts.filter(p=>Math.abs(p.y-y) < (tol||0.05));
+    const pick = (arr, axis, sign)=>{          /* 取该轴极值点 */
+      if(!arr.length) return null;
+      let best=arr[0];
+      arr.forEach(p=>{ if(sign>0 ? p[axis]>best[axis] : p[axis]<best[axis]) best=p; });
+      return best;
+    };
+    const pickFar = (arr, axis, sign)=>{       /* 指定半区里取最远点(手臂末端) */
+      const sub = arr.filter(p=> sign*p[axis] > 0.05);
+      if(!sub.length) return null;
+      return pick(sub, axis, sign);
+    };
+    const sideCenter = (arr, axis, sign)=>{    /* 指定半区点群中心(肢体中心) */
+      const sub = arr.filter(p=> sign*p[axis] > 0.04);
+      if(!sub.length) return null;
+      let x=0,y=0,z=0;
+      sub.forEach(p=>{ x+=p.x; y+=p.y; z+=p.z; });
+      const n=sub.length;
+      return {x:x/n, y:y/n, z:z/n};
+    };
+    const out=[];
+    const P=(name,p)=>{ if(p) out.push([name, +p.x.toFixed(3), +p.y.toFixed(3), +p.z.toFixed(3)]); };
+    /* 躯干中线: 用 x 轴(前后)取极值 */
+    P('颅骨',      pick(band(1.62,0.08), 'x', +1));
+    P('颈椎',      pick(band(1.47,0.05), 'x', -1));
+    P('锁/肩胛骨', pick(band(1.36,0.05), 'x', -1));
+    P('胸骨',      pick(band(1.20,0.05), 'x', +1));
+    P('胸椎',      pick(band(1.18,0.05), 'x', -1));
+    P('腰椎',      pick(band(0.98,0.05), 'x', -1));
+    P('骨盆/髋骨', pick(band(0.76,0.05), 'x', -1));
+    /* 上肢: 手臂沿 z 轴伸展(y 1.30~1.45), 分三段取由内到外 */
+    [['(右)',+1],['(左)',-1]].forEach(([suf,sg])=>{
+      P('肱骨'+suf,     pickFar(band(1.42,0.05).filter(p=>Math.abs(p.z)<0.50), 'z', sg));
+      P('尺/桡骨'+suf,  pickFar(band(1.38,0.06).filter(p=>Math.abs(p.z)>0.35 && Math.abs(p.z)<0.68), 'z', sg));
+      P('腕/掌骨'+suf,  pickFar(band(1.34,0.07), 'z', sg));
+    });
+    /* 下肢: 腿在 z=±0.13 附近, 取该侧点群中心 */
+    [['(右)',+1],['(左)',-1]].forEach(([suf,sg])=>{
+      P('股骨'+suf,    sideCenter(band(0.50,0.06), 'z', sg));
+      P('胫/腓骨'+suf, sideCenter(band(0.22,0.06), 'z', sg));
+      P('跗骨/足'+suf, sideCenter(band(0.05,0.05), 'z', sg));
+    });
+    return out.length ? out : null;
+  }
   function buildBoneLabels(){
     if(boneLabelsBuilt) return;
     boneLabelGroup = new THREE.Group();
@@ -894,15 +948,19 @@ function setupMeridians(){
         });
         showStatus('🦴 骨骼（模型自带名）'+count+' 个 · 点「骨骼名」开关显示', 'ok');
       } else {
-        /* 策略 2: 整体骨骼网格(AI 生成常见)→ 自动按解剖部位标注 */
-        ANATOMY_BONES.forEach(([nm, x, y, z])=>{
+        /* 策略 2: 整体骨骼网格(AI 生成常见)→ 优先自动探测解剖部位坐标 */
+        let positions = null, auto = false;
+        try{ positions = computeAnatomyPositions(); }catch(e){ positions = null; }
+        if(positions && positions.length >= 8){ auto = true; }
+        else { positions = ANATOMY_BONES; }          /* 探测失败才用静态兜底 */
+        positions.forEach(([nm, x, y, z])=>{
           const sprite = makeLabel(nm, 'ffe9b0');
           sprite.position.set(x, y, z);
           sprite.scale.set(0.18, 0.045, 1);
           boneLabelGroup.add(sprite);
           count++;
         });
-        showStatus('🦴 骨骼模型无分块命名,已自动按解剖部位标注 '+count+' 块骨头(颅/颈/肩胛/胸/肱/腰/骨盆/尺桡/腕掌/股/胫腓/跗) · 点「骨骼名」显示', 'ok');
+        showStatus('🦴 骨骼模型无分块命名,已'+(auto?'自动探测':'按标准坐标')+'标注 '+count+' 块骨头(颅/颈/肩胛/胸/肱/腰/骨盆/尺桡/腕掌/股/胫腓/跗) · 点「骨骼名」显示', 'ok');
       }
     }
     boneLabelsBuilt = true;

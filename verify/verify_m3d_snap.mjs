@@ -96,6 +96,42 @@ console.log('▶ 导航到:', url);
 await waitFor('!!(window.__m3d && window.__m3d.mRecords && window.__m3d.mRecords.length===14)');
 await sleep(1500); // 等渲染稳定
 
+// === 身体横截面轮廓扫描 ===
+const profile = await evaluate(`(()=>{
+  const body = window.__m3d.getBody();
+  if(!body) return {error:'body null'};
+  body.updateMatrixWorld(true);
+  const skin = window.__m3d.buildSkinSnap();
+  const pts = [];
+  skin.tris.forEach(t=>{ pts.push(t[0],t[1],t[2]); });
+  const slices = [];
+  for(let y=0; y<=1.75; y+=0.05){
+    let mnX=1e9,mxX=-1e9,mnZ=1e9,mxZ=-1e9,cnt=0;
+    for(let i=0;i<pts.length;i++){
+      const p=pts[i];
+      if(p.y>=y-0.025 && p.y<y+0.025){
+        if(p.x<mnX)mnX=p.x; if(p.x>mxX)mxX=p.x;
+        if(p.z<mnZ)mnZ=p.z; if(p.z>mxZ)mxZ=p.z;
+        cnt++;
+      }
+    }
+    slices.push({y:+y.toFixed(2), cnt, x:[+mnX.toFixed(2),+mxX.toFixed(2)], z:[+mnZ.toFixed(2),+mxZ.toFixed(2)]});
+  }
+  return {total:pts.length, slices};
+})()`);
+if(profile && !profile.error){
+  console.log('\n========== 人体横截面轮廓 ==========');
+  console.log('皮肤顶点样本数:', profile.total);
+  console.log('y    | 顶点数 | x范围(左右) | z范围(前后)');
+  console.log('-----|--------|-------------|-------------');
+  profile.slices.forEach(s=>{
+    if(s.cnt===0) return;
+    console.log('  '+s.y.toFixed(2)+' |  '+String(s.cnt).padStart(5)+' | ['+s.x[0].toString().padStart(5)+','+s.x[1].toString().padStart(5)+'] | ['+s.z[0].toString().padStart(5)+','+s.z[1].toString().padStart(5)+']');
+  });
+} else {
+  console.log('轮廓扫描失败:', profile && profile.error);
+}
+
 const report = await evaluate(`(async () => {
   const d = window.__m3d;
   d.mRecords.forEach(r=>d.setMeridianVisible(r.id, true));
@@ -160,8 +196,13 @@ const report = await evaluate(`(async () => {
     return out;
   })();
 
+  // 自动探测的骨骼标签坐标
+  let anatomy = null;
+  try{ anatomy = d.computeAnatomyPositions(); }catch(e){ anatomy = {error:String(e)}; }
+
   return {
     before, after,
+    anatomy,
     skinTris: skin.tris.length,
     boneNames: boneNames.slice(0, 40),
     boneNameCount: boneNames.length,
@@ -204,6 +245,13 @@ if(report.boneStruct){
   console.log('骨骼 mesh 结构:');
   report.boneStruct.forEach((m,i)=>console.log('  '+(i+1)+'. '+m.name+'  tris='+m.tris+'  bb=['+m.min.join(',')+' ~ '+m.max.join(',')+']'));
 }
+if(report.anatomy && !report.anatomy.error && report.anatomy.length){
+  console.log('\n-- 自动探测的骨骼标签坐标 (x=前后 y=身高 z=左右) --');
+  report.anatomy.forEach(([nm,x,y,z])=>console.log('  '+nm.padEnd(12)+' x='+String(x).padStart(6)+'  y='+y+'  z='+String(z).padStart(6)));
+} else {
+  console.log('\n骨骼标签自动探测失败:', report.anatomy && report.anatomy.error);
+}
+
 console.log('\n-- 贴合前(手工坐标到皮肤的平均距离, 米) --');
 report.before.forEach(r=>console.log('  ' + r.id.padEnd(3), r.name.padEnd(10), 'avg=' + r.avg, 'min=' + r.min, 'max=' + r.max));
 console.log('\n-- 贴合后(应≈0.012 = 12mm 偏移) --');
