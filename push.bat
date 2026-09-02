@@ -1,14 +1,20 @@
 @echo off
-chcp 65001 >nul
 setlocal
 cd /d "%~dp0"
 
 REM ============================================================
-REM  推送到 GitHub Pages (Lin3026/fangxiangliaofa)
-REM  健壮性要点:
-REM   1. 先探测代理端口 7897 是否真在监听, 没开就不设代理(避免全部 git 操作卡死)
-REM   2. 无论成功/失败/中途 Ctrl+C, 结尾都清理代理配置(不留残留)
-REM   3. 成功时打印 commit hash, 方便肉眼确认
+REM  Push to GitHub Pages  (repo: Lin3026/fangxiangliaofa)
+REM  Robustness notes:
+REM   1. Probe proxy port 7897 first; only set git proxy when the
+REM      port is actually listening (avoids git hanging forever).
+REM   2. Proxy config is ALWAYS cleaned up before the final pause.
+REM   3. On success the resulting short commit hash is printed.
+REM
+REM  IMPORTANT: this file is deliberately PURE ASCII.
+REM  cmd.exe on some Windows builds mis-parses .bat files that mix
+REM  chcp 65001 with non-ASCII text inside parenthesized blocks and
+REM  flash-closes the window mid-run. Keeping it ASCII guarantees
+REM  the window stays open until "Press any key".
 REM ============================================================
 
 set PROXY_SET=0
@@ -17,52 +23,52 @@ if %errorlevel%==0 (
   git config --global http.proxy http://127.0.0.1:7897
   git config --global https.proxy http://127.0.0.1:7897
   set PROXY_SET=1
-  echo [代理] 已启用 127.0.0.1:7897
+  echo [proxy] enabled 127.0.0.1:7897
 ) else (
-  echo [代理] 端口 7897 未监听, 本次直连 GitHub
+  echo [proxy] port 7897 not listening - going direct
 )
 
-REM ---- 提交本地改动 ----
+REM ---- commit any local changes ----
 git add -A
 git diff --cached --quiet
 if errorlevel 1 (
   git commit -m "sync: auto update %date% %time%"
-  echo [提交] 已创建新提交
+  echo [commit] new commit created
 ) else (
-  echo [提交] 无新改动, 直接推送
+  echo [commit] nothing new to commit - pushing as-is
 )
 
-REM ---- 恢复远端跟踪引用(本地 origin/main 可能是 stale/gone) ----
-git fetch origin 2>nul || echo [fetch] 跳过(不影响推送)
+REM ---- restore remote tracking ref (origin/main may be stale) ----
+git fetch origin 2>nul
+if errorlevel 1 echo [fetch] skipped - not fatal
 
-REM ---- 推送: 单用户仓库, 用 plain --force 覆盖远端 ----
+REM ---- push with plain --force (single-user repo) ----
 git push --force origin main
 
 if errorlevel 1 (
   echo.
   echo ============================================================
-  echo   PUSH FAILED - 推送失败
-  echo   请检查: 1) 代理软件(Clash 等)是否已开启
-  echo           2) GitHub PAT 是否过期
+  echo   PUSH FAILED
+  echo   Check 1: is your proxy software listening on port 7897?
+  echo   Check 2: is the GitHub PAT still valid?
   echo ============================================================
 ) else (
   echo.
   echo ============================================================
-  echo   PUSH OK - 推送成功
+  echo   PUSH OK
   echo.
-  for /f %%i in ('git rev-parse --short HEAD') do echo   最新提交: %%i
-  echo   GitHub Pages 约 1-2 分钟后生效
+  for /f %%i in ('git rev-parse --short HEAD') do echo   HEAD commit: %%i
+  echo   GitHub Pages will be live in about 1-2 minutes.
   echo.
-  echo   重要: 浏览器请按 Ctrl+Shift+R 硬刷新,
-  echo         否则看到的还是缓存的旧页面!
+  echo   IMPORTANT: hard-refresh the browser with Ctrl+Shift+R
   echo ============================================================
 )
 
-REM ---- 无论如何都清理代理(防止残留导致下次 git 全部卡死) ----
+REM ---- always clean up proxy config ----
 git config --global --unset http.proxy 2>nul
 git config --global --unset https.proxy 2>nul
-if %PROXY_SET%==1 echo [清理] 代理配置已移除
+if %PROXY_SET%==1 echo [cleanup] proxy config removed
 
 echo.
-echo Done. 按任意键关闭.
+echo Done. Press any key to close.
 pause >nul
