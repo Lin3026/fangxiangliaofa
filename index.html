@@ -1840,10 +1840,14 @@ window.showEntryModal=showEntryModal;
    * 顶部红条 + 控制台 ERROR 报警，不再出现"图没了页面照常显示"。
    * 校验失败仍渲染（避免页面整体瘫痪），但用户和开发者都会立刻看到。 */
   (function dzIntegrityCheck(){
-    var problems=[];
+    var problems=[], singleSteps=0, singleOpts=0;
     for(var i=0;i<TONGUE_STEPS.length;i++){
       var s=TONGUE_STEPS[i];
+      // qu 步骤是「区域多选」设计（用 DZ_ZONES 渲染），无 options 数组，
+      // 也不走照片映射——直接跳过
+      if(s.qu || !s.options) continue;
       var mp=DZ_PHOTO_MAP[s.key]||{};
+      singleSteps++; singleOpts += s.options.length;
       for(var j=0;j<s.options.length;j++){
         var opt=s.options[j];
         if(!mp[opt.key]) problems.push(s.short+"·"+opt.label+"（key="+opt.key+"）缺照片映射");
@@ -1857,7 +1861,7 @@ window.showEntryModal=showEntryModal;
       try { var b=document.createElement("div"); b.style.cssText="background:#b00020;color:#fff;padding:10px 14px;font:14px/1.5 system-ui;border-radius:6px;margin:10px 0;border:2px solid #ff5252;";
         b.innerHTML="<b>⚠ 舌象数据完整性报警</b>（v1.4 自检）<br><span style='font-size:12px;opacity:.95;'>"+problems.length+" 处不一致，首项："+problems[0]+"。按 F12 看控制台完整列表。</span>";
         var dz=document.getElementById("dzSteps"); if(dz&&dz.parentNode) dz.parentNode.insertBefore(b,dz); } catch(e){}
-    } else { console.log("✅ 舌象数据完整性自检通过（v1.4）：", TONGUE_STEPS.length, "步共", TONGUE_STEPS.reduce(function(n,s){return n+s.options.length},0), "选项 ↔ 照片一一对应"); }
+    } else { console.log("✅ 舌象数据完整性自检通过（v1.4）：", singleSteps, "步（跳过 qu 多选区）共", singleOpts, "选项 ↔ 照片一一对应"); }
   })();
   function dzRenderCurrent(){
     if(dzStep==="qu"){ dzRenderMap(); dzRenderDetail(); }
