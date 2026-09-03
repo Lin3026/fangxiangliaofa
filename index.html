@@ -64,6 +64,10 @@
   .blend{background:var(--accent-soft);border-radius:8px;padding:8px 10px;font-size:13px;margin:4px 0;}
   .caution{border-left:3px solid var(--warn);background:#fff7ef;padding:8px 10px;border-radius:0 8px 8px 0;font-size:12.5px;color:#7a4a16;}
   .relnote{border-left:3px solid #4a7d6b;background:#eef6f2;padding:8px 10px;border-radius:0 8px 8px 0;font-size:12.5px;color:#2f5547;margin-top:8px;line-height:1.65;}
+  .cmt-note{border-left:3px solid #5b8a72;background:#f0f6f3;padding:7px 10px;border-radius:0 8px 8px 0;font-size:12px;color:#33473e;margin-top:7px;line-height:1.6;}
+  .cmt-note b{color:#2f6b48;}
+  .cmt-tip{display:block;color:#8a9a90;font-size:10.5px;margin-top:2px;}
+  .dr-note{display:inline-block;background:#fff4e6;color:#9a6a20;font-size:11px;padding:1px 8px;border-radius:9px;margin-left:6px;}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;}
   .oil{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;}
   .oil h4{margin:0 0 4px;font-size:14.5px;}
@@ -1060,6 +1064,7 @@ window.showEntryModal=showEntryModal;
       (f.constitution?'<div class="detail"><b>适用体质：</b>'+escapeHtml(f.constitution)+'</div>':"")+
       (f.tongue?'<div class="detail"><b>舌象：</b><span style="color:#48615a">'+escapeHtml(f.tongue)+'</span></div>':"")+
       '<div class="detail"><b>辨证思路：</b>'+escapeHtml(f.rationale||"")+'</div>'+
+      (noteHtmlOf(f)?noteHtmlOf(f):"")+
       (f.relatedNote?'<div class="relnote"><b>🔗 辨证关联备注：</b>'+escapeHtml(f.relatedNote)+'</div>':"")+
       (sym?'<div style="margin:6px 0">'+sym+'</div>':"")+
       '<div class="detail" style="margin-top:8px"><dl>'+oilsHtml+'</dl></div>'+
@@ -1361,6 +1366,28 @@ window.showEntryModal=showEntryModal;
   }
   function selectedPulseNames(){ return Object.keys(selectedLeft).concat(Object.keys(selectedRight)); }
 
+  /* ---- 证候对照注释查询（v1.4.1 新增）----
+   * 根据配方的 tcmPattern（或名称）匹配 AROMA_CONDITION_NOTES，
+   * 命中则返回 {western: 西医对照, plain: 大白话}；关键词按长度降序优先。
+   */
+  function lookupNote(text){
+    var notes=(typeof window!=="undefined"&&window.AROMA_CONDITION_NOTES)||{};
+    var keys=Object.keys(notes).sort(function(a,b){return b.length-a.length;});
+    var t=(text||"");
+    for(var i=0;i<keys.length;i++){ if(t.indexOf(keys[i])>=0) return notes[keys[i]]; }
+    return null;
+  }
+  window.lookupNote=lookupNote;
+  // 注释 HTML：西医对照 + 大白话（保留中医与西医特有名词，仅作沟通旁注）
+  function noteHtmlOf(f){
+    var note=lookupNote(f&&(f.tcmPattern||f.name));
+    if(!note) return "";
+    return '<div class="cmt-note">'+
+      '<b>西医对照：</b>'+escapeHtml(note.western||"")+
+      (note.plain?'<br><b>大白话：</b>'+escapeHtml(note.plain):"")+
+      '<span class="cmt-tip">（仅沟通参考 · 不构成诊断）</span></div>';
+  }
+
   function makeResultCard(f,tokens){
     var card=document.createElement("div");
     card.className="card";
@@ -1370,6 +1397,7 @@ window.showEntryModal=showEntryModal;
       '<h3>'+highlight(f.name,tokens)+'</h3>'+
       '<div class="meta"><span class="badge">'+escapeHtml(f.system)+'</span>'+(f.tcmPattern?highlight(f.tcmPattern,tokens):"")+'</div>'+
       '<div class="oils-line">精油：'+highlight(oils,tokens)+'</div>'+
+      (noteHtmlOf(f)?noteHtmlOf(f):"")+
       (sym?'<div style="margin-top:6px">'+sym+'</div>':"")+
       '<div style="margin-top:10px"><button class="btn sm" onclick="openDetail(\''+f.id+'\')">查看完整配方 ▸</button></div>';
     return card;
@@ -1382,22 +1410,13 @@ window.showEntryModal=showEntryModal;
     var symToks=tokenize(q);
     var pulseNames=selectedPulseNames();
     var ptoks=pulseTokens();
-    // 校验：症状与脉象二者缺一不可
+    // v1.4.1 放宽：症状 / 脉象 填了哪个就按哪个筛，不必二者齐备；两者全空才拦截
     if(!q && !pulseNames.length){
       summaryEl.style.display="block";
-      summaryEl.innerHTML='<span class="hint">请先在上方症状框填写症状/证型，并至少勾选一种脉象（分左右手红/绿框），再点推荐。</span>';
+      summaryEl.innerHTML='<span class="hint">⚠ 请先填写症状/证型，或至少勾选一种脉象（二选一即可），再点推荐。</span>';
       resultsEl.innerHTML=""; countEl.textContent=""; return;
     }
-    if(!q){
-      summaryEl.style.display="block";
-      summaryEl.innerHTML='<span class="hint">⚠ 请先在上方症状框填写症状/证型（如：失眠 焦虑、痛经、脾胃虚寒），再结合脉象推荐。</span>';
-      resultsEl.innerHTML=""; countEl.textContent=""; return;
-    }
-    if(!pulseNames.length){
-      summaryEl.style.display="block";
-      summaryEl.innerHTML='<span class="hint">⚠ 请至少勾选一种脉象（左手红框 / 右手绿框），再结合症状推荐。</span>';
-      resultsEl.innerHTML=""; countEl.textContent=""; return;
-    }
+    var hasSym=!!symToks.length, hasPulse=!!pulseNames.length;
     // 双手同脉提示
     var lk=Object.keys(selectedLeft), rk=Object.keys(selectedRight);
     var handNote="";
@@ -1406,18 +1425,21 @@ window.showEntryModal=showEntryModal;
     else if(lk.length && rk.length) handNote="（左手："+lk.join("、")+"；右手："+rk.join("、")+"）";
     var zhubing=pulseNames.map(function(k){ return (selectedLeft[k]||selectedRight[k]).zhubing||k; });
     summaryEl.style.display="block";
-    summaryEl.innerHTML='<b>症状/证型：</b>'+escapeHtml(q)+'<br><b>所选脉象：</b>'+pulseNames.join("、")+handNote+'<br><b>推断可能涉及：</b>'+zhubing.join("；")+'<br><span class="hint">（下方配方需<b>同时</b>命中「症状」与「脉象」关键词，按综合相关度排序）</span>';
+    summaryEl.innerHTML='<b>症状/证型：</b>'+escapeHtml(q)+'<br><b>所选脉象：</b>'+pulseNames.join("、")+handNote+'<br><b>推断可能涉及：</b>'+zhubing.join("；")+'<br><span class="hint">（已填维度需命中，按综合相关度排序；只填症状或只选脉象也会出方）</span>';
     // 评分：症状与脉象都需贡献（AND）
     var toks=symToks.concat(ptoks);
     var scored=db.formulas.map(function(f){
       var sSym=scoreFormula(f, symToks);
       var sPulse=scoreFormula(f, ptoks);
       return {f:f, sSym:sSym, sPulse:sPulse, s:sSym+sPulse};
-    }).filter(function(x){ return x.sSym>0 && x.sPulse>0; })
-      .sort(function(a,b){ return b.s-a.s; });
+    }).filter(function(x){
+      if(hasSym && x.sSym<=0) return false;
+      if(hasPulse && x.sPulse<=0) return false;
+      return true;
+    }).sort(function(a,b){ return b.s-a.s; });
     resultsEl.innerHTML="";
-    if(!scored.length){ resultsEl.innerHTML='<div class="empty">没有同时命中症状与脉象的配方，可调整症状词或脉象组合，或到「我的库」补充</div>'; countEl.textContent=""; return; }
-    countEl.textContent="共推荐 "+scored.length+" 条配方（同时命中症状+脉象，显示前 12 条）";
+    if(!scored.length){ resultsEl.innerHTML='<div class="empty">没有命中已填维度的配方，可调整症状词或脉象，或到「我的库」补充</div>'; countEl.textContent=""; return; }
+    countEl.textContent="共推荐 "+scored.length+" 条配方（命中已填维度，显示前 12 条）";
     scored.slice(0,12).forEach(function(x){ resultsEl.appendChild(makeResultCard(x.f,toks)); });
   }
   function runPulse(){
@@ -1625,22 +1647,13 @@ window.showEntryModal=showEntryModal;
     var ptoks=pulseTokens();
     var tnames=selectedTongueNames();
     var ttoks=tongueTokens();
-    // 舌脉合参：症状 + 脉象 + 舌象 三者同时命中（与智能配方的合并搜索同理，区别在本页不含体质步骤）
-    if(!q){
+    // v1.4.1 放宽：症状 / 脉象 / 舌象 填了哪个就按哪个筛，不必全选；三者全空才拦截
+    if(!q && !pulseNames.length && !tnames.length){
       summaryEl.style.display="block";
-      summaryEl.innerHTML='<span class="hint">⚠ 请先在上方症状框填写症状/证型（如：失眠 焦虑、痛经、脾胃虚寒），再结合脉象与舌象「舌脉合参」。</span>';
+      summaryEl.innerHTML='<span class="hint">⚠ 请至少填一项：症状/证型、或勾选脉象、或勾选舌象，即可「舌脉合参」出方。</span>';
       resultsEl.innerHTML=""; countEl.textContent=""; return;
     }
-    if(!pulseNames.length){
-      summaryEl.style.display="block";
-      summaryEl.innerHTML='<span class="hint">⚠ 请至少勾选一种脉象（左手红框 / 右手绿框），再结合舌象合参。</span>';
-      resultsEl.innerHTML=""; countEl.textContent=""; return;
-    }
-    if(!tnames.length){
-      summaryEl.style.display="block";
-      summaryEl.innerHTML='<span class="hint">⚠ 请至少勾选一种舌象要素（舌色/舌形/苔色/苔质/舌态），再结合脉象合参。</span>';
-      resultsEl.innerHTML=""; countEl.textContent=""; return;
-    }
+    var hasSym=!!symToks.length, hasPulse=!!pulseNames.length, hasT=!!tnames.length;
     // 双手同脉提示
     var lk=Object.keys(selectedLeft), rk=Object.keys(selectedRight);
     var handNote="";
@@ -1650,18 +1663,22 @@ window.showEntryModal=showEntryModal;
     var pzhu=pulseNames.map(function(k){ return (selectedLeft[k]||selectedRight[k]).zhubing||k; });
     var tzhu=tnames.map(function(k){ return (selectedTongues[k].zhubing||k); });
     summaryEl.style.display="block";
-    summaryEl.innerHTML='<b>症状/证型：</b>'+escapeHtml(q)+'<br><b>所选脉象：</b>'+pulseNames.join("、")+handNote+'<br><b>所选舌象：</b>'+tnames.join("、")+'<br><b>推断可能涉及：</b>'+pzhu.concat(tzhu).join("；")+'<br><span class="hint">（下方配方需<b>同时</b>命中「症状 + 脉象 + 舌象」，按综合相关度排序）</span>';
+    summaryEl.innerHTML='<b>症状/证型：</b>'+escapeHtml(q)+'<br><b>所选脉象：</b>'+pulseNames.join("、")+handNote+'<br><b>所选舌象：</b>'+tnames.join("、")+'<br><b>推断可能涉及：</b>'+pzhu.concat(tzhu).join("；")+'<br><span class="hint">（已填维度需命中，按综合相关度排序；无需症状/脉象/舌象全选）</span>';
     var toks=symToks.concat(ptoks).concat(ttoks);
     var scored=db.formulas.map(function(f){
       var sSym=scoreFormula(f, symToks);
       var sPulse=scoreFormula(f, ptoks);
       var sT=scoreFormula(f, ttoks);
       return {f:f, sSym:sSym, sPulse:sPulse, sT:sT, s:sSym+sPulse+sT};
-    }).filter(function(x){ return x.sSym>0 && x.sPulse>0 && x.sT>0; })
-      .sort(function(a,b){ return b.s-a.s; });
+    }).filter(function(x){
+      if(hasSym && x.sSym<=0) return false;
+      if(hasPulse && x.sPulse<=0) return false;
+      if(hasT && x.sT<=0) return false;
+      return true;
+    }).sort(function(a,b){ return b.s-a.s; });
     resultsEl.innerHTML="";
-    if(!scored.length){ resultsEl.innerHTML='<div class="empty">没有同时命中症状、脉象与舌象的配方，可调整三者组合，或到「我的库」补充</div>'; countEl.textContent=""; return; }
-    countEl.textContent="共推荐 "+scored.length+" 条配方（症状+脉象+舌象，显示前 12 条）";
+    if(!scored.length){ resultsEl.innerHTML='<div class="empty">没有命中已填维度的配方，可放宽症状词、减少勾选，或到「我的库」补充</div>'; countEl.textContent=""; return; }
+    countEl.textContent="共推荐 "+scored.length+" 条配方（命中已填维度，显示前 12 条）";
     scored.slice(0,12).forEach(function(x){ resultsEl.appendChild(makeResultCard(x.f,toks)); });
   }
   function runTongue(){ renderTongueRecommend(document.getElementById("tongueSummary"), document.getElementById("tongueResults"), document.getElementById("tongueCount")); }
@@ -1693,6 +1710,20 @@ window.showEntryModal=showEntryModal;
   };
 
   /* ============ 分布舌诊：舌面分区定位脏腑（交互） ============ */
+  // v1.4.1 舌面分区来源标注：经典区为传统舌诊「脏腑分候」，颈椎/肩周/手/乳腺为现代舌诊流派观点
+  var REGION_NOTE_MAP={
+    xinnao:"传统舌诊·舌尖主心肺（心脑）",
+    jingzhui:"现代舌诊流派（舌面微诊法）观点 · 非教科书主流",
+    jianzhou:"现代舌诊流派（舌面微诊法）观点 · 非教科书主流",
+    shou:"现代舌诊流派（舌面微诊法）观点 · 非教科书主流",
+    ruxian:"现代舌诊流派（舌面微诊法）观点 · 非教科书主流",
+    piwei:"传统舌诊·舌中主脾胃",
+    fei:"传统舌诊·舌尖主肺（前中部）",
+    gan:"传统舌诊·舌边主肝胆",
+    dan:"传统舌诊·舌边主肝胆",
+    shen:"传统舌诊·舌根主肾/膀胱（下焦）"
+  };
+
   var TONGUE_REGIONS=[
     {key:"xinnao", label:"心脑区", organ:"心、脑", zone:"舌尖", desc:"舌尖区域 → 心脑；舌形凹 / 凸 / 缺损 / 红点 / 裂纹",
      observations:[
@@ -1923,6 +1954,7 @@ window.showEntryModal=showEntryModal;
             '<span class="dr-zone">'+escapeHtml(r.zone)+'</span>'+
             '<span class="dr-clear" onclick="dzToggleRegion(\''+r.key+'\')">移除</span></div>';
       html+='<div class="dr-desc">'+escapeHtml(r.desc)+'</div>';
+      if(REGION_NOTE_MAP[r.key]) html+='<div class="dr-note">'+escapeHtml(REGION_NOTE_MAP[r.key])+'</div>';
       html+='<div class="dz-obs">';
       r.observations.forEach(function(o){
         var sel=dzObs[r.key] && dzObs[r.key].indexOf(o.key)>=0;
