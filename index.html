@@ -597,6 +597,7 @@
   <!-- 我的库 -->
   <section id="tab-lib" style="display:none;">
     <div class="toolbar">
+      <input type="text" id="libq" class="search" placeholder="搜配方（名称 / 症状 / 精油 / 系统 / 辨证）…" oninput="renderLib()" />
       <button class="btn" onclick="openForm()">＋ 添加配方</button>
       <button class="btn ghost" onclick="exportDB()">⬇ 导出 JSON</button>
       <button class="btn ghost" onclick="importDB()">⬆ 导入 JSON</button>
@@ -2604,8 +2605,16 @@ window.showEntryModal=showEntryModal;
   function renderLib(){
     var box=document.getElementById("liblist");
     box.innerHTML="";
-    if(!db.formulas.length){ box.innerHTML='<div class="empty">库为空</div>'; return; }
-    db.formulas.forEach(function(f){
+    var q=(document.getElementById("libq")||{value:""}).value.trim().toLowerCase();
+    var list=db.formulas;
+    if(q){
+      list=list.filter(function(f){
+        var hay=[f.name,f.system,f.tcmPattern,f.constitution,(f.symptoms||[]).join(" "),(f.oils||[]).map(function(o){return o.name;}).join(" "),(f.blend||[]).map(function(b){return b.oil;}).join(" "),f.rationale,f.method,f.caution].join(" ").toLowerCase();
+        return hay.indexOf(q)>=0;
+      });
+    }
+    if(!list.length){ box.innerHTML='<div class="empty">'+(q?"没有匹配「"+q+"」的配方":"库为空")+'</div>'; return; }
+    list.forEach(function(f){
       var row=document.createElement("div");
       row.className="card";
       row.innerHTML=
