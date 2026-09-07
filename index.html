@@ -748,7 +748,7 @@
   });
 })();
 </script>
-<script src="data.js?v=20260905c"></script>
+<script src="data.js?v=20260907a"></script>
 <!-- 全局定义 closeEntryModal/showEntryModal：必须在 IIFE 之前，确保 HTML 内联 onclick 永远能找到 -->
 <script>
 function closeEntryModal(){
@@ -817,6 +817,32 @@ window.showEntryModal=showEntryModal;
   if(!db.tizhiQuiz || !db.tizhiQuiz.length) db.tizhiQuiz = (window.AROMA_BASE && window.AROMA_BASE.tizhiQuiz) ? window.AROMA_BASE.tizhiQuiz : [];
   if(!db.meta) db.meta = window.AROMA_BASE.meta;
   else if(!db.meta.sources) db.meta.sources = window.AROMA_BASE.meta.sources;
+
+  /* ---- 内置库版本升级：改名同步 + 新条目补充（保留用户自定义数据） ---- */
+  try{
+    var _base=window.AROMA_BASE;
+    var _baseVer=(_base&&_base.meta&&_base.meta.version)||'';
+    var _dbVer=(db.meta&&db.meta.version)||'';
+    if(_baseVer && _baseVer!==_dbVer){
+      /* 旧名 → 新名 映射（精确整串匹配，避免误伤子串） */
+      var _renames={'互叶白千层':'互叶白千层（茶树）'};
+      function _walk(v){
+        if(typeof v==='string' && Object.prototype.hasOwnProperty.call(_renames,v)) return _renames[v];
+        if(Array.isArray(v)){ for(var _i=0;_i<v.length;_i++) v[_i]=_walk(v[_i]); return v; }
+        if(v&&typeof v==='object'){ for(var _k in v){ if(Object.prototype.hasOwnProperty.call(v,_k)) v[_k]=_walk(v[_k]); } return v; }
+        return v;
+      }
+      _walk(db);
+      /* 补充内置库中存档缺失的条目（不覆盖、不删除用户自定义） */
+      var _oilNames={}; for(var _a=0;_a<db.oils.length;_a++) _oilNames[db.oils[_a].name]=1;
+      for(var _b=0;_b<_base.oils.length;_b++){ if(!_oilNames[_base.oils[_b].name]) db.oils.push(JSON.parse(JSON.stringify(_base.oils[_b]))); }
+      var _formIds={}; for(var _c=0;_c<db.formulas.length;_c++) _formIds[db.formulas[_c].id]=1;
+      for(var _d=0;_d<_base.formulas.length;_d++){ if(!_formIds[_base.formulas[_d].id]) db.formulas.push(JSON.parse(JSON.stringify(_base.formulas[_d]))); }
+      db.meta=JSON.parse(JSON.stringify(_base.meta));
+      save();
+      console.log('内置库已升级至版本 '+_baseVer+'（茶树改名等同步完成）');
+    }
+  }catch(e){ console.warn('内置库升级失败：',e); }
 
   var DEFAULT_SOURCE = (db.meta && db.meta.sourceDefault) ? db.meta.sourceDefault : "通用芳疗知识（未标注具体出处）";
   function srcOf(entry){
