@@ -228,7 +228,7 @@
   .dz-region .dr-clear:hover{color:var(--accent);border-color:var(--accent);}
   .dz-actions{margin:8px 0 4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 
-  /* 体质辨证模块（王琦八种体质） */
+  /* 体质辨证模块（王琦九种体质） */
   .tizhi-wrap{display:grid;grid-template-columns:330px 1fr;gap:16px;align-items:start;margin:6px 0 4px;}
   @media(max-width:760px){.tizhi-wrap{grid-template-columns:1fr}}
   .tizhi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;}
@@ -393,7 +393,7 @@
     <!-- 第一步：选体质（与顶部「搜索配方」联动） -->
     <div class="card" style="background:#f3f0ff;border-color:#c9b8ff;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
-        <strong style="color:#6b4fcf">🌿 第一步：选体质（王琦八种体质，可多选）</strong>
+        <strong style="color:#6b4fcf">🌿 第一步：选体质（王琦九种体质，可多选）</strong>
         <span class="hint" style="margin:0">先确定你的<b>中医体质</b>（可多选，兼夹体质一般 2 种）。选好后<b>回到顶部点「搜索配方」</b>即可出方（自动合并症状+舌象+脉象）。<b>未选体质则不参与筛选</b>。</span>
       </div>
       <div class="tizhi-grid" id="searchTizhiGrid" style="margin-top:10px;"></div>
@@ -669,9 +669,9 @@
     </div>
   </section>
 
-  <!-- 体质辨证（王琦八种体质） -->
+  <!-- 体质辨证（王琦九种体质） -->
   <section id="tab-tizhi" style="display:none;">
-    <div class="hint" style="margin-bottom:8px;">🌿 <b>体质辨证</b>：基于王琦八种中医体质（不含特禀质）。点选下方体质卡片（可多选，中医常言「兼夹体质」，一般 2 种）查看其特征、推荐单方精油与复方按摩油；勾选后会在『智能配方』第三步同步，与症状/舌象/脉象一起合入「搜索配方」出方。外部项目可调用 <code>AROMA_tizhiRecommend(['平和质','气虚质'])</code> 取得推荐配方。</div>
+    <div class="hint" style="margin-bottom:8px;">🌿 <b>体质辨证</b>：基于王琦九种中医体质。点选下方体质卡片（可多选，中医常言「兼夹体质」，一般 2 种）查看其特征、推荐单方精油与复方按摩油；勾选后会在『智能配方』第三步同步，与症状/舌象/脉象一起合入「搜索配方」出方。外部项目可调用 <code>AROMA_tizhiRecommend(['平和质','气虚质'])</code> 取得推荐配方。</div>
     <div class="toolbar" style="margin-bottom:10px;"><button class="btn" onclick="openTizhiQuiz()">📝 开始体质自测（出条状图结果）</button></div>
     <div class="tizhi-wrap">
       <div>
@@ -721,6 +721,13 @@
 </div>
 
 <!-- 兜底：data.js 加载失败/解析错误时也能显示提示。必须在 data.js 之前！ -->
+<script>
+/* 全局前置定义：确保 HTML 内联 onclick 和任何初始化代码都能找到这两个函数 */
+function closeEntryModal(){ var m=document.getElementById('entryMask'); if(m) m.style.display='none'; }
+function showEntryModal(){ var m=document.getElementById('entryMask'); if(m) m.style.display='flex'; }
+window.closeEntryModal=closeEntryModal;
+window.showEntryModal=showEntryModal;
+</script>
 <script>
 (function(){
   function bootError(msg){
@@ -2428,7 +2435,7 @@ window.showEntryModal=showEntryModal;
   window.szCollectAllTags=szCollectAllTags; window.szCollectAllNames=szCollectAllNames;
   window.szCollectAllDiseases=szCollectAllDiseases; window.szHasSelection=szHasSelection;
 
-  // ===== 体质辨证（王琦八种体质） =====
+  // ===== 体质辨证（王琦九种体质） =====
   var selectedTizhi=new Set();
   function tizhiAll(){ return (db.constitutions||[]).slice().sort(function(a,b){return a.order-b.order;}); }
   function tizhiById(id){ return (db.constitutions||[]).find(function(c){return c.id===id;}); }
