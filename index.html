@@ -748,7 +748,7 @@
   });
 })();
 </script>
-<script src="data.js?v=20260908a"></script>
+<script src="data.js?v=20260908b"></script>
 <!-- 全局定义 closeEntryModal/showEntryModal：必须在 IIFE 之前，确保 HTML 内联 onclick 永远能找到 -->
 <script>
 function closeEntryModal(){
@@ -838,6 +838,16 @@ window.showEntryModal=showEntryModal;
       for(var _b=0;_b<_base.oils.length;_b++){ if(!_oilNames[_base.oils[_b].name]) db.oils.push(JSON.parse(JSON.stringify(_base.oils[_b]))); }
       var _formIds={}; for(var _c=0;_c<db.formulas.length;_c++) _formIds[db.formulas[_c].id]=1;
       for(var _d=0;_d<_base.formulas.length;_d++){ if(!_formIds[_base.formulas[_d].id]) db.formulas.push(JSON.parse(JSON.stringify(_base.formulas[_d]))); }
+      /* 补充体质（constitutions）：按 id 去重，不覆盖用户自定义 */
+      if(_base.constitutions && db.constitutions){
+        var _consIds={}; for(var _e=0;_e<db.constitutions.length;_e++) _consIds[db.constitutions[_e].id]=1;
+        for(var _f=0;_f<_base.constitutions.length;_f++){ if(!_consIds[_base.constitutions[_f].id]) db.constitutions.push(JSON.parse(JSON.stringify(_base.constitutions[_f]))); }
+      }
+      /* 补充体质问卷（tizhiQuiz）：按 id 去重 */
+      if(_base.tizhiQuiz && db.tizhiQuiz){
+        var _quizIds={}; for(var _g=0;_g<db.tizhiQuiz.length;_g++) _quizIds[db.tizhiQuiz[_g].id]=1;
+        for(var _h=0;_h<_base.tizhiQuiz.length;_h++){ if(!_quizIds[_base.tizhiQuiz[_h].id]) db.tizhiQuiz.push(JSON.parse(JSON.stringify(_base.tizhiQuiz[_h]))); }
+      }
       db.meta=JSON.parse(JSON.stringify(_base.meta));
       save();
       console.log('内置库已升级至版本 '+_baseVer+'（茶树改名等同步完成）');
