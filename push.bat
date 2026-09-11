@@ -15,8 +15,8 @@ git add -A
 git commit -m "update human-atlas: lung meridian manual positioning + label style optimization"
 echo.
 
-echo [3/3] Pushing to GitHub...
-git push origin main
+echo [3/3] Pushing to GitHub (force)...
+git push --force origin main
 echo.
 
 if %errorlevel% equ 0 (
