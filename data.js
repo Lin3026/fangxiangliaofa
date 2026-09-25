@@ -795,13 +795,13 @@ window.AROMA_BASE = {
       "body": "对因情绪不良引起的消化系统、生殖系统问题有很好的改善作用，如消化不良、腹胀气、绞痛、食欲不振等；也是抵抗泌尿系统感染的好帮手，如尿道炎、膀胱炎。",
       "skin": "对油性皮肤特别有益，尤其与压力有关而产生的唇部疱疹、水痘、带状疱疹、湿疹、粉刺、疥疮、脂溢性皮肤炎（头皮）、皮肤溃疡等。",
       "mind": "香柠檬（佛手柑）精油是抗忧郁和焦虑的高手。",
-      "zhuyi": "香柠檬（佛手柑）精油含较高比例的呋喃香豆素，因此要特别注意其光敏性，使用后勿做日光浴及曝晒。",
+      "zhuyi": "香柠檬（佛手柑）精油含较高比例的呋喃香豆素，因此要特别注意其光敏性，使用后勿做日光浴及曝晒。；不可与降压药同用",
       "source": "",
       "book": true,
       "xing": "温",
       "wei": "辛、苦",
       "guijing": "肝、脾",
-      "gongxiao": "疏肝理气、安神抗抑郁、清新",
+      "gongxiao": "疏肝理气、安神抗抑郁、清新；清火利尿、祛痘",
       "xitong": "情志/消化"
     },
     {
@@ -841,7 +841,7 @@ window.AROMA_BASE = {
       "xing": "",
       "wei": "",
       "guijing": "",
-      "gongxiao": "理气消胀、和胃、辅助缓解孕吐",
+      "gongxiao": "理气消胀、和胃、辅助缓解孕吐；减肥紧致、抗郁",
       "xitong": "消化/排毒/孕期"
     },
     {
@@ -861,7 +861,7 @@ window.AROMA_BASE = {
       "xing": "",
       "wei": "",
       "guijing": "",
-      "gongxiao": "和胃生津、理气止呕、缓解孕吐（吸嗅为主）",
+      "gongxiao": "和胃生津、理气止呕、缓解孕吐（吸嗅为主）；促消化排毒、夜间美白、专注",
       "xitong": "消化/免疫/孕期"
     },
     {
@@ -881,7 +881,7 @@ window.AROMA_BASE = {
       "xing": "",
       "wei": "",
       "guijing": "",
-      "gongxiao": "理气开胃、和胃止呕、缓解孕吐",
+      "gongxiao": "理气开胃、和胃止呕、缓解孕吐；化淤助消化、疏肝助眠",
       "xitong": "消化/情志/孕期"
     },
     {
@@ -901,7 +901,7 @@ window.AROMA_BASE = {
       "xing": "",
       "wei": "",
       "guijing": "",
-      "gongxiao": "安神定志、和胃理气、缓解孕吐",
+      "gongxiao": "安神定志、和胃理气、缓解孕吐美容、疏肝",
       "xitong": "情志/护肤/孕期"
     },
     {
@@ -921,7 +921,7 @@ window.AROMA_BASE = {
       "xing": "凉",
       "wei": "辛",
       "guijing": "肺",
-      "gongxiao": "清热化痰、通鼻利咽、抗菌",
+      "gongxiao": "清热化痰、通鼻利咽、抗菌；耳鼻喉专病（1.8%）",
       "xitong": "呼吸"
     },
     {
@@ -941,7 +941,7 @@ window.AROMA_BASE = {
       "xing": "",
       "wei": "",
       "guijing": "",
-      "gongxiao": "",
+      "gongxiao": "慢性支气管炎、祛痰",
       "xitong": ""
     },
     {
@@ -981,7 +981,7 @@ window.AROMA_BASE = {
       "xing": "温",
       "wei": "辛",
       "guijing": "脾、胃、肺、肾",
-      "gongxiao": "温中降逆、补肾助阳、散寒止痛、强力抗菌",
+      "gongxiao": "温中降逆、补肾助阳、散寒止痛、强力抗菌；助阳、升压、提升激素",
       "xitong": "消化/循环"
     },
     {
@@ -1001,7 +1001,7 @@ window.AROMA_BASE = {
       "xing": "",
       "wei": "",
       "guijing": "",
-      "gongxiao": "",
+      "gongxiao": "妇科、利胆生发（1.8%）",
       "xitong": ""
     },
     {
@@ -1021,7 +1021,7 @@ window.AROMA_BASE = {
       "xing": "大热",
       "wei": "辛、甘",
       "guijing": "肾、脾、心、肝",
-      "gongxiao": "补火助阳、温通经脉、散寒止痛（即肉桂皮精油）",
+      "gongxiao": "补火助阳、温通经脉、散寒止痛（即肉桂皮精油）；叶：补阳杀菌虚寒；皮：温中引火下行",
       "xitong": "体质/疼痛"
     },
     {
@@ -1041,7 +1041,7 @@ window.AROMA_BASE = {
       "xing": "",
       "wei": "",
       "guijing": "",
-      "gongxiao": "",
+      "gongxiao": "平衡止痛、促淋巴流动、杀菌生发（1.8%）",
       "xitong": ""
     },
     {
@@ -1061,7 +1061,7 @@ window.AROMA_BASE = {
       "xing": "",
       "wei": "",
       "guijing": "",
-      "gongxiao": "",
+      "gongxiao": "广谱杀菌（不影响睡眠）、止痛、增信心（1.8%）",
       "xitong": ""
     },
     {
@@ -1081,7 +1081,7 @@ window.AROMA_BASE = {
       "xing": "",
       "wei": "",
       "guijing": "",
-      "gongxiao": "",
+      "gongxiao": "抗菌抗老化抗发炎、提振免疫",
       "xitong": ""
     },
     {
@@ -1101,7 +1101,7 @@ window.AROMA_BASE = {
       "xing": "",
       "wei": "",
       "guijing": "",
-      "gongxiao": "",
+      "gongxiao": "抗病毒、助消化、消炎抗忧郁",
       "xitong": ""
     },
     {
@@ -1121,7 +1121,7 @@ window.AROMA_BASE = {
       "xing": "温",
       "wei": "辛",
       "guijing": "肾、膀胱",
-      "gongxiao": "温肾助阳、抗菌、安神",
+      "gongxiao": "温肾助阳、抗菌、安神；化痰、补气",
       "xitong": "体质/皮肤"
     },
     {
@@ -1141,7 +1141,7 @@ window.AROMA_BASE = {
       "xing": "",
       "wei": "",
       "guijing": "",
-      "gongxiao": "",
+      "gongxiao": "补虚、升压",
       "xitong": ""
     },
     {
@@ -1161,7 +1161,7 @@ window.AROMA_BASE = {
       "xing": "",
       "wei": "",
       "guijing": "",
-      "gongxiao": "",
+      "gongxiao": "强收敛、促循环",
       "xitong": ""
     },
     {
@@ -1181,7 +1181,7 @@ window.AROMA_BASE = {
       "xing": "温",
       "wei": "辛",
       "guijing": "肾、膀胱",
-      "gongxiao": "利尿排毒、温肾、净化（即杜松莓精油）",
+      "gongxiao": "利尿排毒、温肾、净化（即杜松莓精油）；利肝胆胰",
       "xitong": "体质/免疫"
     },
     {
@@ -1201,7 +1201,7 @@ window.AROMA_BASE = {
       "xing": "苦、平",
       "wei": "辛、苦",
       "guijing": "心、肝、脾",
-      "gongxiao": "散瘀止痛、生肌敛疮、修复黏膜与皮肤",
+      "gongxiao": "散瘀止痛、生肌敛疮、修复黏膜与皮肤；金创药、行气血化淤",
       "xitong": "皮肤修复/生殖泌尿"
     },
     {
@@ -1221,7 +1221,7 @@ window.AROMA_BASE = {
       "xing": "",
       "wei": "",
       "guijing": "",
-      "gongxiao": "",
+      "gongxiao": "抗皱第一、利呼吸、安抚",
       "xitong": ""
     },
     {
@@ -1241,7 +1241,7 @@ window.AROMA_BASE = {
       "xing": "",
       "wei": "",
       "guijing": "",
-      "gongxiao": "镇静安神、抗痉挛、和胃止呕（缓解孕吐）",
+      "gongxiao": "镇静安神、抗痉挛、和胃止呕（缓解孕吐）；抗过敏第一",
       "xitong": "安神/消化/孕期"
     },
     {
@@ -1261,7 +1261,7 @@ window.AROMA_BASE = {
       "xing": "",
       "wei": "",
       "guijing": "",
-      "gongxiao": "",
+      "gongxiao": "修复神经、调理慢性久病",
       "xitong": ""
     },
     {
@@ -1281,7 +1281,7 @@ window.AROMA_BASE = {
       "xing": "",
       "wei": "",
       "guijing": "",
-      "gongxiao": "",
+      "gongxiao": "化淤第一、宽胸解淤",
       "xitong": ""
     },
     {
@@ -1741,7 +1741,7 @@ window.AROMA_BASE = {
       "xing": "温",
       "wei": "苦、辛",
       "guijing": "肝、脾",
-      "gongxiao": "放松安神、平衡情绪",
+      "gongxiao": "放松安神、平衡情绪；疏肝和胃、清痘",
       "xitong": "安神/情志"
     },
     {
