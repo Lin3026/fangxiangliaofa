@@ -2251,9 +2251,31 @@ window.showEntryModal=showEntryModal;
           zhubing:"血瘀积滞 / 痰湿内阻：常见便秘、痔疮、头痛、静脉曲张、易长结节", advice:"推荐丝柏、永久花、葡萄柚促进循环；多食粗纤维，避免久站久坐。"},
         {key:"qingcuo",label:"青筋扭曲/结节", tags:["青筋扭曲","气滞血瘀","结节","肿瘤风险","痛经","乳腺增生","甲状腺结节"], tizhi:["血瘀质","气郁质"],
           zhubing:"气滞血瘀 / 结节体质：常见乳腺增生、甲状腺结节、子宫肌瘤、情绪压抑、痛经", advice:"推荐乳香、没药、永久花、花梨木活血散结；务必疏肝理气，定期体检。"}
-      ]}
+      ]},
+    {key:"zone", title:"⑤ 望手掌分区 · 脏腑定位", short:"手掌分区", desc:"手掌全息对应脏腑：点选你观察到有异常的区域（可多选），如发红、发白、青筋、凹陷、斑点等。", zone:true}
   ];
   var handPick={};
+  var handZoneSel={};  // {zoneKey: true}
+
+  // 手掌全息分区（中医手诊脏腑对应）
+  var HAND_ZONES=[
+    {key:"dayuji", name:"大鱼际（拇指根部）", organ:"肺 / 呼吸", tags:["肺","呼吸","感冒","咳嗽","哮喘"], tizhi:["气虚质"],
+      zhubing:"肺区异常：发红=肺热/感冒咳嗽；发青=肺寒；凹陷=肺气虚/易感冒；干燥=肺燥", advice:"推荐澳洲尤加利、绿花白千层、香桃木清肺化痰；多喝温水，避风寒。"},
+    {key:"xiaoyuji", name:"小鱼际（小指根部）", organ:"肾 / 膀胱 / 生殖", tags:["肾","生殖","宫寒","肾虚","月经不调"], tizhi:["阳虚质","阴虚质"],
+      zhubing:"肾区异常：发红=阴虚火旺/五心烦热；发青=宫寒/肾阳虚；凹陷=肾气不足/腰膝酸软", advice:"推荐姜、肉桂、丝柏温补肾阳；阴虚用花梨木、德国洋甘菊滋阴。"},
+    {key:"zhangxin", name:"掌心（中央）", organ:"脾 / 胃", tags:["脾胃","消化不良","胃胀","脾虚","胃热"], tizhi:["痰湿质","气虚质"],
+      zhubing:"脾胃区异常：发红=胃热/口臭/便秘；发白=脾虚/气血不足；凹陷=脾胃虚弱/食欲差；青筋=脾胃气滞", advice:"推荐甜橙、黑胡椒、广藿香健脾和胃；饮食规律，少生冷。"},
+    {key:"shizhi", name:"食指下方", organ:"肝 / 胆", tags:["肝胆","肝郁","湿热","易怒","口苦"], tizhi:["气郁质","湿热质"],
+      zhubing:"肝胆区异常：发黄=肝胆湿热/口苦；青筋=肝郁气滞/易怒；发红=肝火旺盛/失眠", advice:"推荐花梨木、苦橙叶、罗马洋甘菊疏肝利胆；少熬夜，忌油腻。"},
+    {key:"xiaozhi", name:"小指下方", organ:"心 / 小肠", tags:["心","心火","失眠","心烦","口舌生疮"], tizhi:["湿热质","阴虚质"],
+      zhubing:"心区异常：发红=心火旺盛/心烦失眠/口舌生疮；凹陷=心气不足/心慌气短；青筋=心血瘀阻", advice:"推荐罗马洋甘菊、香蜂草清心安神；心火盛加薰衣草。"},
+    {key:"wumingzhi", name:"无名指下方", organ:"肺 / 大肠", tags:["肺","大肠","便秘","痤疮","肺热"], tizhi:["湿热质","阴虚质"],
+      zhubing:"肺大肠区异常：发红=肺热/痤疮/咽喉痛；干燥=肺燥/便秘；凹陷=肺气虚/易感冒", advice:"推荐澳洲尤加利、绿花白千层清肺；便秘加甜茴香、姜。"},
+    {key:"zhongzhi", name:"中指下方", organ:"心 / 心包", tags:["心","心包","高血压","失眠","心悸"], tizhi:["阴虚质","气郁质"],
+      zhubing:"心包区异常：发红=心火/高血压/面红；青筋=气滞血瘀/胸闷；凹陷=心气虚心悸", advice:"推荐花梨木、乳香、薰衣草安神降压；监测血压，少激动。"},
+    {key:"shougen", name:"手掌根部（腕横纹上）", organ:"肾 / 泌尿 / 生殖", tags:["肾","泌尿","生殖","水肿","月经不调"], tizhi:["阳虚质","痰湿质"],
+      zhubing:"生殖泌尿区异常：发红=泌尿炎症/阴虚；发青=宫寒/痛经；凹陷=肾虚/夜尿多", advice:"推荐丝柏、杜松、姜温肾利水；女性加玫瑰、天竺葵调经。"}
+  ];
 
   function handRenderSteps(){
     var box=document.getElementById("handSteps"); if(!box)return;
@@ -2263,16 +2285,37 @@ window.showEntryModal=showEntryModal;
       h+='<div style="margin:10px 0;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--card,#fff);">';
       h+='<div style="font-weight:700;margin-bottom:4px;">'+s.title+'</div>';
       h+='<div style="font-size:12px;color:var(--muted,#666);margin-bottom:8px;">'+s.desc+'</div>';
-      h+='<div style="display:flex;flex-wrap:wrap;gap:6px;">';
-      for(var j=0;j<s.options.length;j++){
-        var o=s.options[j];
-        var sel=handPick[s.key]===o.key;
-        h+='<button class="btn sm '+(sel?'':'ghost')+'" style="'+(sel?'background:var(--accent);color:#fff;border-color:var(--accent);':'')+'" onclick="handPickOpt(\''+s.key+'\',\''+o.key+'\')">'+o.label+'</button>';
+      if(s.zone){
+        h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;">';
+        for(var z=0;z<HAND_ZONES.length;z++){
+          var zn=HAND_ZONES[z];
+          var zsel=!!handZoneSel[zn.key];
+          h+='<div onclick="handToggleZone(\''+zn.key+'\')" style="cursor:pointer;padding:10px;border:2px solid '+(zsel?'var(--accent)':'var(--line,#ddd)')+';border-radius:8px;background:'+(zsel?'var(--accent-soft,#e8f4fd)':'#fff')+';transition:all .15s;">';
+          h+='<div style="font-weight:700;font-size:13px;color:'+(zsel?'var(--accent)':'#333')+';">'+zn.name+'</div>';
+          h+='<div style="font-size:11px;color:var(--muted,#888);margin-top:2px;">'+zn.organ+'</div>';
+          h+='</div>';
+        }
+        h+='</div>';
+      } else {
+        h+='<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+        for(var j=0;j<s.options.length;j++){
+          var o=s.options[j];
+          var sel=handPick[s.key]===o.key;
+          h+='<button class="btn sm '+(sel?'':'ghost')+'" style="'+(sel?'background:var(--accent);color:#fff;border-color:var(--accent);':'')+'" onclick="handPickOpt(\''+s.key+'\',\''+o.key+'\')">'+o.label+'</button>';
+        }
+        h+='</div>';
       }
-      h+='</div></div>';
+      h+='</div>';
     }
     box.innerHTML=h;
     handRenderDetail();
+  }
+
+  function handToggleZone(key){
+    if(handZoneSel[key]) delete handZoneSel[key];
+    else handZoneSel[key]=true;
+    handRenderSteps();
+    handRenderSummary();
   }
 
   function handPickOpt(step, opt){
@@ -2289,16 +2332,20 @@ window.showEntryModal=showEntryModal;
       var step=HAND_STEPS.filter(function(s){return s.key===sk;})[0]; if(!step)continue;
       var opt=step.options.filter(function(o){return o.key===handPick[sk];})[0]; if(!opt)continue;
       if(opt.normal)continue;
-      selected.push({step:step, opt:opt});
+      selected.push({title:step.short+' · '+opt.label, zhubing:opt.zhubing, advice:opt.advice});
+    }
+    for(var zk in handZoneSel){
+      var zn=HAND_ZONES.filter(function(z){return z.key===zk;})[0]; if(!zn)continue;
+      selected.push({title:'手掌分区 · '+zn.name+'（'+zn.organ+'）', zhubing:zn.zhubing, advice:zn.advice});
     }
     if(!selected.length){ box.innerHTML='<div style="padding:16px;text-align:center;color:var(--muted,#999);font-size:13px;">← 在上方点选手部特征，这里会显示对应的身体问题和调理建议</div>'; return; }
     var h='<div style="margin-top:12px;">';
     for(var i=0;i<selected.length;i++){
       var it=selected[i];
       h+='<div style="margin:8px 0;padding:12px;border-left:3px solid var(--accent);background:var(--accent-soft,#f0f7ff);border-radius:0 8px 8px 0;">';
-      h+='<div style="font-weight:700;color:var(--accent);margin-bottom:4px;">'+it.step.short+' · '+it.opt.label+'</div>';
-      h+='<div style="font-size:13px;margin:4px 0;"><b>对应病症：</b>'+it.opt.zhubing+'</div>';
-      h+='<div style="font-size:13px;color:#444;"><b>调理建议：</b>'+it.opt.advice+'</div>';
+      h+='<div style="font-weight:700;color:var(--accent);margin-bottom:4px;">'+it.title+'</div>';
+      h+='<div style="font-size:13px;margin:4px 0;"><b>对应病症：</b>'+it.zhubing+'</div>';
+      h+='<div style="font-size:13px;color:#444;"><b>调理建议：</b>'+it.advice+'</div>';
       h+='</div>';
     }
     h+='</div>';
@@ -2312,6 +2359,11 @@ window.showEntryModal=showEntryModal;
       var opt=step.options.filter(function(o){return o.key===handPick[sk];})[0]; if(!opt)continue;
       tags=tags.concat(opt.tags||[]);
       tizhi=tizhi.concat(opt.tizhi||[]);
+    }
+    for(var zk in handZoneSel){
+      var zn=HAND_ZONES.filter(function(z){return z.key===zk;})[0]; if(!zn)continue;
+      tags=tags.concat(zn.tags||[]);
+      tizhi=tizhi.concat(zn.tizhi||[]);
     }
     return {tags:tags, tizhi:Array.from(new Set(tizhi))};
   }
@@ -2335,10 +2387,10 @@ window.showEntryModal=showEntryModal;
     runSearch();
   }
 
-  function handClear(){ handPick={}; handRenderSteps(); handRenderSummary(); }
+  function handClear(){ handPick={}; handZoneSel={}; handRenderSteps(); handRenderSummary(); }
 
   handRenderSteps();
-  window.handPickOpt=handPickOpt; window.handClear=handClear; window.handToSearch=handToSearch;
+  window.handPickOpt=handPickOpt; window.handClear=handClear; window.handToSearch=handToSearch; window.handToggleZone=handToggleZone;
 
   /* ============ 智能配方·分步舌诊（与舌诊辨证页同款五步，独立状态 sz*） ============ */
   // 与分布舌诊（dz*）共用 TONGUE_STEPS / DZ_PHOTO_MAP / TONGUE_REGIONS / DZ_ZONES / DZ_ORGAN_IMG 数据，
