@@ -2257,25 +2257,64 @@ window.showEntryModal=showEntryModal;
   var handPick={};
   var handZoneSel={};  // {zoneKey: true}
 
-  // 手掌全息分区（中医手诊脏腑对应）
+  // 手掌全息分区（中医手诊脏腑对应），每个区域有具体异常子选项
   var HAND_ZONES=[
-    {key:"dayuji", name:"大鱼际（拇指根部）", organ:"肺 / 呼吸", tags:["肺","呼吸","感冒","咳嗽","哮喘"], tizhi:["气虚质"],
-      zhubing:"肺区异常：发红=肺热/感冒咳嗽；发青=肺寒；凹陷=肺气虚/易感冒；干燥=肺燥", advice:"推荐澳洲尤加利、绿花白千层、香桃木清肺化痰；多喝温水，避风寒。"},
-    {key:"xiaoyuji", name:"小鱼际（小指根部）", organ:"肾 / 膀胱 / 生殖", tags:["肾","生殖","宫寒","肾虚","月经不调"], tizhi:["阳虚质","阴虚质"],
-      zhubing:"肾区异常：发红=阴虚火旺/五心烦热；发青=宫寒/肾阳虚；凹陷=肾气不足/腰膝酸软", advice:"推荐姜、肉桂、丝柏温补肾阳；阴虚用花梨木、德国洋甘菊滋阴。"},
-    {key:"zhangxin", name:"掌心（中央）", organ:"脾 / 胃", tags:["脾胃","消化不良","胃胀","脾虚","胃热"], tizhi:["痰湿质","气虚质"],
-      zhubing:"脾胃区异常：发红=胃热/口臭/便秘；发白=脾虚/气血不足；凹陷=脾胃虚弱/食欲差；青筋=脾胃气滞", advice:"推荐甜橙、黑胡椒、广藿香健脾和胃；饮食规律，少生冷。"},
-    {key:"shizhi", name:"食指下方", organ:"肝 / 胆", tags:["肝胆","肝郁","湿热","易怒","口苦"], tizhi:["气郁质","湿热质"],
-      zhubing:"肝胆区异常：发黄=肝胆湿热/口苦；青筋=肝郁气滞/易怒；发红=肝火旺盛/失眠", advice:"推荐花梨木、苦橙叶、罗马洋甘菊疏肝利胆；少熬夜，忌油腻。"},
-    {key:"xiaozhi", name:"小指下方", organ:"心 / 小肠", tags:["心","心火","失眠","心烦","口舌生疮"], tizhi:["湿热质","阴虚质"],
-      zhubing:"心区异常：发红=心火旺盛/心烦失眠/口舌生疮；凹陷=心气不足/心慌气短；青筋=心血瘀阻", advice:"推荐罗马洋甘菊、香蜂草清心安神；心火盛加薰衣草。"},
-    {key:"wumingzhi", name:"无名指下方", organ:"肺 / 大肠", tags:["肺","大肠","便秘","痤疮","肺热"], tizhi:["湿热质","阴虚质"],
-      zhubing:"肺大肠区异常：发红=肺热/痤疮/咽喉痛；干燥=肺燥/便秘；凹陷=肺气虚/易感冒", advice:"推荐澳洲尤加利、绿花白千层清肺；便秘加甜茴香、姜。"},
-    {key:"zhongzhi", name:"中指下方", organ:"心 / 心包", tags:["心","心包","高血压","失眠","心悸"], tizhi:["阴虚质","气郁质"],
-      zhubing:"心包区异常：发红=心火/高血压/面红；青筋=气滞血瘀/胸闷；凹陷=心气虚心悸", advice:"推荐花梨木、乳香、薰衣草安神降压；监测血压，少激动。"},
-    {key:"shougen", name:"手掌根部（腕横纹上）", organ:"肾 / 泌尿 / 生殖", tags:["肾","泌尿","生殖","水肿","月经不调"], tizhi:["阳虚质","痰湿质"],
-      zhubing:"生殖泌尿区异常：发红=泌尿炎症/阴虚；发青=宫寒/痛经；凹陷=肾虚/夜尿多", advice:"推荐丝柏、杜松、姜温肾利水；女性加玫瑰、天竺葵调经。"}
+    {key:"dayuji", name:"大鱼际（拇指根部）", organ:"肺 / 呼吸",
+      subs:[
+        {key:"hong", label:"发红", tags:["肺热","感冒","咳嗽","咽喉痛","上火"], tizhi:["湿热质"], zhubing:"肺热/风热感冒：常见咳嗽黄痰、咽喉肿痛、口干、发热", advice:"推荐澳洲尤加利、绿花白千层、茶树清肺热；多喝温水。"},
+        {key:"qing", label:"发青/发紫", tags:["肺寒","寒咳","哮喘","支气管炎"], tizhi:["阳虚质"], zhubing:"肺寒/寒饮停肺：常见咳嗽白痰、遇冷加重、哮喘、慢性支气管炎", advice:"推荐乳香、姜、欧洲赤松温肺散寒；热敷前胸后背。"},
+        {key:"ao", label:"凹陷/松软", tags:["肺气虚","易感冒","气短","自汗","免疫力低"], tizhi:["气虚质"], zhubing:"肺气虚：常见气短懒言、易感冒、自汗、免疫力低、过敏性鼻炎", advice:"推荐乳香、欧洲赤松、大西洋雪松补肺气；适度运动，避风寒。"},
+        {key:"zao", label:"干燥/脱皮", tags:["肺燥","干咳","皮肤干","便秘"], tizhi:["阴虚质"], zhubing:"肺燥津亏：常见干咳无痰、皮肤干燥、口干、便秘", advice:"推荐花梨木、甜杏仁油、乳香润肺；多饮水，室内加湿。"}
+      ]},
+    {key:"xiaoyuji", name:"小鱼际（小指根部）", organ:"肾 / 膀胱 / 生殖",
+      subs:[
+        {key:"hong", label:"发红", tags:["阴虚火旺","五心烦热","盗汗","口干","更年期"], tizhi:["阴虚质"], zhubing:"肾阴虚/虚火上炎：常见手足心热、夜间盗汗、口干咽燥、更年期潮热", advice:"推荐花梨木、德国洋甘菊、永久花滋阴清热；少熬夜，忌辛辣。"},
+        {key:"qing", label:"发青/发凉", tags:["肾阳虚","宫寒","痛经","畏寒","夜尿多"], tizhi:["阳虚质"], zhubing:"肾阳虚/宫寒：常见腰膝酸软、畏寒怕冷、痛经有血块、夜尿多、性欲减退", advice:"推荐姜、肉桂、黑胡椒温补肾阳；艾灸关元/命门，忌冷饮。"},
+        {key:"ao", label:"凹陷/松软", tags:["肾气不足","腰膝酸软","乏力","脱发","耳鸣"], tizhi:["气虚质","阳虚质"], zhubing:"肾气不足：常见腰膝酸软、神疲乏力、脱发、耳鸣、记忆力下降", advice:"推荐丝柏、杜松、姜补肾气；早睡，避免过度劳累。"},
+        {key:"ban", label:"斑点/色素沉着", tags:["肾虚","内分泌失调","黄褐斑","月经不调"], tizhi:["血瘀质","阴虚质"], zhubing:"肾虚血瘀/内分泌失调：常见黄褐斑、月经不调、面色晦暗", advice:"推荐永久花、花梨木、玫瑰活血祛斑；调节内分泌。"}
+      ]},
+    {key:"zhangxin", name:"掌心（中央）", organ:"脾 / 胃",
+      subs:[
+        {key:"hong", label:"发红", tags:["胃热","口臭","便秘","食欲旺盛","口腔溃疡"], tizhi:["湿热质"], zhubing:"胃热/胃火旺盛：常见口臭、口腔溃疡、便秘、食欲旺盛、牙龈肿痛", advice:"推荐甜橙、罗马洋甘菊、薄荷清胃热；饮食清淡，忌辛辣。"},
+        {key:"bai", label:"发白/无华", tags:["脾虚","气血不足","贫血","面色苍白","乏力"], tizhi:["气虚质","阳虚质"], zhubing:"脾虚/气血两虚：常见面色苍白、头晕乏力、月经量少、食欲不振、消化不良", advice:"推荐乳香、欧白芷、甜茴香健脾补血；注意营养，忌生冷。"},
+        {key:"ao", label:"凹陷/松软", tags:["脾胃虚弱","食欲差","腹胀","便溏","消瘦"], tizhi:["气虚质","痰湿质"], zhubing:"脾胃虚弱：常见食欲差、食后腹胀、大便稀溏、消瘦或虚胖、四肢无力", advice:"推荐甜橙、黑胡椒、广藿香健脾和胃；规律饮食，细嚼慢咽。"},
+        {key:"jin", label:"青筋显露", tags:["脾胃气滞","胃胀","嗳气","消化不良","情绪相关"], tizhi:["气郁质"], zhubing:"脾胃气滞/肝胃不和：常见胃胀嗳气、情绪差时加重、消化不良、两胁胀痛", advice:"推荐花梨木、苦橙叶、甜橙疏肝和胃；保持心情舒畅。"},
+        {key:"shi", label:"潮湿/多汗", tags:["脾虚湿盛","身体困重","大便黏腻","口黏","水肿"], tizhi:["痰湿质","湿热质"], zhubing:"脾虚湿盛：常见手心多汗、身体困重、大便黏腻、口黏、水肿", advice:"推荐广藿香、丝柏、杜松健脾祛湿；少甜食油腻，多运动。"}
+      ]},
+    {key:"shizhi", name:"食指下方", organ:"肝 / 胆",
+      subs:[
+        {key:"huang", label:"发黄", tags:["肝胆湿热","口苦","黄疸","胆囊炎","脂肪肝"], tizhi:["湿热质"], zhubing:"肝胆湿热：常见口苦口黏、黄疸、胆囊炎、脂肪肝、皮肤油腻", advice:"推荐花梨木、柠檬、丝柏清利肝胆湿热；少油腻，戒酒。"},
+        {key:"jin", label:"青筋显露", tags:["肝郁气滞","易怒","胸闷","乳腺增生","月经不调"], tizhi:["气郁质"], zhubing:"肝郁气滞：常见情绪抑郁/易怒、胸闷叹气、乳腺增生、月经不调、两胁胀痛", advice:"推荐花梨木、苦橙叶、佛手柑疏肝理气；多运动，调节情绪。"},
+        {key:"hong", label:"发红", tags:["肝火旺盛","失眠","头痛","易怒","血压高"], tizhi:["湿热质","阴虚质"], zhubing:"肝火旺盛：常见头痛眩晕、面红目赤、急躁易怒、失眠多梦、血压偏高", advice:"推荐罗马洋甘菊、薰衣草、花梨木平肝降火；监测血压，少激动。"},
+        {key:"ao", label:"凹陷/松软", tags:["肝血不足","眼干","指甲脆","失眠","月经量少"], tizhi:["阴虚质","气虚质"], zhubing:"肝血不足：常见眼干视物模糊、指甲脆薄、失眠多梦、月经量少、肢体麻木", advice:"推荐乳香、花梨木、胡萝卜籽养肝血；早睡（23点前），少用眼。"}
+      ]},
+    {key:"xiaozhi", name:"小指下方", organ:"心 / 小肠",
+      subs:[
+        {key:"hong", label:"发红", tags:["心火旺盛","心烦","失眠","口舌生疮","小便黄"], tizhi:["湿热质","阴虚质"], zhubing:"心火旺盛：常见心烦失眠、口舌生疮、小便黄赤、舌尖红、口干", advice:"推荐罗马洋甘菊、香蜂草、薰衣草清心火；少熬夜，忌辛辣。"},
+        {key:"ao", label:"凹陷/松软", tags:["心气不足","心慌","气短","乏力","自汗"], tizhi:["气虚质"], zhubing:"心气不足：常见心慌心悸、气短乏力、自汗、活动后加重、面色苍白", advice:"推荐乳香、欧洲赤松、花梨木补心气；避免剧烈运动和情绪激动。"},
+        {key:"jin", label:"青筋/暗紫", tags:["心血瘀阻","胸闷","胸痛","心悸","冠心病风险"], tizhi:["血瘀质"], zhubing:"心血瘀阻：常见胸闷胸痛、心悸、面色晦暗、口唇发紫、冠心病风险", advice:"推荐永久花、乳香、没药活血通脉；及时就医检查心脏。"}
+      ]},
+    {key:"wumingzhi", name:"无名指下方", organ:"肺 / 大肠",
+      subs:[
+        {key:"hong", label:"发红", tags:["肺热","痤疮","咽喉痛","便秘","口干"], tizhi:["湿热质"], zhubing:"肺热/肠热：常见痤疮、咽喉肿痛、口干、便秘、皮肤油腻", advice:"推荐澳洲尤加利、绿花白千层、茶树清肺热；多饮水，忌辛辣。"},
+        {key:"zao", label:"干燥/粗糙", tags:["肺燥","便秘","皮肤干","干咳"], tizhi:["阴虚质"], zhubing:"肺燥/肠燥：常见干咳、皮肤干燥、大便干结、口干", advice:"推荐花梨木、乳香、甜杏仁油润肺通便；多饮水，多吃蔬果。"},
+        {key:"ao", label:"凹陷/松软", tags:["肺气虚","易感冒","气短","过敏性鼻炎","便秘"], tizhi:["气虚质"], zhubing:"肺气虚/大肠传导无力：常见易感冒、气短、过敏性鼻炎、便秘无力", advice:"推荐乳香、欧洲赤松补肺气；适度运动，规律排便。"}
+      ]},
+    {key:"zhongzhi", name:"中指下方", organ:"心 / 心包",
+      subs:[
+        {key:"hong", label:"发红", tags:["心火","高血压","面红","失眠","头痛"], tizhi:["湿热质","阴虚质"], zhubing:"心火/肝阳上亢：常见面红目赤、头痛眩晕、失眠、血压偏高、心烦", advice:"推荐薰衣草、花梨木、罗马洋甘菊平肝安神；监测血压。"},
+        {key:"jin", label:"青筋/暗紫", tags:["气滞血瘀","胸闷","胸痛","心悸","血脂高"], tizhi:["血瘀质","气郁质"], zhubing:"气滞血瘀/心包瘀阻：常见胸闷胸痛、心悸、情绪压抑、血脂偏高", advice:"推荐永久花、乳香、花梨木活血理气；定期体检心血管。"},
+        {key:"ao", label:"凹陷/松软", tags:["心气不足","心悸","气短","乏力","失眠"], tizhi:["气虚质"], zhubing:"心气/心血不足：常见心悸、气短乏力、失眠多梦、面色无华", advice:"推荐乳香、花梨木、欧洲赤松养心安神；避免劳累和情绪波动。"}
+      ]},
+    {key:"shougen", name:"手掌根部（腕横纹上）", organ:"肾 / 泌尿 / 生殖",
+      subs:[
+        {key:"hong", label:"发红", tags:["泌尿炎症","阴虚火旺","尿频尿急","盆腔炎","更年期"], tizhi:["湿热质","阴虚质"], zhubing:"下焦湿热/阴虚：常见尿频尿急、泌尿炎症、盆腔炎、更年期潮热", advice:"推荐杜松、丝柏、茶树清利湿热；多饮水，注意卫生。"},
+        {key:"qing", label:"发青/发凉", tags:["宫寒","痛经","月经不调","畏寒","不孕"], tizhi:["阳虚质"], zhubing:"宫寒/肾阳虚：常见痛经冷痛、月经延后、畏寒肢冷、性欲减退、不孕", advice:"推荐姜、肉桂、玫瑰温经暖宫；艾灸关元，忌冷饮生冷。"},
+        {key:"ao", label:"凹陷/松软", tags:["肾虚","夜尿多","腰膝酸软","脱发","耳鸣"], tizhi:["阳虚质","气虚质"], zhubing:"肾气不足：常见夜尿多、腰膝酸软、脱发耳鸣、神疲乏力、性欲减退", advice:"推荐丝柏、杜松、姜补肾气；早睡，节制房事。"},
+        {key:"shi", label:"潮湿/多汗", tags:["湿热下注","白带多","阴囊潮湿","脚气","水肿"], tizhi:["湿热质","痰湿质"], zhubing:"湿热下注：常见白带多黄、阴囊潮湿、脚气、下肢水肿、小便浑浊", advice:"推荐杜松、丝柏、广藿香清热利湿；保持干燥，少甜食。"}
+      ]}
   ];
+  var handZoneSub={};  // {zoneKey: subKey} 每个区域选中的具体异常
 
   function handRenderSteps(){
     var box=document.getElementById("handSteps"); if(!box)return;
@@ -2286,13 +2325,26 @@ window.showEntryModal=showEntryModal;
       h+='<div style="font-weight:700;margin-bottom:4px;">'+s.title+'</div>';
       h+='<div style="font-size:12px;color:var(--muted,#666);margin-bottom:8px;">'+s.desc+'</div>';
       if(s.zone){
-        h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;">';
+        h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;">';
         for(var z=0;z<HAND_ZONES.length;z++){
           var zn=HAND_ZONES[z];
-          var zsel=!!handZoneSel[zn.key];
-          h+='<div onclick="handToggleZone(\''+zn.key+'\')" style="cursor:pointer;padding:10px;border:2px solid '+(zsel?'var(--accent)':'var(--line,#ddd)')+';border-radius:8px;background:'+(zsel?'var(--accent-soft,#e8f4fd)':'#fff')+';transition:all .15s;">';
-          h+='<div style="font-weight:700;font-size:13px;color:'+(zsel?'var(--accent)':'#333')+';">'+zn.name+'</div>';
-          h+='<div style="font-size:11px;color:var(--muted,#888);margin-top:2px;">'+zn.organ+'</div>';
+          var zopen=!!handZoneOpen[zn.key];
+          var zsel=!!handZoneSub[zn.key];
+          h+='<div style="border:2px solid '+(zsel?'var(--accent)':'var(--line,#ddd)')+';border-radius:8px;background:'+(zsel?'var(--accent-soft,#e8f4fd)':'#fff')+';overflow:hidden;">';
+          h+='<div onclick="handOpenZone(\''+zn.key+'\')" style="cursor:pointer;padding:10px;">';
+          h+='<div style="font-weight:700;font-size:13px;color:'+(zsel?'var(--accent)':'#333')+';">'+zn.name+' <span style="font-weight:400;font-size:11px;color:var(--muted,#888);">'+zn.organ+'</span> <span style="float:right;font-size:11px;">'+(zopen?'▾':'▸')+'</span></div>';
+          if(zsel){ var selSub=zn.subs.filter(function(x){return x.key===handZoneSub[zn.key];})[0]; if(selSub) h+='<div style="font-size:11px;color:var(--accent);margin-top:2px;">已选：'+selSub.label+'</div>'; }
+          h+='</div>';
+          if(zopen){
+            h+='<div style="padding:0 10px 10px;border-top:1px solid var(--line,#eee);">';
+            h+='<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;">';
+            for(var si=0;si<zn.subs.length;si++){
+              var sub=zn.subs[si];
+              var ssel=handZoneSub[zn.key]===sub.key;
+              h+='<button class="btn sm '+(ssel?'':'ghost')+'" style="font-size:11px;padding:3px 8px;'+(ssel?'background:var(--accent);color:#fff;border-color:var(--accent);':'')+'" onclick="handSelectZoneSub(\''+zn.key+'\',\''+sub.key+'\')">'+sub.label+'</button>';
+            }
+            h+='</div></div>';
+          }
           h+='</div>';
         }
         h+='</div>';
@@ -2311,9 +2363,15 @@ window.showEntryModal=showEntryModal;
     handRenderDetail();
   }
 
-  function handToggleZone(key){
-    if(handZoneSel[key]) delete handZoneSel[key];
-    else handZoneSel[key]=true;
+  var handZoneOpen={};  // 哪些区域展开了
+  function handOpenZone(key){
+    if(handZoneOpen[key]) delete handZoneOpen[key];
+    else handZoneOpen[key]=true;
+    handRenderSteps();
+  }
+  function handSelectZoneSub(zoneKey, subKey){
+    if(handZoneSub[zoneKey]===subKey) delete handZoneSub[zoneKey];
+    else handZoneSub[zoneKey]=subKey;
     handRenderSteps();
     handRenderSummary();
   }
@@ -2334,9 +2392,10 @@ window.showEntryModal=showEntryModal;
       if(opt.normal)continue;
       selected.push({title:step.short+' · '+opt.label, zhubing:opt.zhubing, advice:opt.advice});
     }
-    for(var zk in handZoneSel){
+    for(var zk in handZoneSub){
       var zn=HAND_ZONES.filter(function(z){return z.key===zk;})[0]; if(!zn)continue;
-      selected.push({title:'手掌分区 · '+zn.name+'（'+zn.organ+'）', zhubing:zn.zhubing, advice:zn.advice});
+      var sub=zn.subs.filter(function(x){return x.key===handZoneSub[zk];})[0]; if(!sub)continue;
+      selected.push({title:'手掌分区 · '+zn.name+'（'+zn.organ+'）· '+sub.label, zhubing:sub.zhubing, advice:sub.advice});
     }
     if(!selected.length){ box.innerHTML='<div style="padding:16px;text-align:center;color:var(--muted,#999);font-size:13px;">← 在上方点选手部特征，这里会显示对应的身体问题和调理建议</div>'; return; }
     var h='<div style="margin-top:12px;">';
@@ -2360,10 +2419,11 @@ window.showEntryModal=showEntryModal;
       tags=tags.concat(opt.tags||[]);
       tizhi=tizhi.concat(opt.tizhi||[]);
     }
-    for(var zk in handZoneSel){
+    for(var zk in handZoneSub){
       var zn=HAND_ZONES.filter(function(z){return z.key===zk;})[0]; if(!zn)continue;
-      tags=tags.concat(zn.tags||[]);
-      tizhi=tizhi.concat(zn.tizhi||[]);
+      var sub=zn.subs.filter(function(x){return x.key===handZoneSub[zk];})[0]; if(!sub)continue;
+      tags=tags.concat(sub.tags||[]);
+      tizhi=tizhi.concat(sub.tizhi||[]);
     }
     return {tags:tags, tizhi:Array.from(new Set(tizhi))};
   }
@@ -2387,10 +2447,10 @@ window.showEntryModal=showEntryModal;
     runSearch();
   }
 
-  function handClear(){ handPick={}; handZoneSel={}; handRenderSteps(); handRenderSummary(); }
+  function handClear(){ handPick={}; handZoneSub={}; handZoneOpen={}; handRenderSteps(); handRenderSummary(); }
 
   handRenderSteps();
-  window.handPickOpt=handPickOpt; window.handClear=handClear; window.handToSearch=handToSearch; window.handToggleZone=handToggleZone;
+  window.handPickOpt=handPickOpt; window.handClear=handClear; window.handToSearch=handToSearch; window.handOpenZone=handOpenZone; window.handSelectZoneSub=handSelectZoneSub;
 
   /* ============ 智能配方·分步舌诊（与舌诊辨证页同款五步，独立状态 sz*） ============ */
   // 与分布舌诊（dz*）共用 TONGUE_STEPS / DZ_PHOTO_MAP / TONGUE_REGIONS / DZ_ZONES / DZ_ORGAN_IMG 数据，
