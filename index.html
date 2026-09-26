@@ -366,6 +366,7 @@
     <div class="tab" data-tab="meridian">🌐 经络3D</div>
     <div class="tab" data-tab="pulse">💓 脉诊辨证</div>
     <div class="tab" data-tab="tongue">👅 舌诊辨证</div>
+    <div class="tab" data-tab="hand">✋ 手诊辨证</div>
     <div class="tab" data-tab="tizhi">🌿 体质辨证</div>
     <div class="tab" data-tab="oils">🧪 精油档案</div>
     <div class="tab" data-tab="hydro">💧 纯露档案</div>
@@ -667,6 +668,15 @@
       <a class="btn ghost sm" href="tongue_teach.html" target="_blank">📖 舌诊教学</a>
       <a class="btn ghost sm" href="tongue_wizard.html" target="_blank">🩺 分步舌诊向导</a>
     </div>
+  </section>
+
+  <!-- 手诊辨证 -->
+  <section id="tab-hand" style="display:none;">
+    <div class="hint" style="margin-bottom:10px;">✋ <b>分步手诊辨证</b>：观察自己或客户的手掌——<b>①望掌色 → ②望掌温掌态 → ③望指甲 → ④望手背青筋</b>。每步把实际看到的点选出来（可只选几步），选中后自动汇入「智能配方」搜索。</div>
+    <div class="dz-steps" id="handSteps"></div>
+    <div id="handBody"></div>
+    <div class="pulse-summary" id="handSummary" style="display:none;"></div>
+    <div id="handResults"></div>
   </section>
 
   <!-- 体质辨证（王琦九种体质） -->
@@ -2186,6 +2196,107 @@ window.showEntryModal=showEntryModal;
   window.dzRenderPick=dzRenderPick; window.dzSelectPick=dzSelectPick;
   window.dzCollectAllTags=dzCollectAllTags; window.dzCollectTags=dzCollectTags;
   window.openTongueBig=openTongueBig;
+
+
+  /* ============ 手诊辨证（独立组件，hand*） ============ */
+  var HAND_STEPS=[
+    {key:"color", title:"① 望掌色", short:"掌色", desc:"看手掌整体颜色。正常 = 淡红润泽。",
+      options:[
+        {key:"normal",  label:"淡红润泽（正常）", normal:true, tags:["正常","健康"], tizhi:["平和质"]},
+        {key:"danbai",  label:"淡白无华", tags:["掌色淡白","血虚","气血不足","贫血","畏寒","面色苍白","乏力","月经量少"], tizhi:["阳虚质","气虚质"]},
+        {key:"hong",     label:"掌红",   tags:["掌红","热","心火","血热","上火","心烦","口干","口舌生疮"], tizhi:["湿热质","阴虚质"]},
+        {key:"qingzi",  label:"青紫/暗紫", tags:["掌青紫","血瘀","寒凝血瘀","气滞血瘀","痛经","固定刺痛","面色晦暗","手脚冰凉"], tizhi:["血瘀质"]},
+        {key:"huang",   label:"萎黄",   tags:["掌黄","脾虚","湿热","黄疸","消化不良","腹胀","食欲差","身体困重"], tizhi:["痰湿质","湿热质"]}
+      ]},
+    {key:"temp", title:"② 望掌温掌态", short:"掌温掌态", desc:"摸手掌温度与湿度。",
+      options:[
+        {key:"normal", label:"温暖干燥（正常）", normal:true, tags:["正常"], tizhi:["平和质"]},
+        {key:"bing",   label:"冰凉",   tags:["手凉","阳虚","寒证","气血不畅","畏寒","月经不调","便溏"], tizhi:["阳虚质"]},
+        {key:"re",     label:"发热",   tags:["手心热","阴虚","内热","五心烦热","盗汗","口干","失眠多梦"], tizhi:["阴虚质"]},
+        {key:"chuhan", label:"多汗湿黏", tags:["手汗多","气虚","湿热","脾虚湿盛","焦虑紧张","汗出恶风"], tizhi:["气虚质","痰湿质"]},
+        {key:"zao",    label:"干燥粗糙", tags:["手干","阴虚","血燥","津液不足","皮肤干","便秘"], tizhi:["阴虚质"]}
+      ]},
+    {key:"nail", title:"③ 望指甲", short:"指甲", desc:"看指甲颜色、形态、月牙。",
+      options:[
+        {key:"normal", label:"粉红润泽、月牙正常", normal:true, tags:["正常","健康"], tizhi:["平和质"]},
+        {key:"danbai", label:"淡白无华", tags:["甲淡白","血虚","贫血","气血不足","手脚麻","月经量少"], tizhi:["气虚质","阳虚质"]},
+        {key:"qingzi", label:"青紫",   tags:["甲青紫","血瘀","寒凝","循环差","呼吸困难","胸闷"], tizhi:["血瘀质"]},
+        {key:"hong",   label:"深红/绛", tags:["甲红","热","心火旺","血热","失眠","心烦"], tizhi:["湿热质","阴虚质"]},
+        {key:"shuzhen",label:"竖纹多", tags:["甲竖纹","肝血不足","阴虚","熬夜","用脑过度","失眠","易疲劳"], tizhi:["阴虚质","气郁质"]},
+        {key:"yueya",  label:"月牙少/无", tags:["月牙少","阳虚","寒证","元气不足","畏寒","免疫力低","易感冒"], tizhi:["阳虚质","气虚质"]},
+        {key:"cu",     label:"脆薄易裂", tags:["甲脆薄","血虚","肝血不足","营养不良","干燥"], tizhi:["阴虚质"]}
+      ]},
+    {key:"vein", title:"④ 望手背青筋", short:"青筋", desc:"看手背静脉（青筋）的显露程度。",
+      options:[
+        {key:"normal", label:"隐约可见（正常）", normal:true, tags:["正常"], tizhi:["平和质"]},
+        {key:"baqi",   label:"暴起明显", tags:["青筋暴起","血瘀","痰湿","积滞","便秘","头痛","痔疮","静脉曲张"], tizhi:["血瘀质","痰湿质"]},
+        {key:"qingcuo",label:"青筋扭曲/结节", tags:["青筋扭曲","气滞血瘀","结节","肿瘤风险","痛经","乳腺增生","甲状腺结节"], tizhi:["血瘀质","气郁质"]}
+      ]}
+  ];
+  var handPick={};  // {stepKey: optionKey}
+
+  function handRenderSteps(){
+    var box=document.getElementById("handSteps"); if(!box)return;
+    var h='';
+    for(var i=0;i<HAND_STEPS.length;i++){
+      var s=HAND_STEPS[i];
+      h+='<div style="margin:10px 0;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--card,#fff);">';
+      h+='<div style="font-weight:700;margin-bottom:4px;">'+s.title+'</div>';
+      h+='<div style="font-size:12px;color:var(--muted,#666);margin-bottom:8px;">'+s.desc+'</div>';
+      h+='<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+      for(var j=0;j<s.options.length;j++){
+        var o=s.options[j];
+        var sel=handPick[s.key]===o.key;
+        h+='<button class="btn sm '+(sel?'':'ghost')+'" style="'+(sel?'background:var(--accent);color:#fff;border-color:var(--accent);':'')+'" onclick="handPickOpt(\''+s.key+'\',\''+o.key+'\')">'+o.label+'</button>';
+      }
+      h+='</div></div>';
+    }
+    box.innerHTML=h;
+  }
+
+  function handPickOpt(step, opt){
+    if(handPick[step]===opt) delete handPick[step];
+    else handPick[step]=opt;
+    handRenderSteps();
+    handRenderSummary();
+  }
+
+  function handCollectTags(){
+    var tags=[], tizhi=[];
+    for(var sk in handPick){
+      var step=HAND_STEPS.filter(function(s){return s.key===sk;})[0]; if(!step)continue;
+      var opt=step.options.filter(function(o){return o.key===handPick[sk];})[0]; if(!opt)continue;
+      tags=tags.concat(opt.tags||[]);
+      tizhi=tizhi.concat(opt.tizhi||[]);
+    }
+    return {tags:tags, tizhi:Array.from(new Set(tizhi))};
+  }
+
+  function handRenderSummary(){
+    var box=document.getElementById("handSummary"), res=document.getElementById("handResults");
+    var r=handCollectTags();
+    if(!r.tags.length){ box.style.display='none'; res.innerHTML=''; return; }
+    box.style.display='block';
+    box.innerHTML='<b>已选手诊特征（'+r.tags.length+'项）：</b>'+r.tags.slice(0,12).join('、')+(r.tags.length>12?'…':'')+
+      '　<button class="btn" onclick="handToSearch()">🔍 用这些特征搜配方</button> '+
+      '<button class="btn ghost sm" onclick="handClear()">清空</button>';
+    res.innerHTML='';
+  }
+
+  function handToSearch(){
+    var r=handCollectTags();
+    var q=document.getElementById("q"); if(q){ q.value=r.tags.slice(0,5).join(' '); }
+    goTab('search');
+    runSearch();
+  }
+
+  function handClear(){ handPick={}; handRenderSteps(); handRenderSummary(); }
+
+  // 初始化
+  document.addEventListener('DOMContentLoaded', function(){
+    handRenderSteps();
+  });
+  window.handPickOpt=handPickOpt; window.handClear=handClear; window.handToSearch=handToSearch;
 
   /* ============ 智能配方·分步舌诊（与舌诊辨证页同款五步，独立状态 sz*） ============ */
   // 与分布舌诊（dz*）共用 TONGUE_STEPS / DZ_PHOTO_MAP / TONGUE_REGIONS / DZ_ZONES / DZ_ORGAN_IMG 数据，
