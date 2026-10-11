@@ -767,7 +767,7 @@ window.showEntryModal=showEntryModal;
   });
 })();
 </script>
-<script src="data.js?v=20261007h"></script>
+<script src="data.js?v=20261007i"></script>
 <!-- 全局定义 closeEntryModal/showEntryModal：必须在 IIFE 之前，确保 HTML 内联 onclick 永远能找到 -->
 <script>
 function closeEntryModal(){
@@ -918,7 +918,7 @@ window.showEntryModal=showEntryModal;
     return Object.keys(s);
   }
 
-  var sysPregOpen=false, sysFemaleOpen=false, sysChildOpen=false;
+  var sysPregOpen=false, sysFemaleOpen=false, sysChildOpen=false, sysOpenMap={};
   // ===== 分类子分组（v1.6.4）：女性 = 妇科 + 女性；小儿按病症细分；孕妇/产后按阶段 =====
   function cnt(cond){ var n=0; db.formulas.forEach(function(f){ if(cond(f)) n++; }); return n; }
   function childSubOf(f){
@@ -971,9 +971,14 @@ window.showEntryModal=showEntryModal;
     var box=document.getElementById("syschips");
     var all=["全部"].concat(systems());
     var isPreg=function(s){return s && s!=="全部" && (s.indexOf("孕期")>=0 || s.indexOf("产后")>=0);};
-    var main=all.filter(function(s){return !isPreg(s) && s!=="女性";});
+    var main=all.filter(function(s){return s!=="全部" && !isPreg(s) && s!=="女性";});
     var sub=all.filter(function(s){return isPreg(s);});
     box.innerHTML="";
+    var allChip=document.createElement("span");
+    allChip.className="schip"+(curSys==="全部"?" active":"");
+    allChip.textContent="全部";
+    allChip.onclick=function(){ curSys="全部"; renderSysChips(); renderCloud(); runSearch(false); };
+    box.appendChild(allChip);
     var fc=cnt(function(f){return isFemaleSys(f.system);});
     var femaleParent=null, childParent=null;
     if(fc>0){
@@ -994,11 +999,28 @@ window.showEntryModal=showEntryModal;
       else if(s==="小儿" && childParent){ box.appendChild(childParent); if(sysChildOpen) appendChildSubs(box,csubs); }
       else if(s==="女性"){ /* 更年期已并入「女性」分组，不再单独显示 */ }
       else{
+        var n=cnt(function(f){return f.system===s;});
+        var open=!!sysOpenMap[s];
         var el=document.createElement("span");
         el.className="schip"+(s===curSys?" active":"");
-        el.textContent=s;
-        el.onclick=function(){ curSys=s; renderSysChips(); renderCloud(); runSearch(false); };
+        el.textContent=s+"（"+n+"项）"+(open?" ▾":" ▸");
+        el.onclick=function(){
+          curSys=s; sysOpenMap[s]=!sysOpenMap[s]; renderSysChips(); renderCloud(); runSearch(false);
+        };
         box.appendChild(el);
+        if(open){
+          var sb=document.createElement("span"); sb.className="schip-subbox";
+          db.formulas.forEach(function(f){
+            if(f.system!==s) return;
+            var e2=document.createElement("span");
+            e2.className="schip";
+            e2.textContent=f.name;
+            e2.title=f.name;
+            e2.onclick=function(ev){ ev.stopPropagation(); openDetail(f.id); };
+            sb.appendChild(e2);
+          });
+          box.appendChild(sb);
+        }
       }
     });
     if(sub.length){
