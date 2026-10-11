@@ -767,7 +767,7 @@ window.showEntryModal=showEntryModal;
   });
 })();
 </script>
-<script src="data.js?v=20261007g"></script>
+<script src="data.js?v=20261007h"></script>
 <!-- 全局定义 closeEntryModal/showEntryModal：必须在 IIFE 之前，确保 HTML 内联 onclick 永远能找到 -->
 <script>
 function closeEntryModal(){
@@ -918,20 +918,88 @@ window.showEntryModal=showEntryModal;
     return Object.keys(s);
   }
 
-  var sysPregOpen=false;
+  var sysPregOpen=false, sysFemaleOpen=false, sysChildOpen=false;
+  // ===== 分类子分组（v1.6.4）：女性 = 妇科 + 女性；小儿按病症细分；孕妇/产后按阶段 =====
+  function cnt(cond){ var n=0; db.formulas.forEach(function(f){ if(cond(f)) n++; }); return n; }
+  function childSubOf(f){
+    var n=f.name||"";
+    if(n.indexOf("感冒")>=0) return "感冒";
+    if(n.indexOf("咳")>=0) return "咳嗽";
+    if(n.indexOf("积食")>=0||n.indexOf("便秘")>=0||n.indexOf("痰湿")>=0) return "脾胃消化";
+    if(n.indexOf("多动")>=0) return "神志";
+    return "其他";
+  }
+  function childSubMap(){
+    var m={};
+    db.formulas.forEach(function(f){
+      if(f.system!=="小儿") return;
+      var k=childSubOf(f); m[k]=(m[k]||0)+1;
+    });
+    return m;
+  }
+  function isFemaleSys(s){ return s==="妇科"||s==="女性"; }
+  function matchSys(f){
+    if(curSys==="全部") return true;
+    if(curSys==="女性") return isFemaleSys(f.system);
+    if(curSys.indexOf("小儿·")===0) return f.system==="小儿" && childSubOf(f)===curSys.slice(3);
+    return f.system===curSys;
+  }
+  function appendFemaleSubs(box){
+    var fb=document.createElement("span"); fb.className="schip-subbox";
+    ["妇科","女性"].forEach(function(s){
+      var n=cnt(function(f){return f.system===s;});
+      var el=document.createElement("span");
+      el.className="schip"+(s===curSys?" active":"");
+      el.textContent=(s==="女性"?"更年期·女性":"妇科")+"（"+n+"项）";
+      el.onclick=function(e){ e.stopPropagation(); curSys=s; renderSysChips(); renderCloud(); runSearch(false); };
+      fb.appendChild(el);
+    });
+    box.appendChild(fb);
+  }
+  function appendChildSubs(box,csubs){
+    var cb=document.createElement("span"); cb.className="schip-subbox";
+    Object.keys(csubs).forEach(function(k){
+      var el=document.createElement("span");
+      el.className="schip"+(curSys==="小儿·"+k?" active":"");
+      el.textContent=k+"（"+csubs[k]+"项）";
+      el.onclick=function(e){ e.stopPropagation(); curSys="小儿·"+k; renderSysChips(); renderCloud(); runSearch(false); };
+      cb.appendChild(el);
+    });
+    box.appendChild(cb);
+  }
   function renderSysChips(){
     var box=document.getElementById("syschips");
     var all=["全部"].concat(systems());
     var isPreg=function(s){return s && s!=="全部" && (s.indexOf("孕期")>=0 || s.indexOf("产后")>=0);};
-    var main=all.filter(function(s){return !isPreg(s);});
+    var main=all.filter(function(s){return !isPreg(s) && s!=="女性";});
     var sub=all.filter(function(s){return isPreg(s);});
     box.innerHTML="";
+    var fc=cnt(function(f){return isFemaleSys(f.system);});
+    var femaleParent=null, childParent=null;
+    if(fc>0){
+      femaleParent=document.createElement("span");
+      femaleParent.className="schip schip-parent"+(curSys==="女性"?" active":"");
+      femaleParent.textContent="女性（"+fc+"项）"+(sysFemaleOpen?" ▾":" ▸");
+      femaleParent.onclick=function(){ sysFemaleOpen=!sysFemaleOpen; renderSysChips(); };
+    }
+    var csubs=childSubMap(); var ctotal=0; for(var ck in csubs) ctotal+=csubs[ck];
+    if(ctotal>0){
+      childParent=document.createElement("span");
+      childParent.className="schip schip-parent"+(curSys && curSys.indexOf("小儿·")===0?" active":"");
+      childParent.textContent="小儿（"+ctotal+"项）"+(sysChildOpen?" ▾":" ▸");
+      childParent.onclick=function(){ sysChildOpen=!sysChildOpen; renderSysChips(); };
+    }
     main.forEach(function(s){
-      var el=document.createElement("span");
-      el.className="schip"+(s===curSys?" active":"");
-      el.textContent=s;
-      el.onclick=function(){ curSys=s; renderSysChips(); renderCloud(); runSearch(false); };
-      box.appendChild(el);
+      if(s==="妇科" && femaleParent){ box.appendChild(femaleParent); if(sysFemaleOpen) appendFemaleSubs(box); }
+      else if(s==="小儿" && childParent){ box.appendChild(childParent); if(sysChildOpen) appendChildSubs(box,csubs); }
+      else if(s==="女性"){ /* 更年期已并入「女性」分组，不再单独显示 */ }
+      else{
+        var el=document.createElement("span");
+        el.className="schip"+(s===curSys?" active":"");
+        el.textContent=s;
+        el.onclick=function(){ curSys=s; renderSysChips(); renderCloud(); runSearch(false); };
+        box.appendChild(el);
+      }
     });
     if(sub.length){
       var parent=document.createElement("span");
@@ -957,7 +1025,7 @@ window.showEntryModal=showEntryModal;
   function renderCloud(){
     var all={};
     db.formulas.forEach(function(f){
-      if(curSys!=="全部" && f.system!==curSys) return;
+      if(!matchSys(f)) return;
       (f.symptoms||[]).forEach(function(s){ all[s]=(all[s]||0)+1; });
     });
     var keys=Object.keys(all).sort(function(a,b){return all[b]-all[a];});
@@ -1058,7 +1126,7 @@ window.showEntryModal=showEntryModal;
     var hasAnyDim=q || hasPulse || hasT || hasTz;
     var allToks=symToks.concat(ptoks, ttoks, tizhiToks);
     // 顶层先按当前所选系统筛；系统内再按「已填维度」打分与过滤
-    var list=db.formulas.filter(function(f){ return curSys==="全部"||f.system===curSys; });
+    var list=db.formulas.filter(matchSys);
     var scored=list.map(function(f){
       var sSym=scoreFormula(f, symToks);
       var sPulse=scoreFormula(f, ptoks);
@@ -3178,7 +3246,7 @@ window.showEntryModal=showEntryModal;
   if(qInput){ qInput.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); runSearch(); } }); }
 
   // 显示当前版本号（用户可肉眼判断是否最新）
-  try{ var t=document.getElementById('buildTag'); if(t) t.textContent='build d799fa9 · 更新于 2026-09-08'; }catch(e){}
+  try{ var t=document.getElementById('buildTag'); if(t) t.textContent='build d799fa9 · 更新于 2026-10-11'; }catch(e){}
 
   // URL 加 ?mb=1 跳过须知弹窗（便于调试/截图/分享特定步骤截图）
   try{
