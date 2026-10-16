@@ -206,6 +206,20 @@
     }
     #tab-tongue .dz-pickbar .count{font-size:12px;color:var(--muted);}
   }
+  /* 脉诊 / 手诊：出配方按钮常驻，移动端底部悬浮（与舌诊一致，长页面不用滚回顶部） */
+  .pickbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0;}
+  @media(max-width:760px){
+    #tab-pulse{padding-bottom:92px;}
+    #tab-hand{padding-bottom:92px;}
+    #tab-pulse .pickbar, #tab-hand .pickbar{
+      position:fixed;left:0;right:0;bottom:0;z-index:60;
+      margin:0;padding:10px 14px;justify-content:center;flex-wrap:nowrap;
+      background:rgba(255,253,247,.96);
+      -webkit-backdrop-filter:saturate(160%) blur(8px);backdrop-filter:saturate(160%) blur(8px);
+      border-top:1px solid var(--line);
+      box-shadow:0 -4px 16px -8px rgba(0,0,0,.28);
+    }
+  }
   .dz-opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px;}
   .dz-optcard{border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;background:#fff;transition:.15s;font-size:13.5px;line-height:1.45;}
   .dz-optcard:hover{border-color:var(--accent);}
@@ -641,7 +655,7 @@
         <div class="pulsecards" id="pulseCardsR" style="margin:6px 0 0"></div>
       </div>
     </div>
-    <div class="toolbar">
+    <div class="pickbar">
       <button class="btn" onclick="runPulse()">🔎 按症状+脉象推荐配方</button>
       <button class="btn ghost sm" onclick="clearPulseSelection()">清空选择</button>
     </div>
@@ -690,6 +704,10 @@
     <div class="hint" style="margin-bottom:10px;">✋ <b>分步手诊辨证</b>：观察自己或客户的手掌——<b>①望掌色 → ②望掌温掌态 → ③望指甲 → ④望手背青筋</b>。每步把实际看到的点选出来（可只选几步），选中后自动汇入「智能配方」搜索。</div>
     <div class="dz-steps" id="handSteps"></div>
     <div id="handBody"></div>
+    <div class="pickbar">
+      <button class="btn" onclick="handToSearch()">🔍 用手诊特征搜配方</button>
+      <button class="btn ghost sm" onclick="handClear()">清空选择</button>
+    </div>
     <div class="pulse-summary" id="handSummary" style="display:none;"></div>
     <div id="handResults"></div>
   </section>
@@ -2580,6 +2598,7 @@ window.showEntryModal=showEntryModal;
 
   function handToSearch(){
     var r=handCollectTags();
+    if(!r.tags.length){ alert('请先在上方点选手诊特征（掌色 / 掌温 / 指甲 / 手背青筋），再搜配方。'); return; }
     var q=document.getElementById("q"); if(q){ q.value=r.tags.slice(0,5).join(' '); }
     goTab('search');
     runSearch();
@@ -3313,7 +3332,7 @@ window.showEntryModal=showEntryModal;
   if(qInput){ qInput.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); runSearch(); } }); }
 
   // 显示当前版本号（用户可肉眼判断是否最新）
-  try{ var t=document.getElementById('buildTag'); if(t) t.textContent='build 20261016b · 更新于 2026-10-16 · 智能配方单维度可独立出方'; }catch(e){}
+  try{ var t=document.getElementById('buildTag'); if(t) t.textContent='build 20261016c · 更新于 2026-10-16 · 脉诊/手诊常驻出方按钮'; }catch(e){}
 
   // URL 加 ?mb=1 跳过须知弹窗（便于调试/截图/分享特定步骤截图）
   try{
