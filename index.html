@@ -193,6 +193,19 @@
   .dz-step-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:var(--shadow);}
   .dz-step-btn .dz-step-sub{font-size:10.5px;font-weight:400;opacity:.8;margin-left:4px;}
   .dz-pickbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px;}
+  /* 舌诊页移动端：分区很长，「搜索配方」按钮常驻底部悬浮，不用滚回顶部 */
+  @media(max-width:760px){
+    #tab-tongue{padding-bottom:92px;}
+    #tab-tongue .dz-pickbar{
+      position:fixed;left:0;right:0;bottom:0;z-index:60;
+      margin:0;padding:10px 14px;justify-content:center;flex-wrap:nowrap;
+      background:rgba(255,253,247,.96);
+      -webkit-backdrop-filter:saturate(160%) blur(8px);backdrop-filter:saturate(160%) blur(8px);
+      border-top:1px solid var(--line);
+      box-shadow:0 -4px 16px -8px rgba(0,0,0,.28);
+    }
+    #tab-tongue .dz-pickbar .count{font-size:12px;color:var(--muted);}
+  }
   .dz-opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px;}
   .dz-optcard{border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;background:#fff;transition:.15s;font-size:13.5px;line-height:1.45;}
   .dz-optcard:hover{border-color:var(--accent);}
@@ -3268,7 +3281,7 @@ window.showEntryModal=showEntryModal;
   if(qInput){ qInput.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); runSearch(); } }); }
 
   // 显示当前版本号（用户可肉眼判断是否最新）
-  try{ var t=document.getElementById('buildTag'); if(t) t.textContent='build d799fa9 · 更新于 2026-10-11'; }catch(e){}
+  try{ var t=document.getElementById('buildTag'); if(t) t.textContent='build 20261016 · 更新于 2026-10-16'; }catch(e){}
 
   // URL 加 ?mb=1 跳过须知弹窗（便于调试/截图/分享特定步骤截图）
   try{
