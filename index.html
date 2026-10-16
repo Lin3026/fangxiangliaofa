@@ -912,7 +912,7 @@ window.showEntryModal=showEntryModal;
   function scoreFormula(f,tokens){
     if(!tokens.length) return 1;
     var hay=[
-      f.name,f.system,f.tcmPattern,f.constitution,(f.symptoms||[]).join(" "),
+      f.name,f.system,f.tcmPattern,f.constitution,f.tongue||"",(f.symptoms||[]).join(" "),
       (f.oils||[]).map(function(o){return o.name+" "+(o.role||"");}).join(" "),
       f.rationale||"",(f.tags||[]).join(" ")
     ].join(" ").toLowerCase();
@@ -1155,12 +1155,29 @@ window.showEntryModal=showEntryModal;
     var ptoks=pulseTokens();
     var ttoks=szCollectAllTags();
     var tizhiToks=tizhiTokens();
+    // 舌象→体质桥接：所选舌象/舌面分区自带的体质倾向并入体质匹配，让单独选舌象也能召回配方
+    var bridgeTz=[];
+    TONGUE_STEPS.forEach(function(s){
+      if(s.key==="qu") return;
+      var k=szPick[s.key]; if(!k) return;
+      var o=(s.options||[]).filter(function(x){return x.key===k;})[0];
+      if(o&&o.tizhi) o.tizhi.forEach(function(t){ if(bridgeTz.indexOf(t)<0) bridgeTz.push(t); });
+    });
+    Object.keys(szObs).forEach(function(rk){
+      var r=(TONGUE_REGIONS||[]).filter(function(x){return x.key===rk;})[0]; if(!r) return;
+      (szObs[rk]||[]).forEach(function(ok){
+        var o=(r.observations||[]).filter(function(x){return x.key===ok;})[0];
+        if(o&&o.tizhi) o.tizhi.forEach(function(t){ if(bridgeTz.indexOf(t)<0) bridgeTz.push(t); });
+      });
+    });
+    tizhiToks=tizhiToks.concat(bridgeTz);
+    var hasSym=!!q.trim();
     var hasPulse=ptoks.length>0;
     var hasT=ttoks.length>0;
     var hasTz=tizhiToks.length>0;
-    var hasAnyDim=q || hasPulse || hasT || hasTz;
+    var hasAnyDim=hasSym || hasPulse || hasT || hasTz;
     var allToks=symToks.concat(ptoks, ttoks, tizhiToks);
-    // 顶层先按当前所选系统筛；系统内再按「已填维度」打分与过滤
+    // 顶层先按当前所选系统筛；系统内再按「已填维度」打分
     var list=db.formulas.filter(matchSys);
     var scored=list.map(function(f){
       var sSym=scoreFormula(f, symToks);
@@ -1168,12 +1185,18 @@ window.showEntryModal=showEntryModal;
       var sT=scoreFormula(f, ttoks);
       var sTz=scoreFormula(f, tizhiToks);
       return {f:f, sSym:sSym, sPulse:sPulse, sT:sT, sTz:sTz, s:sSym+sPulse+sT+sTz};
-    }).filter(function(x){
-      // 只对「用户实际填/选」的维度做命中要求；未填的不参与
-      if(q && x.sSym<=0) return false;
-      if(hasPulse && x.sPulse<=0) return false;
-      if(hasT && x.sT<=0) return false;
-      if(hasTz && x.sTz<=0) return false;
+    });
+    // 维度自适应软过滤：某维度在全库「有解(命中>0)」才硬性收紧；「无解(=0，如正常舌/冷门舌态)」
+    // 降级为排序加分而不淘汰，保证单独选任一维度都不会白屏，组合时仍按命中相关度排序
+    var nSym=hasSym?scored.filter(function(x){return x.sSym>0;}).length:0;
+    var nPulse=hasPulse?scored.filter(function(x){return x.sPulse>0;}).length:0;
+    var nT=hasT?scored.filter(function(x){return x.sT>0;}).length:0;
+    var nTz=hasTz?scored.filter(function(x){return x.sTz>0;}).length:0;
+    scored=scored.filter(function(x){
+      if(hasSym && nSym>0 && x.sSym<=0) return false;
+      if(hasPulse && nPulse>0 && x.sPulse<=0) return false;
+      if(hasT && nT>0 && x.sT<=0) return false;
+      if(hasTz && nTz>0 && x.sTz<=0) return false;
       return true;
     });
     if(allToks.length) scored.sort(function(a,b){ return b.s-a.s; });
@@ -1187,7 +1210,14 @@ window.showEntryModal=showEntryModal;
       if(doScroll) scrollToEl("results");
       return;
     }
-    if(!scored.length){ box.innerHTML='<div class="empty">没有命中「已填维度」的配方。可尝试：①放宽症状词（如用「失眠」而非「入睡困难」）；②减少勾选，保留主证；③到「我的库」补充对应配方。</div>'; count.textContent=""; if(doScroll) scrollToEl("results"); return; }
+    // 兜底：极端情况下仍无命中，回退展示全部（按总分排序），绝不白屏
+    if(!scored.length){
+      scored=list.map(function(f){ return {f:f,s:0}; });
+      count.innerHTML='<span class="hint">未找到与所选条件精确匹配的配方，以下为通用配方供参考。可尝试：①放宽症状词（如用「失眠」而非「入睡困难」）；②减少勾选，保留主证。</span>';
+      list.forEach(function(f){ box.appendChild(makeResultCard(f, allToks)); });
+      if(doScroll) scrollToEl("results");
+      return;
+    }
     // 顶部摘要：列出本次参与筛选的维度
     var parts=[];
     if(q) parts.push('症状 <b>'+escapeHtml(q)+'</b>');
@@ -1612,7 +1642,9 @@ window.showEntryModal=showEntryModal;
   window.runSearchPulse=runSearchPulse;
 
   function clearPulseSelection(){
-    selectedLeft={}; selectedRight={};
+    // 保持对象引用：renderPulseGrids 闭包捕获的是原对象，换对象会导致点击写不进、runSearch 读不到
+    Object.keys(selectedLeft).forEach(function(k){ delete selectedLeft[k]; });
+    Object.keys(selectedRight).forEach(function(k){ delete selectedRight[k]; });
     renderPulseGrids();
     ["pulseSummary","pulseResults","pulsecount","searchPulseSummary","searchPulseResults","searchPulseCount"].forEach(function(id){
       var el=document.getElementById(id); if(!el) return;
@@ -3281,7 +3313,7 @@ window.showEntryModal=showEntryModal;
   if(qInput){ qInput.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); runSearch(); } }); }
 
   // 显示当前版本号（用户可肉眼判断是否最新）
-  try{ var t=document.getElementById('buildTag'); if(t) t.textContent='build 20261016 · 更新于 2026-10-16'; }catch(e){}
+  try{ var t=document.getElementById('buildTag'); if(t) t.textContent='build 20261016b · 更新于 2026-10-16 · 智能配方单维度可独立出方'; }catch(e){}
 
   // URL 加 ?mb=1 跳过须知弹窗（便于调试/截图/分享特定步骤截图）
   try{
