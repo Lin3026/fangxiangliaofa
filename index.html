@@ -211,7 +211,8 @@
   @media(max-width:760px){
     #tab-pulse{padding-bottom:92px;}
     #tab-hand{padding-bottom:92px;}
-    #tab-pulse .pickbar, #tab-hand .pickbar{
+    #tab-edema{padding-bottom:92px;}
+    #tab-pulse .pickbar, #tab-hand .pickbar, #tab-edema .pickbar{
       position:fixed;left:0;right:0;bottom:0;z-index:60;
       margin:0;padding:10px 14px;justify-content:center;flex-wrap:nowrap;
       background:rgba(255,253,247,.96);
@@ -220,6 +221,19 @@
       box-shadow:0 -4px 16px -8px rgba(0,0,0,.28);
     }
   }
+  /* ===== 水肿辨证 ===== */
+  .edema-sec{line-height:1.7;}
+  .edema-table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0;background:#fff;border-radius:10px;overflow:hidden;}
+  .edema-table th,.edema-table td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;}
+  .edema-table th{background:var(--accent-soft);font-weight:600;}
+  .edema-table tr:nth-child(even) td{background:#fafcfb;}
+  .yx-pill{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:600;margin-right:4px;white-space:nowrap;}
+  .yx-yang{background:#fdeee8;color:#c0562f;}
+  .yx-yin{background:#eef0fb;color:#4a5aa8;}
+  .redline{border-left:3px solid #d9534f;background:#fdf0ef;padding:9px 12px;border-radius:0 8px 8px 0;font-size:13px;color:#7a2b26;margin:10px 0;line-height:1.7;}
+  .redline b{color:#b02a22;}
+  .step-list{margin:6px 0;padding-left:20px;}
+  .step-list li{margin:5px 0;}
   .dz-opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px;}
   .dz-optcard{border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;background:#fff;transition:.15s;font-size:13.5px;line-height:1.45;}
   .dz-optcard:hover{border-color:var(--accent);}
@@ -395,6 +409,7 @@
     <div class="tab" data-tab="pulse">💓 脉诊辨证</div>
     <div class="tab" data-tab="tongue">👅 舌诊辨证</div>
     <div class="tab" data-tab="hand">✋ 手诊辨证</div>
+    <div class="tab" data-tab="edema">💧 水肿辨证</div>
     <div class="tab" data-tab="tizhi">🌿 体质辨证</div>
     <div class="tab" data-tab="oils">🧪 精油档案</div>
     <div class="tab" data-tab="hydro">💧 纯露档案</div>
@@ -710,6 +725,153 @@
     </div>
     <div class="pulse-summary" id="handSummary" style="display:none;"></div>
     <div id="handResults"></div>
+  </section>
+
+  <!-- 水肿辨证 -->
+  <section id="tab-edema" style="display:none;">
+    <div class="edema-sec">
+      <div class="hint" style="margin-bottom:10px;">💧 <b>水肿辨证</b>：辨别水液停聚的部位、性质（阳水/阴水）与成因，配合排水精油与向心性淋巴引流按摩。<b>水肿病因复杂（心/肝/肾/淋巴/内分泌），本页仅作自我观察与辅助调理参考，不替代诊断；病因不明或进行性加重请先就医。</b></div>
+
+      <div class="pickbar">
+        <button class="btn" onclick="document.getElementById('q').value='水肿';goTab('search');runSearch();">🔍 去智能配方搜「水肿」</button>
+        <button class="btn ghost sm" onclick="document.getElementById('q').value='';goTab('search');runSearch();">查看全部配方</button>
+      </div>
+
+      <!-- 一、什么是水肿 -->
+      <div class="card">
+        <h3>一、什么是水肿</h3>
+        <p>水肿是体内水液潴留、泛溢肌肤，表现为头面、眼睑、四肢、腹背甚至全身浮肿。轻压胫骨前或足背，出现<b>凹陷且回弹慢</b>多为凹陷性水肿；按压不陷、皮肤紧绷发亮需考虑粘液性/内分泌性水肿。</p>
+        <p>中医认为水液代谢靠三脏协同：<b>肺主通调水道（上源）、脾主转输制水（中焦）、肾主开阖化气行水（根本）</b>，三脏功能失调则水湿停聚为肿。</p>
+      </div>
+
+      <!-- 二、辨证总纲 -->
+      <div class="card">
+        <h3>二、辨证总纲：先分「阳水」与「阴水」</h3>
+        <table class="edema-table">
+          <tr><th style="width:18%;">纲领</th><th>起病/部位</th><th>皮肤与按压</th><th>兼症与舌脉</th><th>性质/病程</th></tr>
+          <tr>
+            <td><span class="yx-pill yx-yang">阳水</span></td>
+            <td>起病急，多从头面、眼睑先肿，迅速及全身</td>
+            <td>皮肤光亮紧绷，按之即起或恢复较快</td>
+            <td>多伴表、实、热证（恶风发热、咽痛、小便短赤）；苔薄白或黄腻，脉浮/濡数</td>
+            <td>表实证、病程短，多属外感风邪、水湿、湿热</td>
+          </tr>
+          <tr>
+            <td><span class="yx-pill yx-yin">阴水</span></td>
+            <td>起病缓，多从下肢（腰以下、踝足）先肿，反复迁延</td>
+            <td>皮肤松弛、色偏淡，按之凹陷不易恢复</td>
+            <td>多伴里、虚、寒证（神疲怕冷、纳呆便溏、腰酸肢冷）；舌淡胖苔白腻，脉沉缓/沉细迟</td>
+            <td>里虚证、病程长，多属脾阳虚衰、肾阳不足</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- 三、中医常见分型 -->
+      <div class="card">
+        <h3>三、中医常见分型辨证</h3>
+        <table class="edema-table">
+          <tr><th style="width:16%;">分型（阴阳）</th><th>主症</th><th>舌脉</th><th>调理方向 / 可选排水油</th></tr>
+          <tr>
+            <td>风水相搏<br><span class="yx-pill yx-yang">阳水</span></td>
+            <td>眼睑头面先肿、迅及全身，来势快；恶风发热、咽痛、肢节酸楚，小便少</td>
+            <td>苔薄白，脉浮</td>
+            <td>疏风宣肺、通调水道；绿花白千层（行肺气）、丝柏</td>
+          </tr>
+          <tr>
+            <td>水湿浸渍<br><span class="yx-pill yx-yang">阳水偏湿</span></td>
+            <td>全身水肿、下肢明显，按之没指；身体困重、胸闷纳呆、小便短少</td>
+            <td>苔白腻，脉沉缓</td>
+            <td>健脾化湿、通阳利水；杜松、柠檬香茅、葡萄柚</td>
+          </tr>
+          <tr>
+            <td>湿热壅盛<br><span class="yx-pill yx-yang">阳水偏热</span></td>
+            <td>遍体浮肿、皮肤绷紧光亮；胸脘痞闷、烦热口渴、小便短赤、大便干结</td>
+            <td>舌红苔黄腻，脉濡数</td>
+            <td>清热利湿、分利湿热；杜松、葡萄柚（清热利尿）</td>
+          </tr>
+          <tr>
+            <td>脾阳虚衰<br><span class="yx-pill yx-yin">阴水</span></td>
+            <td>身肿日久、腰以下为甚，按之凹陷难复；脘腹胀闷、纳减便溏、面色不华、神疲肢冷</td>
+            <td>舌淡苔白腻，脉沉缓弱</td>
+            <td>温运脾阳、利水渗湿；姜（温化）、杜松、柠檬香茅</td>
+          </tr>
+          <tr>
+            <td>肾阳衰微<br><span class="yx-pill yx-yin">阴水</span></td>
+            <td>水肿反复、腰以下尤甚、按之不起；腰酸冷痛、畏寒肢冷、尿量减少或反多</td>
+            <td>舌淡胖苔白，脉沉细迟</td>
+            <td>温肾助阳、化气行水；姜、杜松（温肾利水），宜配合就医</td>
+          </tr>
+          <tr>
+            <td>瘀水互结<br><span class="yx-pill yx-yin">兼夹</span></td>
+            <td>久站久坐下肢沉胀、肿处皮肤暗滞或见青筋（静脉曲张），晨轻暮重</td>
+            <td>舌暗或有瘀斑，脉涩</td>
+            <td>活血通络、利水；丝柏（收敛促回流）、杜松、天竺葵</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- 四、中西医参考鉴别 -->
+      <div class="card">
+        <h3>四、中西医参考鉴别（先排除器质性，再谈调理）</h3>
+        <table class="edema-table">
+          <tr><th style="width:18%;">类别</th><th>典型特点</th><th>提示去向</th></tr>
+          <tr><td>肾源性</td><td>晨起眼睑、颜面先肿，渐及全身；尿中泡沫多、尿量减少</td><td>查尿常规、肾功能、蛋白尿</td></tr>
+          <tr><td>心源性</td><td>傍晚踝部/下肢先肿、凹陷性；伴活动后气短、心悸、夜间憋醒</td><td>查心功能、心电图</td></tr>
+          <tr><td>肝源性</td><td>先见腹水，后期下肢肿；有肝病、黄疸、蜘蛛痣、低蛋白</td><td>查肝功能、白蛋白</td></tr>
+          <tr><td>营养不良性</td><td>全身凹陷性水肿，伴消瘦、贫血、低蛋白饮食/吸收差</td><td>查血白蛋白、营养评估</td></tr>
+          <tr><td>经前期/特发性</td><td>女性月经前周期性下肢胀、晨轻暮重，情绪/体位相关，各项检查无异常</td><td>观察周期规律，可轻柔排水护理</td></tr>
+          <tr><td>体位性/久坐久站</td><td>下肢远端对称发胀，抬高、休息后缓解</td><td>调整体位、向心按摩、抬腿</td></tr>
+          <tr><td>孕期水肿</td><td>孕晚期下肢轻度、休息后消退为生理性</td><td>见下方安全红线（警惕子痫前期）</td></tr>
+        </table>
+        <div class="redline">
+          <b>⚠ 必须先就医的红线：</b>①突然出现的全身水肿、尿少/尿色发红；②伴胸闷、气短、无法平卧；③单侧小腿突然肿痛发热（警惕深静脉血栓）；④孕妇水肿伴血压升高、蛋白尿、头痛、视物模糊（警惕子痫前期）；⑤按压凹陷数秒不回弹且进行性加重。出现以上任一情况，先到医院排查，精油按摩仅作辅助，不能替代治疗。
+        </div>
+      </div>
+
+      <!-- 五、排水消肿精油 -->
+      <div class="card">
+        <h3>五、库内排水消肿精油（按作用选）</h3>
+        <ul class="step-list">
+          <li><b>欧洲刺柏（杜松）</b>：君药，利水消肿、利尿排毒、降尿酸；肾病水肿可辅助，利水消肿与葡萄柚并列第一。</li>
+          <li><b>丝柏</b>：强收敛、促静脉与淋巴回流，消皮下组织水肿，改善静脉曲张、痔疮郁血。</li>
+          <li><b>葡萄柚</b>：利尿、分解粘液与脂肪、醒脾化湿、通调水道；<b>具光敏性，夜间使用或涂后避晒</b>。</li>
+          <li><b>玫瑰天竺葵</b>：平衡女性激素、刺激淋巴、利尿排水，经前期水肿适用。</li>
+          <li><b>柠檬香茅</b>：各证型通用的消水肿、减肥排水油（无需辨证），兼消肌肉乳酸。</li>
+          <li><b>姜</b>：温化行气活血，用于阳虚/寒证的虚证水肿。</li>
+          <li><b>绿花白千层</b>：助呼吸、行肺气，通调水道（风水/上焦）。</li>
+        </ul>
+        <div class="cmt-note"><b>儿童/孕期注意：</b>杜松、丝柏孕妇慎用；孕期只用低剂量安全组（见下），避开腹部；儿童浓度另按年龄下调（1-3岁0.5-1%、3-6岁1-2%、6-12岁2%、12-16岁2-3%）。</div>
+      </div>
+
+      <!-- 六、可直接用的配方 -->
+      <div class="card">
+        <h3>六、可直接用的排水配方（摘自配方库）</h3>
+        <p><b>① 通用「水肿调理油」（约3%）</b></p>
+        <ul class="step-list">
+          <li>欧洲刺柏（杜松）6滴 · 葡萄柚4滴 · 绿花白千层4滴 · 丝柏2滴 · 姜2滴，甜杏仁油20ml。</li>
+          <li>涂抹于水肿部位；<b>下肢按向心性方向（从脚往心脏）按摩</b>；配穴：水分、气海、关元、三阴交、阴陵泉。</li>
+        </ul>
+        <p><b>② 孕晚期水肿组（28周后，0.5%低剂量）</b></p>
+        <ul class="step-list">
+          <li>丝柏、葡萄柚、柠檬、玫瑰天竺葵，以月见草油极低剂量稀释，<b>仅涂抹四肢、向心脏方向轻柔，避开腹部</b>，可配合温水泡脚15分钟；焦虑另用橙花/薰衣草/佛手柑吸嗅。</li>
+        </ul>
+        <div class="cmt-note">完整剂量、禁忌与更多配方，点上方「去智能配方搜『水肿』」或到「我的库」查看原文。</div>
+      </div>
+
+      <!-- 七、按摩手法 -->
+      <div class="card">
+        <h3>七、向心性淋巴引流按摩手法</h3>
+        <ul class="step-list">
+          <li><b>方向唯一：</b>始终从远端（脚尖/脚踝）单向推向心脏方向（膝→大腿根/腹股沟），<b>不来回搓</b>，力度轻柔，像把积水慢慢往回带，不要重力按压肿胀处。</li>
+          <li><b>顺序：</b>脚背 → 小腿肚（踝向膝）→ 大腿（膝向腹股沟），每侧 5-10 遍，配合缓慢深呼吸。</li>
+          <li><b>时机：</b>沐浴后皮肤微润、用稀释油进行；避免过饱、经期重按；皮肤破损、急性炎症、血栓可疑处不按。</li>
+          <li><b>辅助：</b>睡前靠墙抬腿 10-15 分钟帮助回流；平日避免久站久坐，间断活动脚踝。</li>
+          <li><b>配穴轻按：</b>阴陵泉（健脾利湿）、三阴交、水分（脐上1寸）、气海、关元，每穴轻柔点按数十秒。</li>
+        </ul>
+      </div>
+
+      <div class="cmt-note">本页为芳香理疗自我调理参考，<b>不构成诊断或治疗处方</b>；器质性水肿请先就医明确病因。</div>
+    </div>
   </section>
 
   <!-- 体质辨证（王琦九种体质） -->
@@ -3289,7 +3451,7 @@ window.showEntryModal=showEntryModal;
   /* ---- tab 切换 ---- */
   function goTab(tab){
     document.querySelectorAll(".tab").forEach(function(x){ x.classList.remove("active"); if(x.getAttribute("data-tab")===tab) x.classList.add("active"); });
-    ["search","dose","meridian","pulse","tongue","hand","tizhi","oils","hydro","lib"].forEach(function(t){
+    ["search","dose","meridian","pulse","tongue","hand","edema","tizhi","oils","hydro","lib"].forEach(function(t){
       var el=document.getElementById("tab-"+t); if(el) el.style.display=(t===tab)?"block":"none";
     });
     if(tab==="oils") renderOils();
@@ -3332,7 +3494,7 @@ window.showEntryModal=showEntryModal;
   if(qInput){ qInput.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); runSearch(); } }); }
 
   // 显示当前版本号（用户可肉眼判断是否最新）
-  try{ var t=document.getElementById('buildTag'); if(t) t.textContent='build 20261016c · 更新于 2026-10-16 · 脉诊/手诊常驻出方按钮'; }catch(e){}
+  try{ var t=document.getElementById('buildTag'); if(t) t.textContent='build 20261016d · 更新于 2026-10-16 · 新增水肿辨证分支'; }catch(e){}
 
   // URL 加 ?mb=1 跳过须知弹窗（便于调试/截图/分享特定步骤截图）
   try{
