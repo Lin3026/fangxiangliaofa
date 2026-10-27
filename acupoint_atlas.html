@@ -137,7 +137,7 @@ const ml=$("ml");[...MERIDIANS.map(m=>m.name),"经验效穴","耳穴","其他"].
 function renderTabs(){const w=$("viewtabs");w.innerHTML="";Object.entries(IMG).forEach(([k,v])=>{
   const n=Object.values(db.points).filter(p=>p.view===k).length;
   const b=document.createElement("button");b.className="vtab"+(k===view?" on":"");
-  b.innerHTML=v.label+'<span class="cnt">'+n+"</span>";b.onclick=()=>{view=k;selId=null;resetView();renderAll();};w.appendChild(b);});}
+  b.innerHTML=v.label+'<span class="cnt">'+n+"</span>";b.onclick=()=>{if(view===k)return;view=k;selId=null;img.src=IMG[view].src;renderAll();};w.appendChild(b);});}
 
 /* ============ 缩放平移 ============ */
 const stage=$("stage"),wrap=$("imgwrap"),img=$("img");
