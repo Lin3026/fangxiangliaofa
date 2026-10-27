@@ -7,6 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <title>中医芳香理疗知识库</title>
+<link rel="icon" href="data:,">
 <style>
   :root{
     --bg:#f4f7f5; --panel:#ffffff; --ink:#2b3a34; --muted:#6b7d74;
@@ -619,7 +620,7 @@
 
   <!-- 经络 3D 可视化（独立页面，iframe 嵌入，紧邻剂量计算） -->
   <section id="tab-meridian" style="display:none;">
-    <div class="hint" style="margin-bottom:8px;">🌐 可拖拽旋转、双指/滚轮缩放的 3D 人体经络模型（十四经穴位标注与学习，可开关骨骼/肌肉等系统、点击穴位查看）。手机端同样可触摸操作。<b>需联网</b>加载 3D 引擎。</div>
+    <div class="hint" style="margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><span>🌐 可拖拽旋转、双指/滚轮缩放的 3D 人体经络模型（十四经穴位标注与学习，可开关骨骼/肌肉等系统、点击穴位查看）。手机端同样可触摸操作。<b>需联网</b>加载 3D 引擎。</span><a class="btn ghost sm" href="acupoint_atlas.html" target="_blank" style="margin-left:auto;white-space:nowrap;">📌 穴位挂图库（手动采集穴位）</a></div>
     <iframe src="human-atlas/index.html" style="width:100%;height:78vh;border:0;border-radius:10px;background:#f5f6f8;" title="经络3D·十四经穴位"></iframe>
   </section>
 
@@ -3590,7 +3591,7 @@ window.showEntryModal=showEntryModal;
   if(qInput){ qInput.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); runSearch(); } }); }
 
   // 显示当前版本号（用户可肉眼判断是否最新）
-  try{ var t=document.getElementById('buildTag'); if(t) t.textContent='build 20261026g · 更新于 2026-10-26 · v1.7.0 新增精油血压影响标注(升/降血压红蓝警示)'; }catch(e){}
+  try{ var t=document.getElementById('buildTag'); if(t) t.textContent='build 20261027a · 更新于 2026-10-27 · 新增穴位挂图资料库(手动采集+快速定位)'; }catch(e){}
 
   // URL 加 ?mb=1 跳过须知弹窗（便于调试/截图/分享特定步骤截图）
   try{
