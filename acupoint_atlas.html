@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>穴位挂图资料库 · 经络穴位排图</title>
+<link rel="icon" href="data:,">
+<style>
+:root{--bg:#f5f2ec;--panel:#fffdf9;--ink:#3d3833;--muted:#8a8378;--line:#e5ddd0;--accent:#1f6f5c;--accent2:#b3452e;--gold:#c9a253;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Noto Serif SC","Source Han Serif SC",system-ui,sans-serif;background:var(--bg);color:var(--ink);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+header{background:var(--panel);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+header h1{font-size:19px;letter-spacing:2px;font-weight:700;}
+header h1 small{font-size:12px;color:var(--muted);letter-spacing:0;margin-left:8px;font-weight:400;}
+.viewtabs{display:flex;gap:6px;}
+.vtab{border:1px solid var(--line);background:#fff;padding:6px 14px;border-radius:999px;cursor:pointer;font-size:14px;font-family:inherit;color:var(--ink);}
+.vtab.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+.vtab .cnt{font-size:11px;opacity:.75;margin-left:3px;}
+.searchbox{flex:1;min-width:180px;max-width:340px;position:relative;}
+.searchbox input{width:100%;padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;background:#fff;}
+.searchbox input:focus{outline:2px solid var(--accent);outline-offset:-1px;}
+.hbtns{display:flex;gap:8px;margin-left:auto;align-items:center;}
+.btn{border:1px solid var(--line);background:#fff;padding:7px 13px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:5px;}
+.btn:hover{border-color:var(--accent);color:var(--accent);}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn.primary.off{background:#fff;color:var(--ink);border-style:dashed;}
+.btn.danger{color:var(--accent2);border-color:#e8c7bd;}
+main{flex:1;display:flex;min-height:0;}
+.stage{flex:1;position:relative;overflow:hidden;background:#e9e4da;cursor:grab;}
+.stage.adding{cursor:crosshair;}
+.stage.dragging{cursor:grabbing;}
+.imgwrap{position:absolute;transform-origin:0 0;will-change:transform;}
+.imgwrap img{display:block;user-select:none;-webkit-user-drag:none;pointer-events:none;}
+.pin{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;cursor:pointer;}
+.pin .dot{width:13px;height:13px;border-radius:50%;background:var(--accent2);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45);transition:transform .15s;}
+.pin.sel .dot{background:var(--gold);}
+.pin:hover .dot{transform:scale(1.35);}
+.pin .lbl{position:absolute;left:16px;top:-9px;white-space:nowrap;background:rgba(30,26,22,.82);color:#fff;font-size:12px;padding:2px 7px;border-radius:5px;pointer-events:none;}
+.pin .lbl.r{left:auto;right:16px;}
+.pulse{animation:pu 1.2s ease-out 3;}
+@keyframes pu{0%{box-shadow:0 0 0 0 rgba(201,162,83,.75);}100%{box-shadow:0 0 0 26px rgba(201,162,83,0);}}
+.zoomhud{position:absolute;left:12px;bottom:12px;background:rgba(30,26,22,.72);color:#fff;font-size:12px;padding:5px 10px;border-radius:6px;pointer-events:none;}
+.addhint{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:13px;padding:7px 16px;border-radius:999px;box-shadow:0 3px 10px rgba(0,0,0,.25);pointer-events:none;display:none;}
+.stage.adding .addhint{display:block;}
+aside{width:300px;background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0;}
+aside h2{font-size:14px;padding:12px 14px 8px;color:var(--muted);font-weight:600;letter-spacing:1px;}
+#list{flex:1;overflow-y:auto;padding:0 10px 14px;}
+.mgroup{margin-bottom:6px;}
+.mgroup>summary{cursor:pointer;padding:7px 6px;font-size:13px;font-weight:600;list-style:none;display:flex;justify-content:space-between;color:var(--ink);}
+.mgroup>summary::-webkit-details-marker{display:none;}
+.mgroup>summary .n{color:var(--muted);font-weight:400;font-size:12px;}
+.ptrow{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;cursor:pointer;font-size:14px;}
+.ptrow:hover{background:#f1ece2;}
+.ptrow .code{font-size:11px;color:var(--muted);min-width:34px;}
+.ptrow .views{margin-left:auto;font-size:10px;color:#fff;background:var(--accent);border-radius:4px;padding:1px 5px;}
+.ptrow .views.multi{background:var(--gold);}
+.empty{color:var(--muted);font-size:13px;text-align:center;padding:30px 10px;line-height:1.8;}
+footer{font-size:11px;color:var(--muted);padding:6px 14px;border-top:1px solid var(--line);}
+/* 弹层 */
+.mask{position:fixed;inset:0;background:rgba(20,16,12,.45);display:none;align-items:center;justify-content:center;z-index:50;}
+.mask.show{display:flex;}
+.modal{background:var(--panel);border-radius:12px;padding:20px 22px;width:min(400px,92vw);box-shadow:0 12px 40px rgba(0,0,0,.3);}
+.modal h3{font-size:16px;margin-bottom:14px;}
+.modal label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px;}
+.modal input,.modal textarea{width:100%;border:1px solid var(--line);border-radius:7px;padding:8px 10px;font-size:14px;font-family:inherit;}
+.modal textarea{resize:vertical;min-height:52px;}
+.modal .row{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;}
+.chip{display:inline-block;background:#eee7da;border-radius:5px;padding:2px 8px;font-size:12px;margin-left:6px;color:var(--accent);}
+@media (max-width:820px){aside{width:220px;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>穴位挂图资料库<small>经络穴位排图 · 手动采集</small></h1>
+  <div class="viewtabs" id="viewtabs"></div>
+  <div class="searchbox"><input id="search" placeholder="搜索穴位名 / 经脉…（回车跳到第一个结果）" autocomplete="off"></div>
+  <div class="hbtns">
+    <button class="btn primary" id="addBtn">＋ 采集穴位</button>
+    <button class="btn" id="exportBtn" title="下载 JSON 备份">导出</button>
+    <button class="btn" id="importBtn" title="从 JSON 恢复">导入</button>
+    <a class="btn" href="../index.html" title="返回主库">芳疗库</a>
+    <a class="btn" href="../human-atlas/index.html" title="返回3D模型">3D模型</a>
+    <input type="file" id="importFile" accept=".json" hidden>
+  </div>
+</header>
+<main>
+  <div class="stage" id="stage">
+    <div class="imgwrap" id="imgwrap"><img id="img" alt="经络穴位挂图"></div>
+    <div class="addhint">采集模式：在挂图上点击穴位位置（按住空白拖动可平移，Esc 退出）</div>
+    <div class="zoomhud" id="zoomhud">100%</div>
+  </div>
+  <aside>
+    <h2 id="listTitle">本视图穴位</h2>
+    <div id="list"></div>
+    <footer>点击标记可编辑 · 图源：经络穴位排图（学习自用）<br>数据存浏览器本地，请定期「导出」备份</footer>
+  </aside>
+</main>
+
+<div class="mask" id="mask">
+  <div class="modal">
+    <h3 id="mTitle">采集穴位 <span class="chip" id="mView"></span></h3>
+    <label>穴位名（输入自动补全，选中自动带出经脉与编号）</label>
+    <input id="mName" list="dl" placeholder="如：合谷 / 内庭 / 睛明">
+    <datalist id="dl"></datalist>
+    <label>经脉</label>
+    <input id="mMer" list="ml" placeholder="自动填入，可改">
+    <datalist id="ml"></datalist>
+    <label>备注（定位要点 / 主治，选填）</label>
+    <textarea id="mNote" placeholder="如：手背第1、2掌骨间，第2掌骨桡侧中点"></textarea>
+    <div class="row">
+      <button class="btn danger" id="mDel" hidden>删除</button>
+      <button class="btn" id="mCancel">取消</button>
+      <button class="btn primary" id="mSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ 数据：十四经穴名表（GB/T 12346—2021 顺序，提取自本库3D模型数据） ============ */
+const MERIDIANS=[{"id":"LU","name":"手太阴肺经","chapter":1,"count":11,"names":["中府","云门","天府","侠白","尺泽","孔最","列缺","经渠","太渊","鱼际","少商"]},{"id":"LI","name":"手阳明大肠经","chapter":2,"count":20,"names":["商阳","二间","三间","合谷","阳溪","偏历","温溜","下廉","上廉","手三里","曲池","肘髎","手五里","臂臑","肩髃","巨骨","天鼎","扶突","口禾髎","迎香"]},{"id":"ST","name":"足阳明胃经","chapter":3,"count":45,"names":["承泣","四白","巨髎","地仓","大迎","颊车","下关","头维","人迎","水突","气舍","缺盆","气户","库房","屋翳","膺窗","乳中","乳根","不容","承满","梁门","关门","太乙","滑肉门","天枢","外陵","大巨","水道","归来","气冲","髀关","伏兔","阴市","梁丘","犊鼻","足三里","上巨虚","条口","下巨虚","丰隆","解溪","冲阳","陷谷","内庭","厉兑"]},{"id":"SP","name":"足太阴脾经","chapter":4,"count":21,"names":["隐白","大都","太白","公孙","商丘","三阴交","漏谷","地机","阴陵泉","血海","箕门","冲门","府舍","腹结","大横","腹哀","食窦","天溪","胸乡","周荣","大包"]},{"id":"HT","name":"手少阴心经","chapter":5,"count":9,"names":["极泉","青灵","少海","灵道","通里","阴郄","神门","少府","少冲"]},{"id":"SI","name":"手太阳小肠经","chapter":6,"count":19,"names":["少泽","前谷","后溪","腕骨","阳谷","养老","支正","小海","肩贞","臑俞","天宗","秉风","曲垣","肩外俞","肩中俞","天窗","天容","颧髎","听宫"]},{"id":"BL","name":"足太阳膀胱经","chapter":7,"count":67,"names":["睛明","攒竹","眉冲","曲差","五处","承光","通天","络却","玉枕","天柱","大杼","风门","肺俞","厥阴俞","心俞","督俞","膈俞","肝俞","胆俞","脾俞","胃俞","三焦俞","肾俞","气海俞","大肠俞","关元俞","小肠俞","膀胱俞","中膂俞","白环俞","上髎","次髎","中髎","下髎","会阳","承扶","殷门","浮郄","委阳","委中","附分","魄户","膏肓","神堂","譩譆","膈关","魂门","阳纲","意舍","胃仓","肓门","志室","胞肓","秩边","合阳","承筋","承山","飞扬","跗阳","昆仑","仆参","申脉","金门","京骨","束骨","足通谷","至阴"]},{"id":"KI","name":"足少阴肾经","chapter":8,"count":27,"names":["涌泉","然谷","太溪","大钟","水泉","照海","复溜","交信","筑宾","阴谷","横骨","大赫","气穴","四满","中注","肓俞","商曲","石关","阴都","腹通谷","幽门","步廊","神封","灵墟","神藏","彧中","俞府"]},{"id":"PC","name":"手厥阴心包经","chapter":9,"count":9,"names":["天池","天泉","曲泽","郄门","间使","内关","大陵","劳宫","中冲"]},{"id":"TE","name":"手少阳三焦经","chapter":10,"count":23,"names":["关冲","液门","中渚","阳池","外关","支沟","会宗","三阳络","四渎","天井","清泠渊","消泺","臑会","肩髎","天髎","天牖","翳风","瘈脉","颅息","角孙","耳门","耳和髎","丝竹空"]},{"id":"GB","name":"足少阳胆经","chapter":11,"count":44,"names":["瞳子髎","听会","上关","颔厌","悬颅","悬厘","曲鬓","率谷","天冲","浮白","头窍阴","完骨","本神","阳白","头临泣","目窗","正营","承灵","脑空","风池","肩井","渊腋","辄筋","日月","京门","带脉","五枢","维道","居髎","环跳","风市","中渎","膝阳关","阳陵泉","阳交","外丘","光明","阳辅","悬钟","丘墟","足临泣","地五会","侠溪","足窍阴"]},{"id":"LR","name":"足厥阴肝经","chapter":12,"count":14,"names":["大敦","行间","太冲","中封","蠡沟","中都","膝关","曲泉","阴包","足五里","阴廉","急脉","章门","期门"]},{"id":"GV","name":"督脉","chapter":13,"count":29,"names":["长强","腰俞","腰阳关","命门","悬枢","脊中","中枢","筋缩","至阳","灵台","神道","身柱","陶道","大椎","哑门","风府","脑户","强间","后顶","百会","前顶","囟会","上星","神庭","印堂","素髎","水沟","兑端","龈交"]},{"id":"CV","name":"任脉","chapter":14,"count":24,"names":["会阴","曲骨","中极","关元","石门","气海","阴交","神阙","水分","下脘","建里","中脘","上脘","巨阙","鸠尾","中庭","膻中","玉堂","紫宫","华盖","璇玑","天突","廉泉","承浆"]}];
+const IMG={front:{src:"atlas_images/tu-front.jpg",label:"正面图"},side:{src:"atlas_images/tu-side.jpg",label:"侧面图"},back:{src:"atlas_images/tu-back.jpg",label:"背面图"}};
+const KEY="acupoint_atlas_db_v1";
+/* ============ 状态 ============ */
+let db=load(),view="front",scale=1,ox=0,oy=0,adding=false,selId=null,editId=null,pendingXY=null;
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{points:{}}}catch(e){return{points:{}}}}
+function save(){localStorage.setItem(KEY,JSON.stringify(db))}
+function uid(){return "p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+const $=id=>document.getElementById(id);
+
+/* ============ datalist 与编号映射 ============ */
+const nameMap={};   // 中文名 -> {mer,code}
+MERIDIANS.forEach(m=>m.names.forEach((n,i)=>nameMap[n]={mer:m.name,code:m.id+(i+1)}));
+(function(){const dl=$("dl");MERIDIANS.forEach(m=>m.names.forEach(n=>{const o=document.createElement("option");o.value=n;dl.appendChild(o);}));
+const ml=$("ml");[...MERIDIANS.map(m=>m.name),"经验效穴","耳穴","其他"].forEach(n=>{const o=document.createElement("option");o.value=n;ml.appendChild(o);});})();
+
+/* ============ 视图切换 ============ */
+function renderTabs(){const w=$("viewtabs");w.innerHTML="";Object.entries(IMG).forEach(([k,v])=>{
+  const n=Object.values(db.points).filter(p=>p.view===k).length;
+  const b=document.createElement("button");b.className="vtab"+(k===view?" on":"");
+  b.innerHTML=v.label+'<span class="cnt">'+n+"</span>";b.onclick=()=>{view=k;selId=null;resetView();renderAll();};w.appendChild(b);});}
+
+/* ============ 缩放平移 ============ */
+const stage=$("stage"),wrap=$("imgwrap"),img=$("img");
+function applyT(){wrap.style.transform="translate("+ox+"px,"+oy+"px) scale("+scale+")";
+  $("zoomhud").textContent=Math.round(scale*100)+"%";
+  const s=1/scale;document.querySelectorAll(".pin").forEach(p=>{const inner=p.firstChild;p.style.transform="translate(-50%,-50%) scale("+s+")";});}
+function resetView(){fitImage();applyT();}
+function fitImage(){const w=stage.clientWidth-60,h=stage.clientHeight-60;
+  const r=Math.min(w/img.naturalWidth,h/img.naturalHeight,1.4);
+  scale=r;ox=(stage.clientWidth-img.naturalWidth*r)/2;oy=(stage.clientHeight-img.naturalHeight*r)/2;}
+stage.addEventListener("wheel",e=>{e.preventDefault();
+  const f=e.deltaY<0?1.15:1/1.15,ns=Math.min(8,Math.max(.15,scale*f)),k=ns/scale;
+  const r=stage.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+  ox=mx-(mx-ox)*k;oy=my-(my-oy)*k;scale=ns;applyT();},{passive:false});
+let drag=null;
+stage.addEventListener("pointerdown",e=>{
+  if(e.target.closest(".pin"))return;
+  if(adding){addAt(e);return;}
+  drag={x:e.clientX,y:e.clientY,ox,oy};stage.classList.add("dragging");stage.setPointerCapture(e.pointerId);});
+stage.addEventListener("pointermove",e=>{if(!drag)return;ox=drag.ox+e.clientX-drag.x;oy=drag.oy+e.clientY-drag.y;applyT();});
+stage.addEventListener("pointerup",()=>{drag=null;stage.classList.remove("dragging");});
+
+/* ============ 标记渲染 ============ */
+function renderPins(){wrap.querySelectorAll(".pin").forEach(p=>p.remove());
+  Object.entries(db.points).forEach(([id,p])=>{
+    if(p.view!==view)return;
+    const el=document.createElement("div");el.className="pin"+(id===selId?" sel":"");
+    el.style.left=p.x+"%";el.style.top=p.y+"%";
+    const d=document.createElement("div");d.className="dot";if(id===selId)d.classList.add("pulse");
+    const l=document.createElement("span");l.className="lbl"+(p.x>82?" r":"");l.textContent=p.name;
+    el.appendChild(d);el.appendChild(l);
+    el.title=(nameMap[p.name]?nameMap[p.name].code+" ":"")+p.name+(p.note?"\n"+p.note:"");
+    el.onclick=ev=>{ev.stopPropagation();openEdit(id);};
+    wrap.appendChild(el);});applyT();}
+
+/* ============ 采集 / 编辑 ============ */
+function addAt(e){const r=wrap.getBoundingClientRect();
+  const x=+(((e.clientX-r.left)/r.width)*100).toFixed(2),y=+(((e.clientY-r.top)/r.height)*100).toFixed(2);
+  if(x<0||x>100||y<0||y>100)return;
+  pendingXY={x,y};openModal(null);}
+function openModal(id){editId=id;
+  const p=id?db.points[id]:null;
+  $("mTitle").innerHTML=(p?"编辑穴位":"采集穴位")+' <span class="chip">'+IMG[view].label+" "+(p?p.x+"%, "+p.y+"%":"")+"</span>";
+  $("mName").value=p?p.name:"";$("mMer").value=p?p.mer:"";$("mNote").value=p?p.note||"":"";
+  $("mDel").hidden=!p;$("mask").classList.add("show");setTimeout(()=>$("mName").focus(),50);}
+function closeModal(){$("mask").classList.remove("show");editId=null;pendingXY=null;}
+$("mName").addEventListener("input",()=>{const m=nameMap[$("mName").value.trim()];
+  if(m){$("mMer").value=m.mer;if(!$("mNote").value)$("mNote").value=m.code;}});
+$("mCancel").onclick=closeModal;
+$("mask").addEventListener("pointerdown",e=>{if(e.target===$("mask"))closeModal();});
+$("mDel").onclick=()=>{if(editId&&confirm("确定删除「"+db.points[editId].name+"」？")){delete db.points[editId];save();closeModal();renderAll();}};
+$("mSave").onclick=()=>{
+  const name=$("mName").value.trim();if(!name){$("mName").focus();return;}
+  const rec={name,mer:$("mMer").value.trim()||"未归类",note:$("mNote").value.trim(),view};
+  if(editId){Object.assign(db.points[editId],rec);}
+  else{if(!pendingXY)return;db.points[uid()]={...rec,x:pendingXY.x,y:pendingXY.y,at:Date.now()};}
+  save();closeModal();renderAll();};
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){if($("mask").classList.contains("show"))closeModal();else if(adding)toggleAdd(false);}
+  if(e.key==="Enter"&&$("mask").classList.contains("show")&&document.activeElement!==$("mNote"))$("mSave").click();});
+function toggleAdd(v){adding=v===undefined?!adding:v;
+  $("addBtn").classList.toggle("off",adding);
+  $("addBtn").textContent=adding?"✕ 退出采集":"＋ 采集穴位";
+  stage.classList.toggle("adding",adding);}
+$("addBtn").onclick=()=>toggleAdd();
+
+/* ============ 侧栏列表 ============ */
+function renderList(q){
+  const list=$("list");q=(q||"").trim().toLowerCase();
+  let pts=Object.entries(db.points).map(([id,p])=>({id,...p}));
+  if(q)pts=pts.filter(p=>(p.name+" "+p.mer+" "+(nameMap[p.name]?nameMap[p.name].code:"")+" "+(p.note||"")).toLowerCase().includes(q));
+  $("listTitle").textContent=q?("搜索结果 "+pts.length):("本视图穴位 · "+IMG[view].label);
+  if(!pts.length){list.innerHTML='<div class="empty">'+(q?"没有匹配的穴位":"本视图还没采集穴位<br>点右上「＋ 采集穴位」开始打点")+"</div>";return;}
+  pts.sort((a,b)=>(a.mer+b.name).localeCompare(b.mer+b.name,"zh"));
+  const by={};pts.forEach(p=>{(by[p.mer]=by[p.mer]||[]).push(p);});
+  list.innerHTML="";Object.entries(by).forEach(([mer,arr])=>{
+    const d=document.createElement("details");d.className="mgroup";d.open=!!q||mer.length<20;
+    const s=document.createElement("summary");s.innerHTML=mer+'<span class="n">'+arr.length+"</span>";d.appendChild(s);
+    arr.forEach(p=>{const r=document.createElement("div");r.className="ptrow";
+      const code=nameMap[p.name]?nameMap[p.name].code:"";
+      r.innerHTML='<span class="code">'+(code||"—")+'</span><span>'+p.name+'</span>'+
+        (q?'<span class="views'+(p.view!==view?" multi":"")+'">'+IMG[p.view].label+"</span>":"");
+      r.title=(p.note||"")+"（"+IMG[p.view].label+" "+p.x+"%, "+p.y+"%）";
+      r.onclick=()=>locate(p.id);d.appendChild(r);});
+    list.appendChild(d);});}
+function locate(id){const p=db.points[id];if(!p)return;
+  selId=id;if(adding)toggleAdd(false);
+  if(view!==p.view){view=p.view;resetView();}renderTabs();
+  /* 平移缩放使该点居中, 至少1.6x */
+  const s=Math.min(2.4,Math.max(1.6,scale*1.8)),iw=img.naturalWidth*scale,ih=img.naturalHeight*scale;
+  const px=img.naturalWidth*p.x/100,py=img.naturalHeight*p.y/100;
+  ox=stage.clientWidth/2-px*s;oy=stage.clientHeight/2-py*s;scale=s;applyT();renderPins();}
+
+/* ============ 搜索 ============ */
+$("search").addEventListener("input",e=>renderList(e.target.value));
+$("search").addEventListener("keydown",e=>{
+  if(e.key==="Enter"){const first=$("list").querySelector(".ptrow");if(first)first.click();e.target.select();}});
+
+/* ============ 导入导出 ============ */
+$("exportBtn").onclick=()=>{
+  const blob=new Blob([JSON.stringify(db,null,1)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="穴位挂图资料_"+new Date().toISOString().slice(0,10)+".json";a.click();URL.revokeObjectURL(a.href);};
+$("importBtn").onclick=()=>$("importFile").click();
+$("importFile").addEventListener("change",e=>{
+  const f=e.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{try{
+    const d=JSON.parse(rd.result);
+    if(!d.points)throw Error("格式不对：缺少 points");
+    const n=Object.keys(d.points).length;
+    if(!confirm("导入 "+n+" 个穴位记录，与现有数据合并？"))return;
+    Object.assign(db.points,d.points);save();renderAll();
+  }catch(err){alert("导入失败："+err.message);}};
+  rd.readAsText(f);e.target.value="";});
+
+/* ============ 初始化 ============ */
+function renderAll(){renderTabs();renderPins();renderList($("search").value);}
+img.onload=()=>{resetView();renderPins();};
+img.src=IMG[view].src;
+renderAll();
+window.addEventListener("resize",()=>{resetView();});
+</script>
+</body>
+</html>
