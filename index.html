@@ -356,7 +356,7 @@
   .entry-head{font-size:17px;font-weight:700;color:#7a4a16;background:#fff7ef;
     border-bottom:1px solid #f3d9bf;padding:15px 20px;border-radius:16px 16px 0 0;
     display:flex;align-items:center;gap:8px;}
-  .entry-body{padding:14px 20px;font-size:13.5px;line-height:1.66;color:#333;}
+  .entry-body{padding:14px 20px;font-size:13.5px;line-height:1.66;color:#333;overflow-x:clip;}
   .entry-lead{margin:0 0 12px;color:#555;font-weight:600;}
   .entry-list{margin:0;padding-left:20px;}
   .entry-list li{margin:9px 0;}
@@ -621,7 +621,7 @@
   <!-- 经络 3D 可视化（独立页面，iframe 嵌入，紧邻剂量计算） -->
   <section id="tab-meridian" style="display:none;">
     <div class="hint" style="margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><span>🌐 可拖拽旋转、双指/滚轮缩放的 3D 人体经络模型（十四经穴位标注与学习，可开关骨骼/肌肉等系统、点击穴位查看）。手机端同样可触摸操作。<b>需联网</b>加载 3D 引擎。</span><a class="btn ghost sm" href="acupoint_atlas.html" target="_blank" style="margin-left:auto;white-space:nowrap;">📌 穴位挂图库（手动采集穴位）</a></div>
-    <iframe src="human-atlas/index.html" style="width:100%;height:78vh;border:0;border-radius:10px;background:#f5f6f8;" title="经络3D·十四经穴位"></iframe>
+    <iframe src="human-atlas/index.html" style="width:100vw;position:relative;left:50%;margin-left:-50vw;height:90vh;border:0;background:#f5f6f8;" title="经络3D·十四经穴位"></iframe>
   </section>
 
   <!-- 精油档案 -->
