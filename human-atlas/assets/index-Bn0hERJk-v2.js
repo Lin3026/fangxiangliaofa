@@ -3697,3 +3697,25 @@ function hook(){
 if(!hook()){var mo=new MutationObserver(function(mu,obs){if(hook())obs.disconnect();});mo.observe(document.body,{childList:true,subtree:true});}
 setInterval(sync,1500);
 }catch(e){}})();
+
+;/* 底部控制栏移除 + 尺子测量开关置于定位卡下方 */(function(){try{
+if(document.getElementById("__acuRulerBtn"))return;
+var st=document.createElement("style");st.textContent=[
+".bottom-dock{display:none !important;}",
+"#__acuRulerBtn{position:fixed;top:190px;right:470px;z-index:60;background:#fff;border:1px solid #cddbcf;",
+"border-radius:999px;padding:8px 16px;font:12.5px/1.2 system-ui,sans-serif;color:#29483d;cursor:pointer;",
+"box-shadow:0 3px 12px rgba(32,62,48,.12);}",
+"#__acuRulerBtn:hover{background:#edf4e9;}",
+"@media(max-width:1100px){#__acuRulerBtn{display:none !important;}}"
+].join("");document.head.appendChild(st);
+var btn=document.createElement("button");btn.id="__acuRulerBtn";btn.type="button";btn.textContent="📏 尺子测量：关";
+btn.onclick=function(){var ed=window.__acupointEditor;if(ed){var t=ed.toggleRuler();btn.textContent="📏 尺子测量："+(t?"开":"关");}};
+document.body.appendChild(btn);
+function syncR(){
+ var ed=window.__acupointEditor;if(ed)btn.textContent="📏 尺子测量："+(ed.isRulerEnabled()?"开":"关");
+ var card=document.getElementById("__acuLocCard");
+ if(card&&card.classList.contains("show")){var r=card.getBoundingClientRect();btn.style.top=Math.round(r.bottom+10)+"px";btn.style.right=card.style.right||"470px";}
+ else{btn.style.top="120px";btn.style.right=(card&&card.style.right)||"470px";}
+}
+setInterval(syncR,800);syncR();
+}catch(e){}})();
