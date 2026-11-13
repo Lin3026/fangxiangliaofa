@@ -2257,7 +2257,7 @@ window.showEntryModal=showEntryModal;
        {key:"bao_tai",    label:"舌根剥苔/无苔",disease:"肾阴亏虚",              symptom:"主症：腰膝酸软、潮热盗汗；兼症：五心烦热、眩晕耳鸣、失眠多梦、咽干、男子遗精、女子月经量少", tags:["肾阴虚","剥苔","无苔","阴虚","虚"], tizhi:["阴虚质"]},
        {key:"liewen",     label:"舌根裂纹",     disease:"肾精亏虚",              symptom:"主症：腰膝酸软、耳鸣健忘；兼症：头晕目眩、发脱齿摇、遗精早泄、夜尿频多", tags:["肾精亏虚","裂纹","精亏","肾阴虚","虚"], tizhi:["阴虚质"]},
        {key:"danbai_pang",label:"舌根淡白胖大", disease:"肾阳虚衰",              symptom:"主症：畏寒肢冷、夜尿频多；兼症：腰膝冷痛、精神不振、小便清长、下肢水肿、性欲减退", tags:["肾阳虚","淡白","胖大","阳虚","寒"], tizhi:["阳虚质"]},
-       {key:"aoxian",     label:"舌根凹陷",     disease:"肾气亏虚",              symptom:"主症：腰膝酸软、气短乏力；兼症：夜尿多、耳鸣、遗尿、齿松发脱、动则汗出。注：舌根凹陷主肾气虚（气虚质）；若兼畏寒肢冷、夜尿清长、舌色淡白湿润，则病久及阳、兼见阳虚质", tags:["肾气虚","凹陷","气虚","虚"], tizhi:["气虚质","阳虚质"]},
+       {key:"aoxian",     label:"舌根凹陷",     disease:"肾气亏虚",              symptom:"主症：腰膝酸软、气短乏力；兼症：夜尿多、耳鸣、遗尿、齿松发脱、动则汗出。注：凹陷属虚象，舌根凹陷多见肾气亏虚（气虚质）；若兼畏寒肢冷、舌淡白胖大湿润则兼阳虚质，若舌红少苔、五心烦热则兼阴虚质，需结合舌色苔质与症状综合判断", tags:["肾气虚","凹陷","气虚","虚"], tizhi:["气虚质","阳虚质"]},
        {key:"tuqi",       label:"舌根凸起",     disease:"下焦气滞",              symptom:"主症：小腹胀痛、腰骶胀闷；兼症：便秘、小便不利、下肢沉重、情志不畅", tags:["下焦气滞","凸起","气滞","胀满"], tizhi:["气郁质"]},
        {key:"qingzi",     label:"舌根青紫/瘀点",disease:"肾络瘀阻",              symptom:"主症：腰部刺痛、痛处固定；兼症：面色晦暗、夜尿涩痛、肌肤甲错、舌下络脉青紫", tags:["血瘀","肾络瘀阻","青紫","瘀","痛"], tizhi:["血瘀质"]}
      ]}
@@ -3608,7 +3608,7 @@ window.showEntryModal=showEntryModal;
   if(qInput){ qInput.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); runSearch(); } }); }
 
   // 显示当前版本号（用户可肉眼判断是否最新）
-  try{ var t=document.getElementById('buildTag'); if(t) t.textContent='build 20261113a · 更新于 2026-11-13 · 舌面分区体质判断审校：凹陷主气虚，脾胃区凹陷删除阳虚误标'; }catch(e){}
+  try{ var t=document.getElementById('buildTag'); if(t) t.textContent='build 20261113b · 更新于 2026-11-13 · 查证修正：舌面凹陷主虚（非专主气虚），体质需结合舌色苔质症状综合判断'; }catch(e){}
 
   // URL 加 ?mb=1 跳过须知弹窗（便于调试/截图/分享特定步骤截图）
   try{
