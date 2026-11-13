@@ -2286,8 +2286,8 @@ window.showEntryModal=showEntryModal;
       options:[
         {key:"dan_hong", label:"淡红舌（正常）", normal:true, tags:["正常","淡红","健康"], tizhi:["平和质"]},
         {key:"danbai",   label:"淡白舌",        tags:["淡白","虚寒","阳虚","血虚","虚","寒","贫血","畏寒怕冷","月经量少","乏力"], tizhi:["阳虚质","气虚质"]},
-        {key:"hong",     label:"红舌",          tags:["红","热","实热","阴虚火旺","上火","发热","心烦失眠","口干"], tizhi:["湿热质","阴虚质"]},
-        {key:"jiang",    label:"绛舌",          tags:["绛","热盛","营血热","阴虚火旺","高热","热病后期","夜间发热"], tizhi:["血瘀质","阴虚质"]},
+        {key:"hong",     label:"红舌",          tags:["红","热","实热","阴虚火旺","上火","发热","心烦失眠","口干"], tizhi:["湿热质","阴虚质"], note:"红舌主热——苔黄腻为实热/湿热，少苔为阴虚火旺，需结合舌苔判断"},
+        {key:"jiang",    label:"绛舌",          tags:["绛","热盛","营血热","阴虚火旺","高热","热病后期","夜间发热"], tizhi:["阴虚质"], note:"绛舌主热入营血、阴虚火旺（深红主热盛）；血瘀看青紫舌，不看绛"},
         {key:"qingzi",   label:"青紫舌",        tags:["青紫","血瘀","寒凝血瘀","气滞","痛经","固定刺痛","面色晦暗"], tizhi:["血瘀质"]}
       ]},
     {key:"tai",  title:"② 望舌苔 · 苔色苔质", short:"望舌苔", desc:"看舌面苔的颜色、厚薄、润燥与质地。正常 = 薄白苔。",
@@ -2296,7 +2296,7 @@ window.showEntryModal=showEntryModal;
         {key:"hou",    label:"厚苔",          tags:["厚","厚腻","积食","痰湿","消化不良","胃胀","食欲差"], tizhi:["痰湿质","湿热质"]},
         {key:"zao",    label:"燥苔",          tags:["燥","伤津","阴虚","口干","便秘","干咳"], tizhi:["阴虚质"]},
         {key:"huang",  label:"黄苔",          tags:["黄苔","苔黄","热","湿热","口苦","口臭","胃肠积热"], tizhi:["湿热质"]},
-        {key:"huihei", label:"灰黑苔",        tags:["灰黑","热极","寒极","病情较重","久病"], tizhi:["湿热质","血瘀质"]},
+        {key:"huihei", label:"灰黑苔",        tags:["灰黑","热极","寒极","病情较重","久病"], tizhi:["湿热质","血瘀质","阳虚质"], note:"黑苔润滑为寒极（阳虚），黑苔干燥为热极；灰黑苔多属病情较重，建议就医"},
         {key:"ni",     label:"腻苔",          tags:["腻","厚腻","痰湿","湿","头身困重","大便黏腻","口黏"], tizhi:["痰湿质","湿热质"]},
         {key:"bo",     label:"剥苔（花剥）",   tags:["剥苔","少苔","阴虚","胃阴不足","消化不良","口干"], tizhi:["阴虚质"]}
       ]},
@@ -2312,10 +2312,10 @@ window.showEntryModal=showEntryModal;
         {key:"lao",     label:"老舌",        tags:["老舌","实热","邪盛","高热","大便干结","口干"], tizhi:["湿热质"]},
         {key:"nen",     label:"嫩舌",        tags:["嫩舌","虚","阳虚","气血不足","畏寒怕冷","易疲劳","面色苍白"], tizhi:["阳虚质","气虚质"]},
         {key:"pangda",  label:"胖大齿痕舌",   tags:["胖大","齿痕","痰湿","脾虚","虚","水肿","腹胀","大便溏","身体困重","脾虚湿盛","水湿"], tizhi:["痰湿质","阳虚质","气虚质"]},
-        {key:"shoubao", label:"瘦薄舌",      tags:["瘦薄","血虚","阴虚","消瘦","失眠多梦","心悸","手足心热"], tizhi:["阴虚质"]},
-        {key:"liewen",  label:"裂纹舌",      tags:["裂纹","阴虚","伤津","口干","大便干","胃阴不足"], tizhi:["阴虚质"]},
-        {key:"mangci",  label:"芒刺舌",      tags:["热盛","心火","胃热","芒刺","红","口舌生疮","咽喉肿痛","牙龈肿痛"], tizhi:["湿热质","阴虚质"]},
-        {key:"qiangying",label:"强硬舌",     tags:["强硬","热闭","风动","高热","神昏","中风"], tizhi:["气郁质"]},
+        {key:"shoubao", label:"瘦薄舌",      tags:["瘦薄","血虚","阴虚","消瘦","失眠多梦","心悸","手足心热"], tizhi:["阴虚质","气虚质"], note:"瘦薄主气血两虚、阴虚火旺；血虚不在九体质内，映射为气虚+阴虚"},
+        {key:"liewen",  label:"裂纹舌",      tags:["裂纹","阴虚","伤津","口干","大便干","胃阴不足"], tizhi:["阴虚质"], note:"先天性裂纹无伴随症状不属病态；裂纹亦见于血虚不润、脾虚湿浸，需结合全身症状合参"},
+        {key:"mangci",  label:"芒刺舌",      tags:["热盛","心火","胃热","芒刺","红","口舌生疮","咽喉肿痛","牙龈肿痛"], tizhi:["湿热质"], note:"芒刺主热邪亢盛（实热为主）；若红绛少津方考虑热盛伤阴"},
+        {key:"qiangying",label:"强硬舌",     tags:["强硬","热闭","风动","高热","神昏","中风"], tizhi:["气郁质"], note:"⚠ 强硬舌多为急重症（高热神昏/中风先兆/风痰阻络），首要建议立即就医，体质倾向仅作参考"},
         {key:"weiruan", label:"痿软舌",      tags:["痿软","阴虚","气血两虚","肢体无力","肌肉萎缩","久病体虚"], tizhi:["阴虚质","气虚质"]},
         {key:"suoduan", label:"缩短舌",      tags:["缩短","紧缩","重症","痿软","虚","实","寒凝","危急重症"], tizhi:["气虚质","阳虚质"]}
       ]},
@@ -2432,7 +2432,7 @@ window.showEntryModal=showEntryModal;
               '<div class="ob-label">'+escapeHtml(o.label)+'</div>'+
               '<div class="ob-disease">'+escapeHtml(o.disease)+'</div>'+
               '<div class="ob-symptom">'+escapeHtml(o.symptom)+'</div>'+
-              (o.tizhi&&o.tizhi.length?'<div class="ob-tizhi">体质倾向：'+escapeHtml(o.tizhi.join("、"))+'</div>':'')+
+              (o.tizhi&&o.tizhi.length?'<div class="ob-tizhi">体质倾向：'+escapeHtml(o.tizhi.join("、"))+'</div>':'')+(o.note?'<div style="font-size:10.5px;color:#8a6d1a;margin-top:3px;line-height:1.5;">📌 '+escapeHtml(o.note)+'</div>':'')+
               '</div>';
       });
       html+='</div></div>';
@@ -2477,6 +2477,7 @@ window.showEntryModal=showEntryModal;
             '<div>'+escapeHtml(o.label)+(o.normal?' <span class="dz-oc-tags">（正常）</span>':'')+'</div>';
       if(o.tags&&o.tags.length) html+='<div class="dz-oc-tags">'+escapeHtml(o.tags.join("、"))+'</div>';
       if(o.tizhi&&o.tizhi.length) html+='<div class="dz-oc-tizhi">体质倾向：'+escapeHtml(o.tizhi.join("、"))+'</div>';
+      if(o.note) html+='<div style="font-size:11px;color:#8a6d1a;margin-top:4px;line-height:1.6;">📌 '+escapeHtml(o.note)+'</div>';
       var p=DZ_PHOTO_MAP[key]?DZ_PHOTO_MAP[key][o.key]:null;
       if(p){
         var sp=escapeAttr(p), sn=escapeAttr(o.label);
@@ -2986,7 +2987,7 @@ window.showEntryModal=showEntryModal;
               '<div class="ob-label">'+escapeHtml(o.label)+'</div>'+
               '<div class="ob-disease">'+escapeHtml(o.disease)+'</div>'+
               '<div class="ob-symptom">'+escapeHtml(o.symptom)+'</div>'+
-              (o.tizhi&&o.tizhi.length?'<div class="ob-tizhi">体质倾向：'+escapeHtml(o.tizhi.join("、"))+'</div>':'')+
+              (o.tizhi&&o.tizhi.length?'<div class="ob-tizhi">体质倾向：'+escapeHtml(o.tizhi.join("、"))+'</div>':'')+(o.note?'<div style="font-size:10.5px;color:#8a6d1a;margin-top:3px;line-height:1.5;">📌 '+escapeHtml(o.note)+'</div>':'')+
               '</div>';
       });
       html+='</div></div>';
@@ -3005,6 +3006,7 @@ window.showEntryModal=showEntryModal;
             '<div>'+escapeHtml(o.label)+(o.normal?' <span class="dz-oc-tags">（正常）</span>':'')+'</div>';
       if(o.tags&&o.tags.length) html+='<div class="dz-oc-tags">'+escapeHtml(o.tags.join("、"))+'</div>';
       if(o.tizhi&&o.tizhi.length) html+='<div class="dz-oc-tizhi">体质倾向：'+escapeHtml(o.tizhi.join("、"))+'</div>';
+      if(o.note) html+='<div style="font-size:11px;color:#8a6d1a;margin-top:4px;line-height:1.6;">📌 '+escapeHtml(o.note)+'</div>';
       var p=DZ_PHOTO_MAP[key]?DZ_PHOTO_MAP[key][o.key]:null;
       if(p){
         var sp=escapeAttr(p), sn=escapeAttr(o.label);
@@ -3608,7 +3610,7 @@ window.showEntryModal=showEntryModal;
   if(qInput){ qInput.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); runSearch(); } }); }
 
   // 显示当前版本号（用户可肉眼判断是否最新）
-  try{ var t=document.getElementById('buildTag'); if(t) t.textContent='build 20261113b · 更新于 2026-11-13 · 查证修正：舌面凹陷主虚（非专主气虚），体质需结合舌色苔质症状综合判断'; }catch(e){}
+  try{ var t=document.getElementById('buildTag'); if(t) t.textContent='build 20261113c · 更新于 2026-11-13 · 舌诊全系统审校：7处形态→体质判断加「需合参」标注，修正绛舌/芒刺/灰黑苔/瘦薄误判'; }catch(e){}
 
   // URL 加 ?mb=1 跳过须知弹窗（便于调试/截图/分享特定步骤截图）
   try{
